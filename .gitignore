@@ -1,0 +1,10 @@
+# Directories
+.kdev4/
+.vscode/
+build/
+
+# Files
+*.kdev4
+*.exe
+*.lib
+*.user
