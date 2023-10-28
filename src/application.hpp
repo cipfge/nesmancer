@@ -1,5 +1,6 @@
 #pragma once
 
+#include "global.hpp"
 #include <string>
 #include <SDL.h>
 
@@ -18,8 +19,8 @@ private:
     SDL_GameController *m_controller = nullptr;
 
     std::string m_window_title = "NES";
-    int m_window_width = (256 * 2);
-    int m_window_height = (240 * 2);
+    int m_window_width = EMU_DEFAULT_WINDOW_WIDTH;
+    int m_window_height = EMU_DEFAULT_WINDOW_HEIGHT;
     bool m_running = false;
 
     bool init();

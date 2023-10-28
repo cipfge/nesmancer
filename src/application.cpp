@@ -1,9 +1,15 @@
 #include "application.hpp"
-#include "global.hpp"
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 #include <iostream>
 
 Application::~Application()
 {
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
     SDL_GameControllerClose(m_controller);
     SDL_DestroyRenderer(m_renderer);
     SDL_DestroyWindow(m_window);
@@ -65,6 +71,17 @@ bool Application::init()
         return false;
     }
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO& imgui_io = ImGui::GetIO();
+    imgui_io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    imgui_io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    imgui_io.IniFilename = nullptr;
+
+    ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer);
+    ImGui_ImplSDLRenderer2_Init(m_renderer);
+
     search_controller();
 
     return true;
@@ -77,11 +94,8 @@ void Application::search_controller()
         if (SDL_IsGameController(i))
         {
             m_controller = SDL_GameControllerOpen(i);
-            if (!m_controller)
-            {
-                std::cerr << "SDL_GameControllerOpen error: " << SDL_GetError() << "\n";
-                continue;
-            }
+            if (m_controller)
+                return;
         }
     }
 }
@@ -92,6 +106,8 @@ void Application::process_events()
 
     while (SDL_PollEvent(&event))
     {
+        ImGui_ImplSDL2_ProcessEvent(&event);
+
         switch(event.type)
         {
         case SDL_QUIT:
@@ -101,7 +117,7 @@ void Application::process_events()
 
         case SDL_KEYDOWN:
         case SDL_KEYUP:
-            process_controller_event(event);
+            process_keyboard_event(event);
             break;
 
         case SDL_CONTROLLERDEVICEADDED:
@@ -171,6 +187,17 @@ void Application::process_window_event(const SDL_Event& event)
 void Application::render()
 {
     SDL_RenderClear(m_renderer);
+
+    ImGui_ImplSDLRenderer2_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+
+    ImGui::NewFrame();
+    // TODO: User interface
+    ImGui::EndFrame();
+
+    ImGui::Render();
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+
     // TODO: Draw screen buffer
     SDL_RenderPresent(m_renderer);
 }
