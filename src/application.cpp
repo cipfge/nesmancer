@@ -89,14 +89,34 @@ bool Application::init()
 
 void Application::search_controller()
 {
-    for (int i = 0; i < SDL_NumJoysticks(); i++)
+    for (int id = 0; id < SDL_NumJoysticks(); id++)
     {
-        if (SDL_IsGameController(i))
+        if (SDL_IsGameController(id))
         {
-            m_controller = SDL_GameControllerOpen(i);
+            m_controller = SDL_GameControllerOpen(id);
             if (m_controller)
                 return;
         }
+    }
+}
+
+void Application::controller_connected(SDL_JoystickID id)
+{
+    if (!m_controller)
+    {
+        m_controller = SDL_GameControllerOpen(id);
+        if (!m_controller)
+            std::cerr << "SDL_GameControllerOpen error: " << SDL_GetError() << "\n";
+    }
+}
+
+void Application::controller_disconnected(SDL_JoystickID id)
+{
+    if (m_controller &&
+        SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_controller)) == id)
+    {
+        SDL_GameControllerClose(m_controller);
+        search_controller();
     }
 }
 
@@ -121,7 +141,13 @@ void Application::process_events()
             break;
 
         case SDL_CONTROLLERDEVICEADDED:
+            controller_connected(event.cdevice.which);
+            break;
+
         case SDL_CONTROLLERDEVICEREMOVED:
+            controller_disconnected(event.cdevice.which);
+            break;
+
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
             process_controller_event(event);
@@ -145,34 +171,8 @@ void Application::process_keyboard_event(const SDL_Event& event)
 
 void Application::process_controller_event(const SDL_Event& event)
 {
-    switch (event.type)
-    {
-    case SDL_CONTROLLERDEVICEADDED:
-        if (!m_controller)
-        {
-            m_controller = SDL_GameControllerOpen(event.cdevice.which);
-            if (!m_controller)
-                std::cerr << "SDL_GameControllerOpen error: " << SDL_GetError() << "\n";
-        }
-        break;
-
-    case SDL_CONTROLLERDEVICEREMOVED:
-        if (m_controller &&
-            event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_controller)))
-        {
-            SDL_GameControllerClose(m_controller);
-            search_controller();
-        }
-        break;
-
-    case SDL_CONTROLLERBUTTONDOWN:
-    case SDL_CONTROLLERBUTTONUP:
-        // TODO: Controller events
-        break;
-
-    default:
-        break;
-    }
+    // TODO: Controller events
+    EMU_UNUSED(event);
 }
 
 void Application::process_window_event(const SDL_Event& event)

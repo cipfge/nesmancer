@@ -25,6 +25,8 @@ private:
 
     bool init();
     void search_controller();
+    void controller_connected(SDL_JoystickID id);
+    void controller_disconnected(SDL_JoystickID id);
     void process_events();
     void process_keyboard_event(const SDL_Event& event);
     void process_controller_event(const SDL_Event& event);
