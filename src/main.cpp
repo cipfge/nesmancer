@@ -1,5 +1,6 @@
 #include "global.hpp"
 #include "platform.hpp"
+#include "application.hpp"
 #include <iostream>
 
 #ifdef EMU_PLATFORM_WINDOWS
@@ -7,11 +8,8 @@
 
 int emu_main(int argc, char* argv[])
 {
-    EMU_UNUSED(argc);
-    EMU_UNUSED(argv);
-
-    std::cout << "NES start\n";
-    return 0;
+    Application nes;
+    return nes.run(argc, argv);
 }
 
 #ifdef EMU_PLATFORM_WINDOWS

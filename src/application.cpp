@@ -1,0 +1,176 @@
+#include "application.hpp"
+#include "global.hpp"
+#include <iostream>
+
+Application::~Application()
+{
+    SDL_GameControllerClose(m_controller);
+    SDL_DestroyRenderer(m_renderer);
+    SDL_DestroyWindow(m_window);
+    SDL_Quit();
+}
+
+int Application::run(int argc, char* argv[])
+{
+    // TODO: Process application arguments
+    EMU_UNUSED(argc);
+    EMU_UNUSED(argv);
+
+    m_running = init();
+    if (!m_running)
+        return -1;
+
+    while (m_running)
+    {
+        process_events();
+        render();
+    }
+
+    return 0;
+}
+
+void Application::set_window_title(const std::string& title)
+{
+    m_window_title = title;
+    if (m_window)
+        SDL_SetWindowTitle(m_window, m_window_title.c_str());
+}
+
+bool Application::init()
+{
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+    {
+        std::cerr << "SDL_Init error: " << SDL_GetError() << "\n";
+        return false;
+    }
+
+    m_window = SDL_CreateWindow(m_window_title.c_str(),
+                                SDL_WINDOWPOS_CENTERED,
+                                SDL_WINDOWPOS_CENTERED,
+                                m_window_width,
+                                m_window_height,
+                                SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    if (!m_window)
+    {
+        std::cerr << "SDL_CreateWindow error: " << SDL_GetError() << "\n";
+        return false;
+    }
+
+    m_renderer = SDL_CreateRenderer(m_window,
+                                    -1, // Initialize the first rendering driver supporting the requested flags
+                                    SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!m_renderer)
+    {
+        std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << "\n";
+        return false;
+    }
+
+    search_controller();
+
+    return true;
+}
+
+void Application::search_controller()
+{
+    for (int i = 0; i < SDL_NumJoysticks(); i++)
+    {
+        if (SDL_IsGameController(i))
+        {
+            m_controller = SDL_GameControllerOpen(i);
+            if (!m_controller)
+            {
+                std::cerr << "SDL_GameControllerOpen error: " << SDL_GetError() << "\n";
+                continue;
+            }
+        }
+    }
+}
+
+void Application::process_events()
+{
+    SDL_Event event{};
+
+    while (SDL_PollEvent(&event))
+    {
+        switch(event.type)
+        {
+        case SDL_QUIT:
+            // TODO: Confirm application exit
+            m_running = false;
+            break;
+
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+            process_controller_event(event);
+            break;
+
+        case SDL_CONTROLLERDEVICEADDED:
+        case SDL_CONTROLLERDEVICEREMOVED:
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
+            process_controller_event(event);
+            break;
+
+        case SDL_WINDOWEVENT:
+            process_window_event(event);
+            break;
+
+        default:
+            break;
+        }
+    }
+}
+
+void Application::process_keyboard_event(const SDL_Event& event)
+{
+    // TODO: Keyboard events
+    EMU_UNUSED(event);
+}
+
+void Application::process_controller_event(const SDL_Event& event)
+{
+    switch (event.type)
+    {
+    case SDL_CONTROLLERDEVICEADDED:
+        if (!m_controller)
+        {
+            m_controller = SDL_GameControllerOpen(event.cdevice.which);
+            if (!m_controller)
+                std::cerr << "SDL_GameControllerOpen error: " << SDL_GetError() << "\n";
+        }
+        break;
+
+    case SDL_CONTROLLERDEVICEREMOVED:
+        if (m_controller &&
+            event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_controller)))
+        {
+            SDL_GameControllerClose(m_controller);
+            search_controller();
+        }
+        break;
+
+    case SDL_CONTROLLERBUTTONDOWN:
+    case SDL_CONTROLLERBUTTONUP:
+        // TODO: Controller events
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Application::process_window_event(const SDL_Event& event)
+{
+    if (event.window.event == SDL_WINDOWEVENT_RESIZED)
+    {
+        m_window_width = event.window.data1;
+        m_window_height = event.window.data2;
+    }
+}
+
+void Application::render()
+{
+    SDL_RenderClear(m_renderer);
+    // TODO: Draw screen buffer
+    SDL_RenderPresent(m_renderer);
+}

@@ -1,6 +1,11 @@
+find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
+find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
+
 set(EMU_SOURCE_FILES
     "core/global.hpp"
     "platform/platform.hpp"
+    "application.cpp"
+    "application.hpp"
     "main.cpp")
 
 if (WIN32)
@@ -13,10 +18,15 @@ endif()
 
 add_executable(nes ${EMU_APPLICATION_TYPE} ${EMU_SOURCE_FILES})
 
+target_link_libraries(nes PRIVATE SDL2::SDL2)
+if (TARGET SDL2::SDL2main)
+    target_link_libraries(nes PRIVATE SDL2::SDL2main)
+endif()
+
 target_include_directories(nes PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/core"
-    "${CMAKE_CURRENT_SOURCE_DIR}/platform/")
+    "${CMAKE_CURRENT_SOURCE_DIR}/platform")
 
 set_target_properties(nes PROPERTIES
     CXX_STANDARD 17
