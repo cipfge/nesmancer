@@ -2,7 +2,11 @@ find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
 find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
 
 set(EMU_SOURCE_FILES
+    "core/cpu.cpp"
+    "core/cpu.hpp"
     "core/global.hpp"
+    "core/memory.cpp"
+    "core/memory.hpp"
     "platform/platform.hpp"
     "application.cpp"
     "application.hpp"
