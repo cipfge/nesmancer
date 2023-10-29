@@ -4,12 +4,13 @@
 #include <iostream>
 
 #ifdef EMU_PLATFORM_WINDOWS
+#include <Windows.h>
 #endif // Windows
 
 int emu_main(int argc, char* argv[])
 {
-    Application nes;
-    return nes.run(argc, argv);
+    Application app;
+    return app.run(argc, argv);
 }
 
 #ifdef EMU_PLATFORM_WINDOWS
