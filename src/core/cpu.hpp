@@ -29,6 +29,22 @@ public:
         uint16_t PC = 0;
     };
 
+    enum AddressingModes
+    {
+        AM_IMPLIED,
+        AM_IMMEDIATE,
+        AM_ABSOLUTE,
+        AM_ABSOLUTE_INDEXED_X,
+        AM_ABSOLUTE_INDEXED_Y,
+        AM_RELATIVE,
+        AM_ZEROPAGE,
+        AM_ZEROPAGE_INDEXED_X,
+        AM_ZEROPAGE_INDEXED_Y,
+        AM_INDIRECT,
+        AM_INDEXED_INDIRECT,
+        AM_INDIRECT_INDEXED
+    };
+
 public:
     CPU(Memory* memory);
     ~CPU();
@@ -38,10 +54,25 @@ public:
 private:
     Registers m_registers;
     Memory* m_memory = nullptr;
+    uint8_t m_opcode = 0;
+    uint16_t m_address = 0;
     uint8_t m_cycles = 0;
 
     void set_flag(StatusFlags flag, bool value);
     bool check_flag(StatusFlags flag);
     void stack_push(uint8_t data);
     uint8_t stack_pop();
+
+    uint8_t am_implied();
+    uint8_t am_immediate();
+    uint8_t am_absolute();
+    uint8_t am_absolute_x();
+    uint8_t am_absolute_y();
+    uint8_t am_relative();
+    uint8_t am_zeropage();
+    uint8_t am_zeropage_x();
+    uint8_t am_zeropage_y();
+    uint8_t am_indirect();
+    uint8_t am_indexed_indirect();
+    uint8_t am_indirect_indexed();
 };
