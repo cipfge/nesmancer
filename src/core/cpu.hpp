@@ -60,9 +60,11 @@ private:
 
     void set_flag(StatusFlags flag, bool value);
     bool check_flag(StatusFlags flag);
+
     void stack_push(uint8_t data);
     uint8_t stack_pop();
 
+    // Addressing modes
     uint8_t am_implied();
     uint8_t am_immediate();
     uint8_t am_absolute();
@@ -75,4 +77,41 @@ private:
     uint8_t am_indirect();
     uint8_t am_indexed_indirect();
     uint8_t am_indirect_indexed();
+
+    // Conditional branch opcodes
+    uint8_t op_bcs();
+    uint8_t op_bcc();
+    uint8_t op_beq();
+    uint8_t op_bne();
+    uint8_t op_bmi();
+    uint8_t op_bpl();
+    uint8_t op_bvs();
+    uint8_t op_bvc();
+
+    // Stack opcodes
+    uint8_t op_pha();
+    uint8_t op_php();
+    uint8_t op_pla();
+    uint8_t op_plp();
+
+    // Increment & decrement opcodes
+    uint8_t op_inc();
+    uint8_t op_inx();
+    uint8_t op_iny();
+    uint8_t op_dec();
+    uint8_t op_dex();
+    uint8_t op_dey();
+
+    // Arithmetic opcodes
+    uint8_t op_adc();
+    uint8_t op_sbc();
+
+    // Flag opcodes
+    uint8_t op_clc();
+    uint8_t op_cld();
+    uint8_t op_cli();
+    uint8_t op_clv();
+    uint8_t op_sec();
+    uint8_t op_sed();
+    uint8_t op_sei();
 };

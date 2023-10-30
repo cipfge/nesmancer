@@ -167,3 +167,248 @@ uint8_t CPU::am_indirect_indexed()
 
     return 0;
 }
+
+uint8_t CPU::op_bcs()
+{
+    if (!check_flag(STATUS_C))
+        return 0;
+
+    m_cycles++;
+    m_registers.PC = m_address;
+
+    return 1;
+}
+
+uint8_t CPU::op_bcc()
+{
+    if (check_flag(STATUS_C))
+        return 0;
+
+    m_cycles++;
+    m_registers.PC = m_address;
+
+    return 1;
+}
+
+uint8_t CPU::op_beq()
+{
+    if (!check_flag(STATUS_Z))
+        return 0;
+
+    m_cycles++;
+    m_registers.PC = m_address;
+
+    return 1;
+}
+
+uint8_t CPU::op_bne()
+{
+    if (check_flag(STATUS_Z))
+        return 0;
+
+    m_cycles++;
+    m_registers.PC = m_address;
+
+    return 1;
+}
+
+uint8_t CPU::op_bmi()
+{
+    if (!check_flag(STATUS_N))
+        return 0;
+
+    m_cycles++;
+    m_registers.PC = m_address;
+
+    return 1;
+}
+
+uint8_t CPU::op_bpl()
+{
+    if (check_flag(STATUS_N))
+        return 0;
+
+    m_cycles++;
+    m_registers.PC = m_address;
+
+    return 1;
+}
+
+uint8_t CPU::op_bvs()
+{
+    if (!check_flag(STATUS_V))
+        return 0;
+
+    m_cycles++;
+    m_registers.PC = m_address;
+
+    return 1;
+}
+
+uint8_t CPU::op_bvc()
+{
+    if (check_flag(STATUS_V))
+        return 0;
+
+    m_cycles++;
+    m_registers.PC = m_address;
+
+    return 1;
+}
+
+uint8_t CPU::op_pha()
+{
+    stack_push(m_registers.A);
+    return 0;
+}
+
+uint8_t CPU::op_php()
+{
+    stack_push(m_registers.P | STATUS_U | STATUS_B);
+    return 0;
+}
+
+uint8_t CPU::op_pla()
+{
+    m_registers.A = stack_pop();
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_plp()
+{
+    m_registers.P = (stack_pop() | STATUS_U) & ~STATUS_B;
+    return 0;
+}
+
+uint8_t CPU::op_inc()
+{
+    uint8_t result = m_memory->read(m_address) + 1;
+    set_flag(STATUS_N, result >> 7);
+    set_flag(STATUS_Z, result == 0);
+    m_memory->write(m_address, result);
+
+    return 0;
+}
+
+uint8_t CPU::op_inx()
+{
+    m_registers.X++;
+    set_flag(STATUS_N, m_registers.X >> 7);
+    set_flag(STATUS_Z, m_registers.X == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_iny()
+{
+    m_registers.Y++;
+    set_flag(STATUS_N, m_registers.Y >> 7);
+    set_flag(STATUS_Z, m_registers.Y == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_dec()
+{
+    uint8_t result = m_memory->read(m_address) - 1;
+    set_flag(STATUS_N, result >> 7);
+    set_flag(STATUS_Z, result == 0);
+    m_memory->write(m_address, result);
+
+    return 0;
+}
+
+uint8_t CPU::op_dex()
+{
+    m_registers.X--;
+    set_flag(STATUS_N, m_registers.X >> 7);
+    set_flag(STATUS_Z, m_registers.X == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_dey()
+{
+    m_registers.Y--;
+    set_flag(STATUS_N, m_registers.Y >> 7);
+    set_flag(STATUS_Z, m_registers.Y == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_adc()
+{
+    uint8_t operand = m_memory->read(m_address);
+    int sign = (m_registers.A >> 7) == (operand >> 7);
+    uint16_t value = m_registers.A + operand + (check_flag(STATUS_C) ? 1 : 0);
+    m_registers.A = value & 0xFF;
+    uint8_t overflow = sign && (m_registers.A >> 7) != (operand >> 7);
+
+    set_flag(STATUS_C, (value & 0x100) >> 8);
+    set_flag(STATUS_Z, m_registers.A == 0);
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_V, overflow);
+
+    return 1;
+}
+
+uint8_t CPU::op_sbc()
+{
+    uint8_t operand = m_memory->read(m_address) ^ 0xFF;
+    int sign = (m_registers.A & 0x80) == (operand & 0x80);
+    uint16_t value = m_registers.A + operand + (check_flag(STATUS_C) ? 1 : 0);
+    m_registers.A = value & 0xFF;
+    uint8_t overflow = sign && (m_registers.A & 0x80) != (operand & 0x80);
+
+    set_flag(STATUS_C, (value & 0x100) >> 8);
+    set_flag(STATUS_Z, m_registers.A == 0);
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_V, overflow);
+
+    return 1;
+}
+
+uint8_t CPU::op_clc()
+{
+    set_flag(STATUS_C, false);
+    return 0;
+}
+
+uint8_t CPU::op_cld()
+{
+    set_flag(STATUS_D, false);
+    return 0;
+}
+
+uint8_t CPU::op_cli()
+{
+    set_flag(STATUS_I, false);
+    return 0;
+}
+
+uint8_t CPU::op_clv()
+{
+    set_flag(STATUS_V, false);
+    return 0;
+}
+
+uint8_t CPU::op_sec()
+{
+    set_flag(STATUS_C, true);
+    return 0;
+}
+
+uint8_t CPU::op_sed()
+{
+    set_flag(STATUS_D, true);
+    return 0;
+}
+
+uint8_t CPU::op_sei()
+{
+    set_flag(STATUS_I, true);
+    return 0;
+}
