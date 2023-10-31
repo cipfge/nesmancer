@@ -49,7 +49,7 @@ public:
     struct Opcode
     {
         std::string mnemonic = "";
-        AddressingMode addr_mode = AddressingMode::AM_IMPLIED;
+        AddressingMode addressing_mode = AddressingMode::AM_IMPLIED;
         uint8_t (CPU::*execute)(void) = nullptr;
         uint8_t (CPU::*read_address)(void) = nullptr;
         uint8_t cycles = 0;
@@ -179,6 +179,13 @@ private:
     uint8_t op_rra();
     uint8_t op_anc();
     uint8_t op_alr();
+    uint8_t op_arr();
+    uint8_t op_xaa();
+    uint8_t op_las();
+    uint8_t op_ahx();
+    uint8_t op_tas();
+    uint8_t op_shy();
+    uint8_t op_shx();
     uint8_t op_nop();
 
     // Unknown opcodes
