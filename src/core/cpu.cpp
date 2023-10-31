@@ -1,5 +1,6 @@
 #include "cpu.hpp"
 #include "memory.hpp"
+#include <iostream>
 
 CPU::CPU(Memory* memory)
     : m_memory(memory)
@@ -285,10 +286,10 @@ uint8_t CPU::op_plp()
 
 uint8_t CPU::op_inc()
 {
-    uint8_t result = m_memory->read(m_address) + 1;
-    set_flag(STATUS_N, result >> 7);
-    set_flag(STATUS_Z, result == 0);
-    m_memory->write(m_address, result);
+    uint8_t value = m_memory->read(m_address) + 1;
+    set_flag(STATUS_N, value >> 7);
+    set_flag(STATUS_Z, value == 0);
+    m_memory->write(m_address, value);
 
     return 0;
 }
@@ -313,10 +314,10 @@ uint8_t CPU::op_iny()
 
 uint8_t CPU::op_dec()
 {
-    uint8_t result = m_memory->read(m_address) - 1;
-    set_flag(STATUS_N, result >> 7);
-    set_flag(STATUS_Z, result == 0);
-    m_memory->write(m_address, result);
+    uint8_t value = m_memory->read(m_address) - 1;
+    set_flag(STATUS_N, value >> 7);
+    set_flag(STATUS_Z, value == 0);
+    m_memory->write(m_address, value);
 
     return 0;
 }
@@ -561,7 +562,74 @@ uint8_t CPU::op_rti()
     return 0;
 }
 
+uint8_t CPU::op_cmp()
+{
+    uint8_t operand = m_memory->read(m_address);
+    uint8_t value = m_registers.A - operand;
+    set_flag(STATUS_C, m_registers.A >= operand);
+    set_flag(STATUS_N, value >> 7);
+    set_flag(STATUS_Z, value == 0);
+
+    return 1;
+}
+
+uint8_t CPU::op_cpx()
+{
+    uint8_t operand = m_memory->read(m_address);
+    uint8_t value = m_registers.X - operand;
+    set_flag(STATUS_C, m_registers.X >= operand);
+    set_flag(STATUS_N, value >> 7);
+    set_flag(STATUS_Z, value == 0);
+
+    return 1;
+}
+
+uint8_t CPU::op_cpy()
+{
+    uint8_t operand = m_memory->read(m_address);
+    uint8_t value = m_registers.Y - operand;
+    set_flag(STATUS_C, m_registers.Y >= operand);
+    set_flag(STATUS_N, value >> 7);
+    set_flag(STATUS_Z, value == 0);
+
+    return 1;
+}
+
+uint8_t CPU::op_and()
+{
+    m_registers.A &= m_memory->read(m_address);
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 1;
+}
+
+uint8_t CPU::op_eor()
+{
+    m_registers.A ^= m_memory->read(m_address);
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 1;
+}
+
+uint8_t CPU::op_ora()
+{
+    m_registers.A |= m_memory->read(m_address);
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 1;
+}
+
 uint8_t CPU::op_nop()
 {
     return 1;
+}
+
+uint8_t CPU::op_hlt()
+{
+    std::cerr << "Illegal instruction " << (unsigned)m_opcode << " executed, Halt!";
+    exit(-1);
+    return 0;
 }

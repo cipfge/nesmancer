@@ -136,6 +136,17 @@ private:
     uint8_t op_brk();
     uint8_t op_rti();
 
+    // Comparisons
+    uint8_t op_cmp();
+    uint8_t op_cpx();
+    uint8_t op_cpy();
+
+    // Logical opcodes
+    uint8_t op_and();
+    uint8_t op_eor();
+    uint8_t op_ora();
+
     // Other opcodes
     uint8_t op_nop();
+    uint8_t op_hlt();
 };
