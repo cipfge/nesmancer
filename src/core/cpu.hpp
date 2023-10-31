@@ -29,7 +29,7 @@ public:
         uint16_t PC = 0;
     };
 
-    enum AddressingModes
+    enum AddressingMode
     {
         AM_IMPLIED,
         AM_IMMEDIATE,
@@ -55,6 +55,7 @@ private:
     Registers m_registers;
     Memory* m_memory = nullptr;
     uint8_t m_opcode = 0;
+    AddressingMode m_addressing_mode = AM_IMPLIED;
     uint16_t m_address = 0;
     uint8_t m_cycles = 0;
 
@@ -146,7 +147,14 @@ private:
     uint8_t op_eor();
     uint8_t op_ora();
 
+    // Shift & rotate opcodes
+    uint8_t op_asl();
+    uint8_t op_lsr();
+    uint8_t op_rol();
+    uint8_t op_ror();
+
     // Other opcodes
+    uint8_t op_bit();
     uint8_t op_nop();
     uint8_t op_hlt();
 };

@@ -622,6 +622,114 @@ uint8_t CPU::op_ora()
     return 1;
 }
 
+uint8_t CPU::op_asl()
+{
+    if (m_addressing_mode == AM_IMPLIED)
+    {
+        // Accumulator
+        set_flag(STATUS_C, m_registers.A >> 7);
+        m_registers.A <<= 1;
+        set_flag(STATUS_N, m_registers.A >> 7);
+        set_flag(STATUS_Z, m_registers.A == 0);
+    }
+    else
+    {
+        // Memory
+        uint8_t operand = m_memory->read(m_address);
+        uint8_t value = operand << 1;
+        set_flag(STATUS_C, operand >> 7);
+        set_flag(STATUS_N, value >> 7);
+        set_flag(STATUS_Z, value == 0);
+        m_memory->write(m_address, value);
+    }
+
+    return 0;
+}
+
+uint8_t CPU::op_lsr()
+{
+    if (m_addressing_mode == AM_IMPLIED)
+    {
+        // Accumulator
+        set_flag(STATUS_C, m_registers.A & 1);
+        m_registers.A >>= 1;
+        set_flag(STATUS_N, m_registers.A >> 7);
+        set_flag(STATUS_Z, m_registers.A == 0);
+    }
+    else
+    {
+        // Memory
+        uint8_t operand = m_memory->read(m_address);
+        uint8_t value = operand >> 1;
+        set_flag(STATUS_C, operand & 1);
+        set_flag(STATUS_N, value >> 7);
+        set_flag(STATUS_Z, value == 0);
+        m_memory->write(m_address, value);
+    }
+
+    return 0;
+}
+
+uint8_t CPU::op_rol()
+{
+    uint8_t carry = check_flag(STATUS_C);
+    if (m_addressing_mode == AM_IMPLIED)
+    {
+        // Accumulator
+        set_flag(STATUS_C, m_registers.A >> 7);
+        m_registers.A = (m_registers.A << 1) | carry;
+        set_flag(STATUS_N, m_registers.A >> 7);
+        set_flag(STATUS_Z, m_registers.A == 0);
+    }
+    else
+    {
+        // Memory
+        uint8_t operand = m_memory->read(m_address);
+        uint8_t value = (operand << 1) | carry;
+        set_flag(STATUS_C, operand >> 7);
+        set_flag(STATUS_N, value >> 7);
+        set_flag(STATUS_Z, value == 0);
+        m_memory->write(m_address, value);
+    }
+
+    return 0;
+}
+
+uint8_t CPU::op_ror()
+{
+    uint8_t carry = check_flag(STATUS_C);
+    if (m_addressing_mode == AM_IMPLIED)
+    {
+        // Accumulator
+        set_flag(STATUS_C, m_registers.A & 1);
+        m_registers.A = (carry << 7) | (m_registers.A >> 1);
+        set_flag(STATUS_N, m_registers.A >> 7);
+        set_flag(STATUS_Z, m_registers.A == 0);
+    }
+    else
+    {
+        // Memory
+        uint8_t operand = m_memory->read(m_address);
+        uint8_t value = (carry << 7) | (operand >> 1);
+        set_flag(STATUS_C, operand & 7);
+        set_flag(STATUS_N, value >> 7);
+        set_flag(STATUS_Z, value == 0);
+        m_memory->write(m_address, value);
+    }
+
+    return 0;
+}
+
+uint8_t CPU::op_bit()
+{
+    uint8_t operand = m_memory->read(m_address);
+    m_registers.P = (m_registers.P & ~0xC0) | (operand & 0xC0);
+    set_flag(STATUS_Z, !(m_registers.A & operand));
+
+    return 0;
+}
+
+
 uint8_t CPU::op_nop()
 {
     return 1;
