@@ -412,3 +412,156 @@ uint8_t CPU::op_sei()
     set_flag(STATUS_I, true);
     return 0;
 }
+
+uint8_t CPU::op_lda()
+{
+    m_registers.A = m_memory->read(m_address);
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 1;
+}
+
+uint8_t CPU::op_ldx()
+{
+    m_registers.X = m_memory->read(m_address);
+    set_flag(STATUS_N, m_registers.X >> 7);
+    set_flag(STATUS_Z, m_registers.X == 0);
+
+    return 1;
+}
+
+uint8_t CPU::op_ldy()
+{
+    m_registers.Y = m_memory->read(m_address);
+    set_flag(STATUS_N, m_registers.Y >> 7);
+    set_flag(STATUS_Z, m_registers.Y == 0);
+
+    return 1;
+}
+
+uint8_t CPU::op_sta()
+{
+    m_memory->write(m_address, m_registers.A);
+    return 0;
+}
+
+uint8_t CPU::op_stx()
+{
+    m_memory->write(m_address, m_registers.X);
+    return 0;
+}
+
+uint8_t CPU::op_sty()
+{
+    m_memory->write(m_address, m_registers.Y);
+    return 0;
+}
+
+uint8_t CPU::op_tax()
+{
+    m_registers.X = m_registers.A;
+    set_flag(STATUS_N, m_registers.X >> 7);
+    set_flag(STATUS_Z, m_registers.X == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_tay()
+{
+    m_registers.Y = m_registers.A;
+    set_flag(STATUS_N, m_registers.Y >> 7);
+    set_flag(STATUS_Z, m_registers.Y == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_tsx()
+{
+    m_registers.X = m_registers.SP;
+    set_flag(STATUS_N, m_registers.X >> 7);
+    set_flag(STATUS_Z, m_registers.X == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_txa()
+{
+    m_registers.A = m_registers.X;
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_txs()
+{
+    m_registers.SP = m_registers.X;
+    return 0;
+}
+
+uint8_t CPU::op_tya()
+{
+    m_registers.A = m_registers.Y;
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_jmp()
+{
+    m_registers.PC = m_address;
+    return 0;
+}
+
+uint8_t CPU::op_rts()
+{
+    Word address;
+    address.byte_low = stack_pop();
+    address.byte_high = stack_pop();
+    m_registers.PC = address.value + 1;
+
+    return 0;
+}
+
+uint8_t CPU::op_jsr()
+{
+    Word address;
+    address.value = m_registers.PC - 1;
+    stack_push(address.byte_high);
+    stack_push(address.byte_low);
+    m_registers.PC = m_address;
+
+    return 0;
+}
+
+uint8_t CPU::op_brk()
+{
+    Word address;
+    address.value = m_registers.PC + 1;
+    stack_push(address.byte_high);
+    stack_push(address.byte_low);
+    stack_push(m_registers.P | STATUS_U | STATUS_B);
+    m_registers.PC = m_memory->read(0xFFFE) | (m_memory->read(0xFFFF) << 8);
+    set_flag(STATUS_I, true);
+
+    return 0;
+}
+
+uint8_t CPU::op_rti()
+{
+    m_registers.P = (stack_pop() | STATUS_U) & ~STATUS_B;
+
+    Word address;
+    address.byte_low = stack_pop();
+    address.byte_high = stack_pop();
+    m_registers.PC = address.value;
+
+    return 0;
+}
+
+uint8_t CPU::op_nop()
+{
+    return 1;
+}

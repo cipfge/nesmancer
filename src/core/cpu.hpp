@@ -114,4 +114,28 @@ private:
     uint8_t op_sec();
     uint8_t op_sed();
     uint8_t op_sei();
+
+    // Transfer opcodes
+    uint8_t op_lda();
+    uint8_t op_ldx();
+    uint8_t op_ldy();
+    uint8_t op_sta();
+    uint8_t op_stx();
+    uint8_t op_sty();
+    uint8_t op_tax();
+    uint8_t op_tay();
+    uint8_t op_tsx();
+    uint8_t op_txa();
+    uint8_t op_txs();
+    uint8_t op_tya();
+
+    // Jumps & subroutines
+    uint8_t op_jmp();
+    uint8_t op_rts();
+    uint8_t op_jsr();
+    uint8_t op_brk();
+    uint8_t op_rti();
+
+    // Other opcodes
+    uint8_t op_nop();
 };
