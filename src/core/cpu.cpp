@@ -25,12 +25,50 @@ void CPU::reset()
     m_cycles = 7;
 }
 
-void CPU::set_flag(StatusFlags flag, bool value)
+void CPU::irq()
+{
+    if (check_flag(STATUS_I))
+        return;
+
+    Word address;
+    address.value = m_registers.PC;
+    stack_push(address.byte_high);
+    stack_push(address.byte_low);
+    stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
+    m_registers.PC = m_memory->read(0xFFFE) | (m_memory->read(0xFFFF) << 8);
+    set_flag(STATUS_I, true);
+    m_cycles = 7;
+}
+
+void CPU::nmi()
+{
+    Word address;
+    address.value = m_registers.PC;
+    stack_push(address.byte_high);
+    stack_push(address.byte_low);
+    stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
+    m_registers.PC = m_memory->read(0xFFFA) | (m_memory->read(0xFFFB) << 8);
+    set_flag(STATUS_I, true);
+    m_cycles = 7;
+}
+
+void CPU::tick()
+{
+    if (m_cycles > 0)
+    {
+        m_cycles--;
+        return;
+    }
+
+    m_opcode = m_memory->read(m_registers.PC++);
+}
+
+void CPU::set_flag(StatusFlag flag, bool value)
 {
     m_registers.P = value ? m_registers.P | flag : m_registers.P & (~flag);
 }
 
-bool CPU::check_flag(StatusFlags flag)
+bool CPU::check_flag(StatusFlag flag)
 {
     return (m_registers.P & flag) != 0;
 }
@@ -729,6 +767,135 @@ uint8_t CPU::op_bit()
     return 0;
 }
 
+uint8_t CPU::op_lax()
+{
+    m_registers.A = m_memory->read(m_address);
+    m_registers.X = m_registers.A;
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 1;
+}
+
+uint8_t CPU::op_sax()
+{
+    m_memory->write(m_address, m_registers.X);
+    return 0;
+}
+
+uint8_t CPU::op_dcp()
+{
+    uint8_t value = m_memory->read(m_address) - 1;
+    m_memory->write(m_address, value);
+    uint8_t result = m_registers.A - value;
+    set_flag(STATUS_C, m_registers.A >= value);
+    set_flag(STATUS_N, result >> 7);
+    set_flag(STATUS_Z, result == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_isc()
+{
+    uint8_t value = m_memory->read(m_address) + 1;
+    m_memory->write(m_address, value);
+    value ^= 0xFF;
+    uint8_t sign = (m_registers.A & 0x80) != (value & 0x80);
+    uint16_t result = m_registers.A + value + (check_flag(STATUS_C) ? 1 : 0);
+    m_registers.A = result & 0xFF;
+    uint8_t overflow = sign && (m_registers.A & 0x80) != (value & 0x80);
+
+    set_flag(STATUS_C, (result & 0x100) >> 8);
+    set_flag(STATUS_Z, m_registers.A == 0);
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_V, overflow);
+
+    return 0;
+}
+
+uint8_t CPU::op_slo()
+{
+    uint8_t operand = m_memory->read(m_address);
+    uint8_t value = operand << 1;
+    set_flag(STATUS_C, operand >> 7);
+    m_memory->write(m_address, value);
+
+    m_registers.A |= value;
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_rla()
+{
+    uint8_t operand = m_memory->read(m_address);
+    uint8_t value = (operand << 1) | (check_flag(STATUS_C) ? 1 : 0);
+    set_flag(STATUS_C, operand >> 7);
+    m_memory->write(m_address, value);
+
+    m_registers.A &= value;
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_sre()
+{
+    uint8_t operand = m_memory->read(m_address);
+    uint8_t value = operand >> 1;
+    set_flag(STATUS_C, operand & 1);
+    m_memory->write(m_address, value);
+
+    m_registers.A ^= value;
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_rra()
+{
+    uint8_t operand = m_memory->read(m_address);
+    uint8_t value = ((check_flag(STATUS_C) ? 1 : 0) << 7) | (operand >> 1);
+    set_flag(STATUS_C, operand & 1);
+    m_memory->write(m_address, value);
+
+    int sign = (m_registers.A >> 7) == (value >> 7);
+    uint16_t result = m_registers.A + value + (check_flag(STATUS_C) ? 1 : 0);
+    m_registers.A = result & 0xFF;
+    uint8_t overflow = sign && (m_registers.A >> 7) != (value >> 7);
+
+    set_flag(STATUS_C, (result & 0x100) >> 8);
+    set_flag(STATUS_Z, m_registers.A == 0);
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_V, overflow);
+
+    return 1;
+}
+
+uint8_t CPU::op_anc()
+{
+    m_registers.A &= m_memory->read(m_address);
+    set_flag(STATUS_C, m_registers.A >> 7);
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 0;
+}
+
+uint8_t CPU::op_alr()
+{
+    m_registers.A &= m_memory->read(m_address);
+    set_flag(STATUS_C, m_registers.A & 1);
+
+    m_registers.A >>= 1;
+    set_flag(STATUS_N, m_registers.A >> 7);
+    set_flag(STATUS_Z, m_registers.A == 0);
+
+    return 0;
+}
 
 uint8_t CPU::op_nop()
 {
@@ -737,7 +904,7 @@ uint8_t CPU::op_nop()
 
 uint8_t CPU::op_hlt()
 {
-    std::cerr << "Illegal instruction " << (unsigned)m_opcode << " executed, Halt!";
+    std::cerr << "Unknown opcode " << (unsigned)m_opcode << ", Halt!\n";
     exit(-1);
     return 0;
 }

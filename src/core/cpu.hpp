@@ -1,13 +1,14 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 class Memory;
 
 class CPU
 {
 public:
-    enum StatusFlags: uint8_t
+    enum StatusFlag: uint8_t
     {
         STATUS_C = (1 << 0),
         STATUS_Z = (1 << 1),
@@ -45,11 +46,23 @@ public:
         AM_INDIRECT_INDEXED
     };
 
+    struct Opcode
+    {
+        std::string mnemonic = "";
+        AddressingMode addr_mode = AddressingMode::AM_IMPLIED;
+        uint8_t (CPU::*execute)(void) = nullptr;
+        uint8_t (CPU::*read_address)(void) = nullptr;
+        uint8_t cycles = 0;
+    };
+
 public:
     CPU(Memory* memory);
     ~CPU();
 
     void reset();
+    void irq();
+    void nmi();
+    void tick();
 
 private:
     Registers m_registers;
@@ -58,9 +71,10 @@ private:
     AddressingMode m_addressing_mode = AM_IMPLIED;
     uint16_t m_address = 0;
     uint8_t m_cycles = 0;
+    static Opcode m_opcode_table[256];
 
-    void set_flag(StatusFlags flag, bool value);
-    bool check_flag(StatusFlags flag);
+    void set_flag(StatusFlag flag, bool value);
+    bool check_flag(StatusFlag flag);
 
     void stack_push(uint8_t data);
     uint8_t stack_pop();
@@ -155,6 +169,18 @@ private:
 
     // Other opcodes
     uint8_t op_bit();
+    uint8_t op_lax();
+    uint8_t op_sax();
+    uint8_t op_dcp();
+    uint8_t op_isc();
+    uint8_t op_slo();
+    uint8_t op_rla();
+    uint8_t op_sre();
+    uint8_t op_rra();
+    uint8_t op_anc();
+    uint8_t op_alr();
     uint8_t op_nop();
+
+    // Unknown opcodes
     uint8_t op_hlt();
 };
