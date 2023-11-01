@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include "types.hpp"
 #include <string>
 
 class Memory;
@@ -50,8 +50,8 @@ public:
     {
         std::string mnemonic = "";
         AddressingMode addressing_mode = AddressingMode::AM_IMPLIED;
-        uint8_t (CPU::*execute)(void) = nullptr;
-        uint8_t (CPU::*read_address)(void) = nullptr;
+        bool (CPU::*execute)(void) = nullptr;
+        bool (CPU::*read_address)(void) = nullptr;
         uint8_t cycles = 0;
     };
 
@@ -80,114 +80,92 @@ private:
     uint8_t stack_pop();
 
     // Addressing modes
-    uint8_t am_implied();
-    uint8_t am_immediate();
-    uint8_t am_absolute();
-    uint8_t am_absolute_x();
-    uint8_t am_absolute_y();
-    uint8_t am_relative();
-    uint8_t am_zeropage();
-    uint8_t am_zeropage_x();
-    uint8_t am_zeropage_y();
-    uint8_t am_indirect();
-    uint8_t am_indexed_indirect();
-    uint8_t am_indirect_indexed();
+    bool read_implied();
+    bool read_immediate();
+    bool read_absolute();
+    bool read_absolute_x();
+    bool read_absolute_y();
+    bool read_relative();
+    bool read_zeropage();
+    bool read_zeropage_x();
+    bool read_zeropage_y();
+    bool read_indirect();
+    bool read_indexed_indirect();
+    bool read_indirect_indexed();
 
-    // Conditional branch opcodes
-    uint8_t op_bcs();
-    uint8_t op_bcc();
-    uint8_t op_beq();
-    uint8_t op_bne();
-    uint8_t op_bmi();
-    uint8_t op_bpl();
-    uint8_t op_bvs();
-    uint8_t op_bvc();
-
-    // Stack opcodes
-    uint8_t op_pha();
-    uint8_t op_php();
-    uint8_t op_pla();
-    uint8_t op_plp();
-
-    // Increment & decrement opcodes
-    uint8_t op_inc();
-    uint8_t op_inx();
-    uint8_t op_iny();
-    uint8_t op_dec();
-    uint8_t op_dex();
-    uint8_t op_dey();
-
-    // Arithmetic opcodes
-    uint8_t op_adc();
-    uint8_t op_sbc();
-
-    // Flag opcodes
-    uint8_t op_clc();
-    uint8_t op_cld();
-    uint8_t op_cli();
-    uint8_t op_clv();
-    uint8_t op_sec();
-    uint8_t op_sed();
-    uint8_t op_sei();
-
-    // Transfer opcodes
-    uint8_t op_lda();
-    uint8_t op_ldx();
-    uint8_t op_ldy();
-    uint8_t op_sta();
-    uint8_t op_stx();
-    uint8_t op_sty();
-    uint8_t op_tax();
-    uint8_t op_tay();
-    uint8_t op_tsx();
-    uint8_t op_txa();
-    uint8_t op_txs();
-    uint8_t op_tya();
-
-    // Jumps & subroutines
-    uint8_t op_jmp();
-    uint8_t op_rts();
-    uint8_t op_jsr();
-    uint8_t op_brk();
-    uint8_t op_rti();
-
-    // Comparisons
-    uint8_t op_cmp();
-    uint8_t op_cpx();
-    uint8_t op_cpy();
-
-    // Logical opcodes
-    uint8_t op_and();
-    uint8_t op_eor();
-    uint8_t op_ora();
-
-    // Shift & rotate opcodes
-    uint8_t op_asl();
-    uint8_t op_lsr();
-    uint8_t op_rol();
-    uint8_t op_ror();
-
-    // Other opcodes
-    uint8_t op_bit();
-    uint8_t op_lax();
-    uint8_t op_sax();
-    uint8_t op_dcp();
-    uint8_t op_isc();
-    uint8_t op_slo();
-    uint8_t op_rla();
-    uint8_t op_sre();
-    uint8_t op_rra();
-    uint8_t op_anc();
-    uint8_t op_alr();
-    uint8_t op_arr();
-    uint8_t op_xaa();
-    uint8_t op_las();
-    uint8_t op_ahx();
-    uint8_t op_tas();
-    uint8_t op_shy();
-    uint8_t op_shx();
-    uint8_t op_nop();
-
-    // Unknown opcodes
-    uint8_t op_hlt();
+    // Opcodes
+    bool op_bcs();
+    bool op_bcc();
+    bool op_beq();
+    bool op_bne();
+    bool op_bmi();
+    bool op_bpl();
+    bool op_bvs();
+    bool op_bvc();
+    bool op_pha();
+    bool op_php();
+    bool op_pla();
+    bool op_plp();
+    bool op_inc();
+    bool op_inx();
+    bool op_iny();
+    bool op_dec();
+    bool op_dex();
+    bool op_dey();
+    bool op_adc();
+    bool op_sbc();
+    bool op_clc();
+    bool op_cld();
+    bool op_cli();
+    bool op_clv();
+    bool op_sec();
+    bool op_sed();
+    bool op_sei();
+    bool op_lda();
+    bool op_ldx();
+    bool op_ldy();
+    bool op_sta();
+    bool op_stx();
+    bool op_sty();
+    bool op_tax();
+    bool op_tay();
+    bool op_tsx();
+    bool op_txa();
+    bool op_txs();
+    bool op_tya();
+    bool op_jmp();
+    bool op_rts();
+    bool op_jsr();
+    bool op_brk();
+    bool op_rti();
+    bool op_cmp();
+    bool op_cpx();
+    bool op_cpy();
+    bool op_and();
+    bool op_eor();
+    bool op_ora();
+    bool op_asl();
+    bool op_lsr();
+    bool op_rol();
+    bool op_ror();
+    bool op_bit();
+    bool op_lax();
+    bool op_sax();
+    bool op_dcp();
+    bool op_isc();
+    bool op_slo();
+    bool op_rla();
+    bool op_sre();
+    bool op_rra();
+    bool op_anc();
+    bool op_alr();
+    bool op_arr();
+    bool op_xaa();
+    bool op_las();
+    bool op_ahx();
+    bool op_tas();
+    bool op_shy();
+    bool op_shx();
+    bool op_nop();
+    bool op_hlt();
 };
