@@ -2,8 +2,12 @@ find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
 find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
 
 set(EMU_SOURCE_FILES
+    "core/cartridge.cpp"
+    "core/cartridge.hpp"
     "core/cpu.cpp"
     "core/cpu.hpp"
+    "core/device.cpp"
+    "core/device.hpp"
     "core/global.hpp"
     "core/memory.cpp"
     "core/memory.hpp"

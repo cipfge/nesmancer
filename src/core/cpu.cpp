@@ -1248,6 +1248,7 @@ bool CPU::op_nop()
 bool CPU::op_hlt()
 {
     std::cerr << "Opcode: " << (unsigned)m_opcode << ", Halt!\n";
-    exit(-1);
+    exit(1);
+
     return false;
 }

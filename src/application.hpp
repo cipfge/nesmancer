@@ -1,6 +1,7 @@
 #pragma once
 
 #include "global.hpp"
+#include "device.hpp"
 #include <string>
 #include <SDL.h>
 
@@ -14,6 +15,7 @@ public:
     void set_window_title(const std::string& title);
 
 private:
+    Device m_nes_device;
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_GameController* m_controller = nullptr;
