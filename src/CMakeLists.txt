@@ -11,6 +11,8 @@ set(EMU_SOURCE_FILES
     "core/global.hpp"
     "core/memory.cpp"
     "core/memory.hpp"
+    "core/ppu.cpp"
+    "core/ppu.hpp"
     "core/types.hpp"
     "platform/platform.hpp"
     "application.cpp"

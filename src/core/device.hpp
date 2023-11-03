@@ -1,16 +1,24 @@
 #pragma once
 
 #include "types.hpp"
-#include "cartridge.hpp"
+#include <string>
+
+class CPU;
+class PPU;
+class Cartridge;
+class Memory;
 
 class Device
 {
 public:
-    Device() = default;
+    Device();
     ~Device();
 
-    bool load_rom_file(const std::string path);
+    bool load_rom(const std::string rom_file_path);
 
 private:
-    Cartridge m_cartridge;
+    CPU* m_cpu = nullptr;
+    PPU* m_ppu = nullptr;
+    Cartridge* m_cartridge = nullptr;
+    Memory* m_memory = nullptr;
 };

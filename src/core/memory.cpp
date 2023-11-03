@@ -1,6 +1,10 @@
 #include "memory.hpp"
+#include "ppu.hpp"
+#include "cartridge.hpp"
 
-Memory::Memory()
+Memory::Memory(PPU* ppu, Cartridge* cartridge)
+    : m_ppu(ppu)
+    , m_cartrige(cartridge)
 {
 }
 

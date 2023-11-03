@@ -2,10 +2,13 @@
 
 #include "types.hpp"
 
+class PPU;
+class Cartridge;
+
 class Memory
 {
 public:
-    Memory();
+    Memory(PPU* ppu, Cartridge* cartridge);
     ~Memory();
 
     uint8_t read(uint16_t address);
@@ -13,4 +16,6 @@ public:
 
 private:
     uint8_t m_internal_ram[2048];
+    PPU* m_ppu = nullptr;
+    Cartridge* m_cartrige = nullptr;
 };

@@ -22,7 +22,7 @@ int Application::run(int argc, char* argv[])
     if (!m_running)
         return -1;
 
-    if (argc > 1 && !m_nes_device.load_rom_file(argv[1]))
+    if (argc > 1 && !m_nes_device.load_rom(argv[1]))
         return -1;
 
     while (m_running)
