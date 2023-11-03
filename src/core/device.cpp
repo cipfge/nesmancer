@@ -20,6 +20,16 @@ Device::~Device()
     delete m_cpu;
 }
 
+void Device::reset()
+{
+    m_cpu->reset();
+}
+
+void Device::tick()
+{
+    m_cpu->tick();
+}
+
 bool Device::load_rom(const std::string rom_file_path)
 {
     return m_cartridge->load_from_file(rom_file_path);

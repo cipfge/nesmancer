@@ -329,6 +329,8 @@ void CPU::tick()
 
     if (am_cycle && op_cycle)
         m_cycles++;
+
+    std::cout << "Executing " << std::hex << (unsigned)m_opcode << "\n";
 }
 
 void CPU::set_flag(StatusFlag flag, bool value)

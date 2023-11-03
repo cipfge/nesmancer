@@ -1,18 +1,13 @@
 #pragma once
 
 #include "types.hpp"
-#include <string>
+#include "mapper.hpp"
 #include <vector>
+#include <memory>
 
 class Cartridge
 {
 public:
-    enum MirrorMode
-    {
-        MIRROR_HORIZONTAL,
-        MIRROR_VERTICAL
-    };
-
     struct Info
     {
         uint8_t mapper = 0;
@@ -21,7 +16,7 @@ public:
         uint32_t prg_ram_size = 0;
         uint32_t prg_rom_size = 0;
         uint32_t chr_rom_size = 0;
-        MirrorMode mirror_mode = MIRROR_HORIZONTAL;
+        Mapper::MirrorMode mirror_mode = Mapper::MIRROR_HORIZONTAL;
         bool baterry = false;
         bool trainer = false;
         bool four_screen_mode = false;
@@ -37,13 +32,18 @@ public:
     const Info& info() const;
     bool load_from_file(const std::string& path);
 
+    uint8_t cpu_read(uint16_t address);
+    void cpu_write(uint16_t address, uint8_t data);
+    uint8_t ppu_read(uint16_t address);
+    void ppu_write(uint16_t address, uint8_t data);
+
 private:
     Info m_info;
     bool m_chr_ram = false;
     std::vector<uint8_t> m_prg_ram;
     std::vector<uint8_t> m_prg_rom;
     std::vector<uint8_t> m_chr_rom;
+    std::shared_ptr<Mapper> m_mapper = nullptr;
 
     void parse_rom_header(const uint8_t* header);
-    std::string mirror_mode_to_string(MirrorMode mode);
 };

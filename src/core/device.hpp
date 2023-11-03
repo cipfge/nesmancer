@@ -14,6 +14,8 @@ public:
     Device();
     ~Device();
 
+    void reset();
+    void tick();
     bool load_rom(const std::string rom_file_path);
 
 private:

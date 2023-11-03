@@ -9,6 +9,8 @@ set(EMU_SOURCE_FILES
     "core/device.cpp"
     "core/device.hpp"
     "core/global.hpp"
+    "core/mapper.cpp"
+    "core/mapper.hpp"
     "core/memory.cpp"
     "core/memory.hpp"
     "core/ppu.cpp"
