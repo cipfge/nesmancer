@@ -32,10 +32,13 @@ bool Cartridge::load_from_file(const std::string& path)
     }
 
     parse_rom_header(rom_header);
+    m_prg_ram.clear();
+    m_prg_ram.resize(m_info.prg_ram_size);
 
     if (m_info.trainer)
         rom_file.seekg(512, std::ios::cur);
 
+    m_prg_rom.clear();
     m_prg_rom.resize(m_info.prg_rom_size);
     if (!rom_file.read(reinterpret_cast<char*>(m_prg_rom.data()), m_info.prg_rom_size))
     {
@@ -44,15 +47,16 @@ bool Cartridge::load_from_file(const std::string& path)
     }
 
     if (m_info.chr_rom_size == 0)
-        m_use_chr_ram = true;
+        m_chr_ram = true;
     else
-        m_chr_rom.resize(m_info.chr_rom_size);
-
-    if (!m_use_chr_ram &&
-        !rom_file.read(reinterpret_cast<char*>(m_chr_rom.data()), m_info.chr_rom_size))
     {
-        std::cerr << "Error while reading CHR data from " << path << "\n";
-        return false;
+        m_chr_rom.clear();
+        m_chr_rom.resize(m_info.chr_rom_size);
+        if (!rom_file.read(reinterpret_cast<char*>(m_chr_rom.data()), m_info.chr_rom_size))
+        {
+            std::cerr << "Error while reading CHR data from " << path << "\n";
+            return false;
+        }
     }
 
     return true;
@@ -63,6 +67,7 @@ void Cartridge::parse_rom_header(const uint8_t* header)
     m_info.mapper = (header[6] >> 4) | (header[7] & 0xF0);
     m_info.prg_banks = header[4];
     m_info.chr_banks = header[5];
+    m_info.prg_ram_size = header[8] ? header[8] * 8192 : 8192;
     m_info.prg_rom_size = static_cast<uint32_t>(header[4] << 14);
     m_info.chr_rom_size = static_cast<uint32_t>(header[5] << 13);
     m_info.mirror_mode = static_cast<MirrorMode>(header[6] & 0x1);
@@ -78,8 +83,9 @@ void Cartridge::parse_rom_header(const uint8_t* header)
               << " - Mapper: " << (unsigned)m_info.mapper << "\n"
               << " - PRG banks: " << (unsigned)m_info.prg_banks << "\n"
               << " - CHR banks: " << (unsigned)m_info.chr_banks << "\n"
-              << " - PRG size: " << m_info.prg_rom_size << "\n"
-              << " - CHR size: " << m_info.chr_rom_size << "\n"
+              << " - PRG RAM size: " << m_info.prg_ram_size << "\n"
+              << " - PRG ROM size: " << m_info.prg_rom_size << "\n"
+              << " - CHR ROM size: " << m_info.chr_rom_size << "\n"
               << " - Mirror: " << mirror_mode_to_string(m_info.mirror_mode) << "\n"
               << " - Battery: " << (m_info.baterry ? "yes" : "no") << "\n"
               << " - Trainer: " << (m_info.trainer ? "yes" : "no") << "\n"

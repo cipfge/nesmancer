@@ -18,6 +18,7 @@ public:
         uint8_t mapper = 0;
         uint8_t prg_banks = 0;
         uint8_t chr_banks = 0;
+        uint32_t prg_ram_size = 0;
         uint32_t prg_rom_size = 0;
         uint32_t chr_rom_size = 0;
         MirrorMode mirror_mode = MIRROR_HORIZONTAL;
@@ -38,8 +39,8 @@ public:
 
 private:
     Info m_info;
-    bool m_use_chr_ram = false;
-    uint8_t m_prg_ram[8192];
+    bool m_chr_ram = false;
+    std::vector<uint8_t> m_prg_ram;
     std::vector<uint8_t> m_prg_rom;
     std::vector<uint8_t> m_chr_rom;
 
