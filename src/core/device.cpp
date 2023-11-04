@@ -24,7 +24,8 @@ Device::~Device()
 void Device::reset()
 {
     m_cpu->reset();
-    // TODO: APU, PPU reset
+    m_ppu->reset();
+    // TODO: APU reset
 }
 
 void Device::run_one_frame()
@@ -32,19 +33,26 @@ void Device::run_one_frame()
     if (!m_cartridge->rom_loaded())
         return;
 
-    // TODO: PPU, check frame completed
-    for (int cycle = 0; cycle < 29780; cycle++)
+    while (!m_ppu->frame_completed())
     {
+        // TODO: CPU interrupts
         m_cpu->tick();
-        // TODO: APU, PPU tick
+
+        // TODO: APU tick
+
+        m_ppu->tick();
+        m_ppu->tick();
+        m_ppu->tick();
     }
+
+    m_ppu->frame_clear();
 }
 
 bool Device::load_rom(const std::string rom_file_path)
 {
     if (!m_cartridge->load_from_file(rom_file_path))
         return false;
-
     reset();
+
     return true;
 }
