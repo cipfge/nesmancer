@@ -1049,7 +1049,7 @@ bool CPU::op_lax()
 
 bool CPU::op_sax()
 {
-    m_memory->write(m_address, m_registers.X);
+    m_memory->write(m_address, m_registers.A & m_registers.X);
     return false;
 }
 
@@ -1142,7 +1142,7 @@ bool CPU::op_rra()
     set_flag(STATUS_N, m_registers.A >> 7);
     set_flag(STATUS_V, overflow);
 
-    return true;
+    return false;
 }
 
 bool CPU::op_anc()
