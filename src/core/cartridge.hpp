@@ -29,8 +29,11 @@ public:
     Cartridge() = default;
     ~Cartridge();
 
+    void reset();
+
     const Info& info() const;
-    bool load_from_file(const std::string& path);
+    bool rom_loaded() const;
+    bool load_from_file(const std::string& rom_file_path);
 
     uint8_t cpu_read(uint16_t address);
     void cpu_write(uint16_t address, uint8_t data);
@@ -40,6 +43,7 @@ public:
 private:
     Info m_info;
     bool m_chr_ram = false;
+    bool m_rom_loaded = false;
     std::vector<uint8_t> m_prg_ram;
     std::vector<uint8_t> m_prg_rom;
     std::vector<uint8_t> m_chr_rom;

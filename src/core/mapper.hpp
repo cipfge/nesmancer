@@ -12,7 +12,8 @@ public:
     };
 
 public:
-    Mapper(uint16_t id, uint8_t prg_banks, uint8_t chr_banks, MirrorMode mirror_mode);
+    Mapper(uint16_t id, uint8_t prg_banks,
+           uint8_t chr_banks, MirrorMode mirror_mode);
     virtual ~Mapper();
 
     virtual uint32_t read(uint16_t address) = 0;

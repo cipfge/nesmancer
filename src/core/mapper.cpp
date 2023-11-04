@@ -1,7 +1,8 @@
 #include "mapper.hpp"
 #include "global.hpp"
 
-Mapper::Mapper(uint16_t id, uint8_t prg_banks, uint8_t chr_banks, MirrorMode mirror_mode)
+Mapper::Mapper(uint16_t id, uint8_t prg_banks,
+               uint8_t chr_banks, MirrorMode mirror_mode)
     : m_id(id)
     , m_prg_banks(prg_banks)
     , m_chr_banks(chr_banks)
@@ -37,7 +38,7 @@ uint32_t Mapper0::map_address(uint16_t address)
 {
     if (address < 0x2000)
         return address;
-    else if (address < 0x3F00)
+    if (address >= 0x2000 && address < 0x3F00)
     {
         uint32_t mapped_address = address & 0x0FFF;
         if (m_mirror_mode == MIRROR_VERTICAL)

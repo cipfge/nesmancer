@@ -15,7 +15,7 @@ public:
     void set_window_title(const std::string& title);
 
 private:
-    Device m_nes_device;
+    Device m_nes;
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_GameController* m_controller = nullptr;

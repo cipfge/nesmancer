@@ -278,7 +278,6 @@ void CPU::reset()
     m_registers.P = STATUS_I | STATUS_U;
     m_registers.SP = 0xFD;
     m_registers.PC = m_memory->read(0xFFFC) | (m_memory->read(0xFFFD) << 8);
-
     m_opcode = 0;
     m_address = 0;
     m_cycles = 7;
@@ -329,8 +328,6 @@ void CPU::tick()
 
     if (am_cycle && op_cycle)
         m_cycles++;
-
-    std::cout << "Executing " << std::hex << (unsigned)m_opcode << "\n";
 }
 
 void CPU::set_flag(StatusFlag flag, bool value)
@@ -1249,7 +1246,7 @@ bool CPU::op_nop()
 
 bool CPU::op_hlt()
 {
-    std::cerr << "Opcode: " << (unsigned)m_opcode << ", Halt!\n";
+    std::cerr << "CPU halt! opcode: " << std::hex << (unsigned)m_opcode << "\n";
     exit(1);
 
     return false;

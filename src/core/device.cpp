@@ -3,6 +3,7 @@
 #include "ppu.hpp"
 #include "cartridge.hpp"
 #include "memory.hpp"
+#include "global.hpp"
 
 Device::Device()
 {
@@ -23,14 +24,27 @@ Device::~Device()
 void Device::reset()
 {
     m_cpu->reset();
+    // TODO: APU, PPU reset
 }
 
-void Device::tick()
+void Device::run_one_frame()
 {
-    m_cpu->tick();
+    if (!m_cartridge->rom_loaded())
+        return;
+
+    // TODO: PPU, check frame completed
+    for (int cycle = 0; cycle < 29780; cycle++)
+    {
+        m_cpu->tick();
+        // TODO: APU, PPU tick
+    }
 }
 
 bool Device::load_rom(const std::string rom_file_path)
 {
-    return m_cartridge->load_from_file(rom_file_path);
+    if (!m_cartridge->load_from_file(rom_file_path))
+        return false;
+
+    reset();
+    return true;
 }

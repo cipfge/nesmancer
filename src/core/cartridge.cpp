@@ -8,17 +8,48 @@ Cartridge::~Cartridge()
 {
 }
 
+void Cartridge::reset()
+{
+    m_info.mapper = 0;
+    m_info.prg_banks = 0;
+    m_info.chr_banks = 0;
+    m_info.prg_ram_size = 0;
+    m_info.prg_rom_size = 0;
+    m_info.chr_rom_size = 0;
+    m_info.mirror_mode = Mapper::MIRROR_HORIZONTAL;
+    m_info.baterry = false;
+    m_info.trainer = false;
+    m_info.four_screen_mode = false;
+    m_info.vs_unisystem = false;
+    m_info.playchoice_10 = false;
+    m_info.is_nes2_format = false;
+
+    m_prg_ram.clear();
+    m_prg_rom.clear();
+    m_chr_rom.clear();
+
+    m_mapper.reset();
+
+    m_chr_ram = false;
+    m_rom_loaded = false;
+}
+
 const Cartridge::Info& Cartridge::info() const
 {
     return m_info;
 }
 
-bool Cartridge::load_from_file(const std::string& path)
+bool Cartridge::rom_loaded() const
 {
-    std::ifstream rom_file(path, std::ifstream::binary);
+    return m_rom_loaded;
+}
+
+bool Cartridge::load_from_file(const std::string& rom_file_path)
+{
+    std::ifstream rom_file(rom_file_path, std::ifstream::binary);
     if (!rom_file.is_open())
     {
-        std::cerr << "Failed to open rom file " << path << "\n";
+        std::cerr << "Failed to open rom file " << rom_file_path << "\n";
         return false;
     }
 
@@ -28,10 +59,11 @@ bool Cartridge::load_from_file(const std::string& path)
 
     if (strncmp((char *)rom_header, "NES\x1A", 4) != 0)
     {
-        std::cerr << "Invalid signature for file " << path << "\n";
+        std::cerr << "Invalid signature for file " << rom_file_path << "\n";
         return false;
     }
 
+    reset();
     parse_rom_header(rom_header);
 
     switch (m_info.mapper)
@@ -42,24 +74,22 @@ bool Cartridge::load_from_file(const std::string& path)
                                              m_info.mirror_mode);
         break;
 
-    // TODO Mapper1, Mapper2, ...
+    // TODO: Mapper1, Mapper2, ...
 
     default:
         std::cerr << "Unsupported mapper id " << (unsigned)m_info.mapper << "\n";
         return false;
     }
 
-    m_prg_ram.clear();
     m_prg_ram.resize(m_info.prg_ram_size);
 
     if (m_info.trainer)
         rom_file.seekg(512, std::ios::cur);
 
-    m_prg_rom.clear();
     m_prg_rom.resize(m_info.prg_rom_size);
     if (!rom_file.read(reinterpret_cast<char*>(m_prg_rom.data()), m_info.prg_rom_size))
     {
-        std::cerr << "Error while reading PRG data from " << path << "\n";
+        std::cerr << "Error while reading PRG data from " << rom_file_path << "\n";
         return false;
     }
 
@@ -67,15 +97,15 @@ bool Cartridge::load_from_file(const std::string& path)
         m_chr_ram = true;
     else
     {
-        m_chr_rom.clear();
         m_chr_rom.resize(m_info.chr_rom_size);
         if (!rom_file.read(reinterpret_cast<char*>(m_chr_rom.data()), m_info.chr_rom_size))
         {
-            std::cerr << "Error while reading CHR data from " << path << "\n";
+            std::cerr << "Error while reading CHR data from " << rom_file_path << "\n";
             return false;
         }
     }
 
+    m_rom_loaded = true;
     return true;
 }
 
@@ -83,22 +113,17 @@ uint8_t Cartridge::cpu_read(uint16_t address)
 {
     uint32_t mapped_address = m_mapper->read(address);
 
-    if (address < 0x4020)
-    {
-        std::cerr << "Invalid address " << mapped_address << " for cartridge\n";
-        exit(1);
-    }
-    else if (address < 0x6000)
-        return 0;
-    else if (address < 0x8000)
+    if (address >= 0x6000 && address < 0x8000)
         return m_prg_ram[mapped_address];
     else
         return m_prg_rom[mapped_address];
+
+    return 0;
 }
 
 void Cartridge::cpu_write(uint16_t address, uint8_t data)
 {
-    int32_t mapped_address = m_mapper->write(address, data);
+    uint32_t mapped_address = m_mapper->write(address, data);
 
     if (address >= 0x6000 && address < 0x8000)
         m_prg_ram[mapped_address] = data;
@@ -106,16 +131,24 @@ void Cartridge::cpu_write(uint16_t address, uint8_t data)
 
 uint8_t Cartridge::ppu_read(uint16_t address)
 {
-    EMU_UNUSED(address);
-    // TODO: PPU read
-    return 0;
+    uint32_t mapped_address = m_mapper->read(address);
+
+    if (address < 0x2000)
+        return m_chr_rom[mapped_address];
+    else
+        return 0; // TODO: PPU VRAM
 }
 
 void Cartridge::ppu_write(uint16_t address, uint8_t data)
 {
-    EMU_UNUSED(address);
-    EMU_UNUSED(data);
-    // TODO: PPU write
+    uint32_t mapped_address = m_mapper->write(address, data);
+
+    if (address < 0x2000)
+        m_chr_rom[mapped_address] = data;
+    else
+    {
+        // TODO: PPU VRAM
+    }
 }
 
 void Cartridge::parse_rom_header(const uint8_t* header)
@@ -133,21 +166,4 @@ void Cartridge::parse_rom_header(const uint8_t* header)
     m_info.vs_unisystem = header[7] & 0x1;
     m_info.playchoice_10 = header[7] & 0x2;
     m_info.is_nes2_format = ((header[7] >> 2) & 0x3) == 2;
-
-#ifdef EMU_DEBUG_ENABLED
-    std::cout << "ROM information: \n"
-              << " - Mapper: " << (unsigned)m_info.mapper << "\n"
-              << " - PRG banks: " << (unsigned)m_info.prg_banks << "\n"
-              << " - CHR banks: " << (unsigned)m_info.chr_banks << "\n"
-              << " - PRG RAM size: " << m_info.prg_ram_size << "\n"
-              << " - PRG ROM size: " << m_info.prg_rom_size << "\n"
-              << " - CHR ROM size: " << m_info.chr_rom_size << "\n"
-              << " - Mirror: " << (m_info.mirror_mode == Mapper::MIRROR_HORIZONTAL ? "Horizontal" : "Vertical") << "\n"
-              << " - Battery: " << (m_info.baterry ? "yes" : "no") << "\n"
-              << " - Trainer: " << (m_info.trainer ? "yes" : "no") << "\n"
-              << " - Four screen mode: " << (m_info.four_screen_mode ? "yes" : "no") << "\n"
-              << " - VS Unisystem: " << (m_info.vs_unisystem ? "yes" : "no") << "\n"
-              << " - PlayChoice-10: " << (m_info.playchoice_10 ? "yes" : "no") << "\n"
-              << " - NES 2.0: " << (m_info.is_nes2_format ? "yes" : "no") << "\n";
-#endif // Debug enabled
 }
