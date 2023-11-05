@@ -10,6 +10,8 @@ Cartridge::~Cartridge()
 
 void Cartridge::reset()
 {
+    memset(m_vram, 0, sizeof(m_vram));
+
     m_info.mapper = 0;
     m_info.prg_banks = 0;
     m_info.chr_banks = 0;
@@ -136,7 +138,7 @@ uint8_t Cartridge::ppu_read(uint16_t address)
     if (address < 0x2000)
         return m_chr_rom[mapped_address];
     else
-        return 0; // TODO: PPU VRAM
+        return m_vram[mapped_address];
 }
 
 void Cartridge::ppu_write(uint16_t address, uint8_t data)
@@ -146,9 +148,7 @@ void Cartridge::ppu_write(uint16_t address, uint8_t data)
     if (address < 0x2000)
         m_chr_rom[mapped_address] = data;
     else
-    {
-        // TODO: PPU VRAM
-    }
+        m_vram[mapped_address] = data;
 }
 
 void Cartridge::parse_rom_header(const uint8_t* header)

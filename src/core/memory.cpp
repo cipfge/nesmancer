@@ -36,7 +36,27 @@ void Memory::write(uint16_t address, uint8_t data)
         m_ppu->write((address - 0x2000) & 0x7, data);
     else if (address < 0x4020)
     {
-        // TODO: OAM-DMA, APU, Controller
+        switch (address)
+        {
+        case 0x4014:
+        {
+            for (uint16_t i = 0; i < 256; i++)
+                write(0x2004, read(0x100 * data + i));
+            break;
+        }
+
+        case 0x4016:
+            // TODO: Controller 0 write
+            break;
+
+        case 0x4017:
+            // TODO: Controller 1 write
+            break;
+
+        default:
+            // TODO: APU write
+            break;
+        }
     }
     else
         m_cartrige->cpu_write(address, data);

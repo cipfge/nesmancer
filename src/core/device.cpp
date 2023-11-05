@@ -7,8 +7,8 @@
 
 Device::Device()
 {
-    m_ppu = new PPU();
     m_cartridge = new Cartridge();
+    m_ppu = new PPU(m_cartridge);
     m_memory = new Memory(m_ppu, m_cartridge);
     m_cpu = new CPU(m_memory);
 }

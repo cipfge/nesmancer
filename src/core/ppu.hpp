@@ -3,6 +3,8 @@
 #include "types.hpp"
 #include "global.hpp"
 
+class Cartridge;
+
 class PPU
 {
 public:
@@ -74,7 +76,7 @@ public:
     };
 
 public:
-    PPU();
+    PPU(Cartridge* cartridge);
     ~PPU();
 
     void reset();
@@ -90,6 +92,8 @@ public:
 private:
     static uint32_t m_palette[64];
 
+    Cartridge* m_cartridge = nullptr;
+    uint8_t m_palette_ram[32];
     uint8_t m_oam[256];
     uint8_t m_oam_address = 0;
     Control m_control;
@@ -97,9 +101,14 @@ private:
     Status m_status;
     LoopyAddress m_vram_address;
     LoopyAddress m_vram_temp_address;
+    uint8_t m_fine_x = 0;
     uint8_t m_data_buffer = 0;
     uint16_t m_cycle = 0;
     uint16_t m_scanline = 0;
     bool m_frame_completed = false;
+    bool m_offset_toggle = false;
     uint32_t m_frame_buffer[EMU_SCREEN_WIDTH * EMU_SCREEN_HEIGHT];
+
+    uint8_t video_bus_read(uint16_t address);
+    void video_bus_write(uint16_t address, uint8_t data);
 };
