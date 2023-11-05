@@ -56,3 +56,8 @@ bool Device::load_rom(const std::string rom_file_path)
 
     return true;
 }
+
+uint32_t* Device::frame_buffer()
+{
+    return m_ppu->frame_buffer();
+}

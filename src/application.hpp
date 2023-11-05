@@ -18,6 +18,7 @@ private:
     Device m_nes;
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
+    SDL_Texture* m_frame_texture = nullptr;
     SDL_GameController* m_controller = nullptr;
 
     std::string m_window_title = "NES Emulator";

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.hpp"
+#include "global.hpp"
 
 class PPU
 {
@@ -84,7 +85,11 @@ public:
     uint8_t read(uint16_t address);
     void write(uint16_t address, uint8_t data);
 
+    uint32_t* frame_buffer();
+
 private:
+    static uint32_t m_palette[64];
+
     uint8_t m_oam[256];
     uint8_t m_oam_address = 0;
     Control m_control;
@@ -93,5 +98,8 @@ private:
     LoopyAddress m_vram_address;
     LoopyAddress m_vram_temp_address;
     uint8_t m_data_buffer = 0;
+    uint16_t m_cycle = 0;
+    uint16_t m_scanline = 0;
     bool m_frame_completed = false;
+    uint32_t m_frame_buffer[EMU_SCREEN_WIDTH * EMU_SCREEN_HEIGHT];
 };

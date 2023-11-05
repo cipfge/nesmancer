@@ -11,6 +11,7 @@ Application::~Application()
     ImGui::DestroyContext();
 
     SDL_GameControllerClose(m_controller);
+    SDL_DestroyTexture(m_frame_texture);
     SDL_DestroyRenderer(m_renderer);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
@@ -68,6 +69,17 @@ bool Application::init()
     if (!m_renderer)
     {
         std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << "\n";
+        return false;
+    }
+
+    m_frame_texture = SDL_CreateTexture(m_renderer,
+                                 SDL_PIXELFORMAT_RGB888,
+                                 SDL_TEXTUREACCESS_STREAMING,
+                                 EMU_SCREEN_WIDTH,
+                                 EMU_SCREEN_HEIGHT);
+    if (!m_frame_texture)
+    {
+        std::cerr << "SDL_CreateTexture error: " << SDL_GetError() << "\n";
         return false;
     }
 
@@ -198,6 +210,8 @@ void Application::render()
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 
-    // TODO: Draw screen buffer
+    SDL_UpdateTexture(m_frame_texture, NULL, m_nes.frame_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+    SDL_Rect window_rect = { 0, 0, m_window_width, m_window_height };
+    SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, &window_rect);
     SDL_RenderPresent(m_renderer);
 }
