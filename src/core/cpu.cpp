@@ -281,6 +281,8 @@ void CPU::reset()
     m_opcode = 0;
     m_address = 0;
     m_cycles = 7;
+    m_nmi_pending = false;
+    m_irq_pending = false;
 }
 
 void CPU::irq()
@@ -318,6 +320,20 @@ void CPU::tick()
         return;
     }
 
+    if (m_nmi_pending)
+    {
+        nmi();
+        m_nmi_pending = false;
+        return;
+    }
+
+    if (m_irq_pending)
+    {
+        irq();
+        m_irq_pending = false;
+        return;
+    }
+
     m_opcode = m_memory->read(m_registers.PC++);
     Opcode op = m_opcode_table[m_opcode];
     m_addressing_mode = op.addressing_mode;
@@ -328,6 +344,16 @@ void CPU::tick()
 
     if (am_cycle && op_cycle)
         m_cycles++;
+}
+
+void CPU::nmi_pending()
+{
+    m_nmi_pending = true;
+}
+
+void CPU::irq_pending()
+{
+    m_irq_pending = true;
 }
 
 void CPU::set_flag(StatusFlag flag, bool value)

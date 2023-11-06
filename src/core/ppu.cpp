@@ -49,7 +49,11 @@ void PPU::reset()
     m_cycle = 0;
     m_scanline = 0;
     m_frame_completed = false;
+    m_frame_odd = false;
     m_offset_toggle = false;
+    m_cpu_nmi = false;
+
+    memset(m_frame_buffer, 0, sizeof(m_frame_buffer));
 }
 
 void PPU::frame_clear()
@@ -62,6 +66,16 @@ bool PPU::frame_completed()
     return m_frame_completed;
 }
 
+bool PPU::cpu_nmi() const
+{
+    return m_cpu_nmi && m_control.nmi;
+}
+
+void PPU::cpu_nmi_clear()
+{
+    m_cpu_nmi = false;
+}
+
 void PPU::tick()
 {
     // Fake noise
@@ -69,15 +83,53 @@ void PPU::tick()
                    (EMU_SCREEN_WIDTH * EMU_SCREEN_HEIGHT)] =
                    m_palette[(std::rand() % 2) ? 0x3F : 0x30];
 
+    if (m_scanline < 240)
+    {
+        // TODO: Render
+    }
+    else if (m_scanline == 241 && m_cycle == 1)
+    {
+        m_status.vertical_blank = 1;
+        m_cpu_nmi = true;
+    }
+    else if (m_scanline == 261)
+    {
+        if (m_cycle == 1)
+        {
+            m_status.vertical_blank = 0;
+            m_status.sprite_zero_hit = 0;
+            m_cpu_nmi = false;
+        }
+        else if (m_cycle > 279 && m_cycle < 305)
+        {
+        }
+        else if (m_cycle == 340 && m_frame_odd && m_mask.show_background)
+        {
+            // Skip cycle 0 on odd frame when background is enabled
+            m_cycle = 1;
+            m_scanline = 0;
+            m_frame_completed = true;
+            m_frame_odd = !m_frame_odd;
+            return;
+        }
+    }
+
+    if ((m_scanline < 241 && m_cycle == 260) &&
+        (m_mask.show_sprites || m_mask.show_background))
+    {
+        m_cartridge->ppu_scanline();
+    }
+
     m_cycle++;
-    if (m_cycle >= 340)
+    if (m_cycle > 340)
     {
         m_cycle = 0;
         m_scanline++;
-        if (m_scanline >= 260)
+        if (m_scanline > 261)
         {
             m_scanline = 0;
             m_frame_completed = true;
+            m_frame_odd = !m_frame_odd;
         }
     }
 }
@@ -92,6 +144,7 @@ uint8_t PPU::read(uint16_t address)
         data = (m_status.value & 0xE0) | (m_data_buffer & 0x1F);
         m_status.vertical_blank = 0;
         m_offset_toggle = false;
+        m_cpu_nmi = false;
         break;
 
     case PPU_OAM_DATA:

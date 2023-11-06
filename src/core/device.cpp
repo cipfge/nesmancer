@@ -35,7 +35,15 @@ void Device::run_one_frame()
 
     while (!m_ppu->frame_completed())
     {
-        // TODO: CPU interrupts
+        if (m_ppu->cpu_nmi())
+        {
+            m_cpu->nmi_pending();
+            m_ppu->cpu_nmi_clear();
+        }
+
+        if (m_cartridge->cpu_irq())
+            m_cpu->irq_pending();
+
         m_cpu->tick();
 
         // TODO: APU tick

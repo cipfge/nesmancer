@@ -82,6 +82,8 @@ public:
     void reset();
     void frame_clear();
     bool frame_completed();
+    bool cpu_nmi() const;
+    void cpu_nmi_clear();
     void tick();
 
     uint8_t read(uint16_t address);
@@ -106,7 +108,9 @@ private:
     uint16_t m_cycle = 0;
     uint16_t m_scanline = 0;
     bool m_frame_completed = false;
+    bool m_frame_odd = false;
     bool m_offset_toggle = false;
+    bool m_cpu_nmi = false;
     uint32_t m_frame_buffer[EMU_SCREEN_WIDTH * EMU_SCREEN_HEIGHT];
 
     uint8_t video_bus_read(uint16_t address);

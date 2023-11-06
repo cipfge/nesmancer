@@ -57,3 +57,8 @@ uint32_t Mapper0::map_address(uint16_t address)
     else
         return m_prg_banks == 1 ? address - 0xC000 : address - 0x8000;
 }
+
+bool Mapper0::cpu_irq()
+{
+    return false;
+}

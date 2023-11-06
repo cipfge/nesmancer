@@ -39,6 +39,8 @@ public:
     void cpu_write(uint16_t address, uint8_t data);
     uint8_t ppu_read(uint16_t address);
     void ppu_write(uint16_t address, uint8_t data);
+    bool cpu_irq();
+    void ppu_scanline();
 
 private:
     Info m_info;

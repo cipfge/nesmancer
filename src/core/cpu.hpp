@@ -64,6 +64,9 @@ public:
     void nmi();
     void tick();
 
+    void nmi_pending();
+    void irq_pending();
+
 private:
     Registers m_registers;
     Memory* m_memory = nullptr;
@@ -71,6 +74,8 @@ private:
     AddressingMode m_addressing_mode = AM_IMPLIED;
     uint16_t m_address = 0;
     uint8_t m_cycles = 0;
+    bool m_nmi_pending = false;
+    bool m_irq_pending = false;
     static Opcode m_opcode_table[256];
 
     void set_flag(StatusFlag flag, bool value);

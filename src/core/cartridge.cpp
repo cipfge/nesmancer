@@ -151,6 +151,15 @@ void Cartridge::ppu_write(uint16_t address, uint8_t data)
         m_vram[mapped_address] = data;
 }
 
+bool Cartridge::cpu_irq()
+{
+    return m_mapper->cpu_irq();
+}
+
+void Cartridge::ppu_scanline()
+{
+}
+
 void Cartridge::parse_rom_header(const uint8_t* header)
 {
     m_info.mapper = (header[6] >> 4) | (header[7] & 0xF0);
