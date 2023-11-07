@@ -3,6 +3,7 @@
 #include "apu.hpp"
 #include "ppu.hpp"
 #include "cartridge.hpp"
+#include "controller.hpp"
 #include "memory.hpp"
 #include "global.hpp"
 
@@ -11,7 +12,8 @@ Device::Device()
     m_cartridge = new Cartridge();
     m_ppu = new PPU(m_cartridge);
     m_apu = new APU();
-    m_memory = new Memory(m_ppu, m_apu, m_cartridge);
+    m_controller = new Controller();
+    m_memory = new Memory(m_ppu, m_apu, m_cartridge, m_controller);
     m_cpu = new CPU(m_memory);
 }
 
@@ -19,6 +21,7 @@ Device::~Device()
 {
     delete m_ppu;
     delete m_cartridge;
+    delete m_controller;
     delete m_memory;
     delete m_apu;
     delete m_cpu;

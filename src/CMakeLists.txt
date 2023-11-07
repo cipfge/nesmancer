@@ -6,6 +6,8 @@ set(EMU_SOURCE_FILES
     "core/apu.hpp"
     "core/cartridge.cpp"
     "core/cartridge.hpp"
+    "core/controller.cpp"
+    "core/controller.hpp"
     "core/cpu.cpp"
     "core/cpu.hpp"
     "core/device.cpp"

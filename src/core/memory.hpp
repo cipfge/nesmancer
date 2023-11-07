@@ -5,11 +5,13 @@
 class PPU;
 class APU;
 class Cartridge;
+class Controller;
 
 class Memory
 {
 public:
-    Memory(PPU* ppu, APU* apu, Cartridge* cartridge);
+    Memory(PPU* ppu, APU* apu, Cartridge* cartridge,
+           Controller* controller);
     ~Memory();
 
     uint8_t read(uint16_t address);
@@ -20,4 +22,5 @@ private:
     PPU* m_ppu = nullptr;
     APU* m_apu = nullptr;
     Cartridge* m_cartrige = nullptr;
+    Controller* m_controller = nullptr;
 };

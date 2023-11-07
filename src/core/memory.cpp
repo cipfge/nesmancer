@@ -2,11 +2,14 @@
 #include "ppu.hpp"
 #include "apu.hpp"
 #include "cartridge.hpp"
+#include "controller.hpp"
 
-Memory::Memory(PPU* ppu, APU* apu, Cartridge* cartridge)
+Memory::Memory(PPU* ppu, APU* apu, Cartridge* cartridge,
+               Controller* controller)
     : m_ppu(ppu)
     , m_apu(apu)
     , m_cartrige(cartridge)
+    , m_controller(controller)
 {
 }
 
@@ -23,7 +26,14 @@ uint8_t Memory::read(uint16_t address)
     else if (address < 0x4016)
         return m_apu->read(address);
     else if (address < 0x4020)
-        return 0; // TODO: Controller
+    {
+        switch (address)
+        {
+        case 0x4016: return m_controller->read(0);
+        case 0x4017: return m_controller->read(1);
+        default: break;
+        }
+    }
     else
         return m_cartrige->cpu_read(address);
 
@@ -48,11 +58,11 @@ void Memory::write(uint16_t address, uint8_t data)
         }
 
         case 0x4016:
-            // TODO: Controller 0 write
+            m_controller->write(0, data);
             break;
 
         case 0x4017:
-            // TODO: Controller 1 write
+            m_controller->write(1, data);
             break;
 
         default:

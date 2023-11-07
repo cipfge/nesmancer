@@ -7,6 +7,7 @@ class CPU;
 class APU;
 class PPU;
 class Cartridge;
+class Controller;
 class Memory;
 
 class Device
@@ -26,5 +27,6 @@ private:
     APU* m_apu = nullptr;
     PPU* m_ppu = nullptr;
     Cartridge* m_cartridge = nullptr;
+    Controller* m_controller = nullptr;
     Memory* m_memory = nullptr;
 };
