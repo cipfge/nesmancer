@@ -1,9 +1,11 @@
 #include "memory.hpp"
 #include "ppu.hpp"
+#include "apu.hpp"
 #include "cartridge.hpp"
 
-Memory::Memory(PPU* ppu, Cartridge* cartridge)
+Memory::Memory(PPU* ppu, APU* apu, Cartridge* cartridge)
     : m_ppu(ppu)
+    , m_apu(apu)
     , m_cartrige(cartridge)
 {
 }
@@ -19,7 +21,7 @@ uint8_t Memory::read(uint16_t address)
     else if (address < 0x4000)
         return m_ppu->read((address - 0x2000) & 0x7);
     else if (address < 0x4016)
-        return 0; // TODO: APU
+        return m_apu->read(address);
     else if (address < 0x4020)
         return 0; // TODO: Controller
     else
@@ -54,7 +56,7 @@ void Memory::write(uint16_t address, uint8_t data)
             break;
 
         default:
-            // TODO: APU write
+            m_apu->write(address, data);
             break;
         }
     }

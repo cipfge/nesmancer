@@ -40,6 +40,7 @@ public:
     uint8_t ppu_read(uint16_t address);
     void ppu_write(uint16_t address, uint8_t data);
     bool cpu_irq();
+    void cpu_irq_clear();
     void ppu_scanline();
 
 private:

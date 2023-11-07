@@ -4,6 +4,7 @@
 #include <string>
 
 class CPU;
+class APU;
 class PPU;
 class Cartridge;
 class Memory;
@@ -22,6 +23,7 @@ public:
 
 private:
     CPU* m_cpu = nullptr;
+    APU* m_apu = nullptr;
     PPU* m_ppu = nullptr;
     Cartridge* m_cartridge = nullptr;
     Memory* m_memory = nullptr;

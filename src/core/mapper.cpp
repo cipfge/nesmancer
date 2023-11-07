@@ -62,3 +62,11 @@ bool Mapper0::cpu_irq()
 {
     return false;
 }
+
+void Mapper0::cpu_irq_clear()
+{
+}
+
+void Mapper0::ppu_scanline()
+{
+}

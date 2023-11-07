@@ -156,8 +156,14 @@ bool Cartridge::cpu_irq()
     return m_mapper->cpu_irq();
 }
 
+void Cartridge::cpu_irq_clear()
+{
+    m_mapper->cpu_irq_clear();
+}
+
 void Cartridge::ppu_scanline()
 {
+    m_mapper->ppu_scanline();
 }
 
 void Cartridge::parse_rom_header(const uint8_t* header)
