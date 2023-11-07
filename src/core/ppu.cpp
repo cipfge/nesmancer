@@ -35,15 +35,12 @@ PPU::~PPU()
 
 void PPU::reset()
 {
-    memset(m_palette_ram, 0, sizeof(m_palette_ram));
-    memset(m_oam, 0, sizeof(m_oam));
-
-    m_oam_address = 0;
     m_control.value = 0;
     m_mask.value = 0;
     m_status.value = 0;
     m_vram_address.value = 0;
     m_vram_temp_address.value = 0;
+
     m_fine_x = 0;
     m_data_buffer = 0;
     m_cycle = 0;
@@ -53,6 +50,16 @@ void PPU::reset()
     m_offset_toggle = false;
     m_cpu_nmi = false;
 
+    m_oam_address = 0;
+    m_sprite_count = 0;
+
+    m_bg_nametable = 0;
+    m_bg_attribute = 0;
+    m_bg_tile_low = 0;
+    m_bg_tile_high = 0;
+
+    memset(m_palette_ram, 0, sizeof(m_palette_ram));
+    memset(m_oam, 0, sizeof(m_oam));
     memset(m_frame_buffer, 0, sizeof(m_frame_buffer));
 }
 
@@ -78,14 +85,13 @@ void PPU::cpu_nmi_clear()
 
 void PPU::tick()
 {
-    // Fake noise
-    m_frame_buffer[(m_scanline * EMU_SCREEN_HEIGHT + m_cycle) %
-                   (EMU_SCREEN_WIDTH * EMU_SCREEN_HEIGHT)] =
-                   m_palette[(std::rand() % 2) ? 0x3F : 0x30];
-
     if (m_scanline < 240)
     {
-        // TODO: Render
+        if (m_mask.show_background || m_mask.show_sprites)
+            render_cycle();
+
+        if (m_cycle < 256)
+            render_pixel();
     }
     else if (m_scanline == 241 && m_cycle == 1)
     {
@@ -94,6 +100,9 @@ void PPU::tick()
     }
     else if (m_scanline == 261)
     {
+        if (m_mask.show_background || m_mask.show_sprites)
+            render_cycle();
+
         if (m_cycle == 1)
         {
             m_status.vertical_blank = 0;
@@ -102,6 +111,13 @@ void PPU::tick()
         }
         else if (m_cycle > 279 && m_cycle < 305)
         {
+            if (m_mask.show_background || m_mask.show_sprites)
+            {
+                m_vram_address.fine_y = m_vram_temp_address.fine_y;
+                m_vram_address.coarse_y = m_vram_temp_address.coarse_y;
+                m_vram_address.nametable = (m_vram_address.nametable & 1)
+                                         | (m_vram_temp_address.nametable & 2);
+            }
         }
         else if (m_cycle == 340 && m_frame_odd && m_mask.show_background)
         {
@@ -225,6 +241,111 @@ void PPU::write(uint16_t address, uint8_t data)
     }
 }
 
+void PPU::render_cycle()
+{
+    if ((m_cycle > 1 && m_cycle < 258) || (m_cycle > 321 && m_cycle < 338))
+    {
+        if (m_mask.show_background)
+        {
+            m_bg_shifter.pattern_low <<= 1;
+            m_bg_shifter.pattern_high <<= 1;
+            m_bg_shifter.attribute_low <<= 1;
+            m_bg_shifter.attribute_high <<= 1;
+        }
+    }
+
+    if (m_cycle > 0 && (m_cycle < 256 || m_cycle > 320) && m_cycle < 337)
+    {
+        if (m_cycle < 256 && m_mask.show_sprites)
+        {
+            ObjectAttributeEntry* sprite = nullptr;
+            for (int i = 0; i < m_sprite_count; i++) {
+                sprite = m_sprite_scanline + i;
+                if (sprite->x > 0) {
+                    sprite->x--;
+                } else {
+                    m_sprite_shifter.pattern_low[i] <<= 1;
+                    m_sprite_shifter.pattern_high[i] <<= 1;
+                }
+            }
+        }
+
+        switch ((m_cycle - 1) % 8)
+        {
+        case 0:
+            m_bg_shifter.attribute_low = (m_bg_shifter.attribute_low & 0xFF00) |
+                                         ((m_bg_attribute & 1) ? 0xFF : 0x00);
+            m_bg_shifter.attribute_high = (m_bg_shifter.attribute_high & 0xFF00) |
+                                          ((m_bg_attribute & 2) ? 0xFF : 0x00);
+            m_bg_shifter.pattern_low = (m_bg_shifter.pattern_low & 0xFF00) | m_bg_tile_low;
+            m_bg_shifter.pattern_high = (m_bg_shifter.pattern_high & 0xFF00) | m_bg_tile_high;
+
+            m_bg_nametable = video_bus_read(0x2000 | (m_vram_address.value & 0x0FFF));
+            break;
+
+        case 2:
+            m_bg_attribute = video_bus_read(0x23C0 |
+                                            (m_vram_address.value & 0x0C00) |
+                                            ((m_vram_address.value >> 4) & 0x38) |
+                                            ((m_vram_address.value >> 2) & 0x7));
+            if (m_vram_address.coarse_y & 2)
+                m_bg_attribute >>= 4;
+            if (m_vram_address.coarse_x & 2)
+                m_bg_attribute >>= 4;
+
+            m_bg_attribute &= 3;
+            break;
+
+        case 4:
+            m_bg_tile_low = video_bus_read(((uint16_t)m_control.background_table << 12) |
+                                           (((int16_t)m_bg_nametable) << 4) |
+                                           m_vram_address.fine_y);
+            break;
+
+        case 6:
+            m_bg_tile_high = video_bus_read(((uint16_t)m_control.background_table << 12) |
+                                            (((int16_t)m_bg_nametable) << 4) |
+                                            0x8 |
+                                            m_vram_address.fine_y);
+            break;
+
+        case 7:
+            m_vram_address.coarse_x++;
+            if (m_vram_address.coarse_x == 0)
+                m_vram_address.nametable ^= 1;
+            break;
+
+        default:
+            break;
+        }
+    }
+    else if (m_cycle == 256)
+    {
+        m_vram_address.fine_y++;
+        if (m_vram_address.fine_y == 0)
+        {
+            if (m_vram_address.coarse_y == 30)
+            {
+                m_vram_address.coarse_y = 0;
+                m_vram_address.nametable ^= 2;
+            }
+        }
+    }
+    else if (m_cycle == 257)
+    {
+        m_vram_address.coarse_x = m_vram_temp_address.coarse_x;
+        m_vram_address.nametable = (m_vram_address.nametable & 2) | (m_vram_temp_address.nametable & 1);
+    }
+    else if(m_cycle == 337 || m_cycle == 339)
+    {
+        m_bg_nametable = video_bus_read(0x2000 | (m_vram_address.value & 0x0FFF));
+    }
+}
+
+void PPU::render_pixel()
+{
+}
+
 uint32_t* PPU::frame_buffer()
 {
     return m_frame_buffer;
@@ -257,4 +378,13 @@ void PPU::video_bus_write(uint16_t address, uint8_t data)
             palette_address -= 0x10;
         m_palette_ram[palette_address] = data;
     }
+}
+
+uint32_t PPU::read_color_from_palette(int nr, int index)
+{
+    uint16_t address = nr * 4 + index;
+    if (address > 0x0F && address % 4 == 0)
+        address -= 0x10;
+
+    return m_palette[m_palette_ram[address]];
 }

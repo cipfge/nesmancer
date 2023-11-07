@@ -75,6 +75,28 @@ public:
         };
     };
 
+    struct ObjectAttributeEntry
+    {
+        uint8_t y = 0;
+        uint8_t id = 0;
+        uint8_t attribute = 0;
+        uint8_t x = 0;
+    };
+
+    struct SpriteShifter
+    {
+        uint8_t pattern_low[8];
+        uint8_t pattern_high[8];
+    };
+
+    struct BackgroundShifter
+    {
+        uint16_t pattern_low = 0;
+        uint16_t pattern_high = 0;
+        uint16_t attribute_low = 0;
+        uint16_t attribute_high = 0;
+    };
+
 public:
     PPU(Cartridge* cartridge);
     ~PPU();
@@ -95,14 +117,13 @@ private:
     static uint32_t m_palette[64];
 
     Cartridge* m_cartridge = nullptr;
-    uint8_t m_palette_ram[32];
-    uint8_t m_oam[256];
-    uint8_t m_oam_address = 0;
     Control m_control;
     Mask m_mask;
     Status m_status;
     LoopyAddress m_vram_address;
     LoopyAddress m_vram_temp_address;
+
+    uint8_t m_palette_ram[32];
     uint8_t m_fine_x = 0;
     uint8_t m_data_buffer = 0;
     uint16_t m_cycle = 0;
@@ -111,8 +132,24 @@ private:
     bool m_frame_odd = false;
     bool m_offset_toggle = false;
     bool m_cpu_nmi = false;
+
+    uint8_t m_oam[256];
+    uint8_t m_oam_address = 0;
+    ObjectAttributeEntry m_sprite_scanline[8];
+    uint8_t m_sprite_count = 0;
+    SpriteShifter m_sprite_shifter;
+
+    uint8_t m_bg_nametable = 0;
+    uint8_t m_bg_attribute = 0;
+    uint8_t m_bg_tile_low = 0;
+    uint8_t m_bg_tile_high = 0;
+    BackgroundShifter m_bg_shifter;
+
     uint32_t m_frame_buffer[EMU_SCREEN_WIDTH * EMU_SCREEN_HEIGHT];
 
+    void render_cycle();
+    void render_pixel();
     uint8_t video_bus_read(uint16_t address);
     void video_bus_write(uint16_t address, uint8_t data);
+    uint32_t read_color_from_palette(int nr, int index);
 };
