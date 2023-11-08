@@ -2,7 +2,6 @@
 .kdev4/
 .vscode/
 build/
-roms/
 
 # Files
 *.kdev4
