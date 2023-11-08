@@ -38,15 +38,18 @@ uint32_t Mapper0::map_address(uint16_t address)
 {
     if (address < 0x2000)
         return address;
-    if (address >= 0x2000 && address < 0x3F00)
+    else if (address < 0x3F00)
     {
         uint32_t mapped_address = address & 0x0FFF;
         if (m_mirror_mode == MIRROR_VERTICAL)
             return mapped_address & 0x07FF;
         else
-            return (mapped_address < 0x0800) ?
-                   (mapped_address & 0x03FF) :
-                   ((mapped_address - 0x0800) & 0x03FF) + 0x0400;
+        {
+            if (mapped_address < 0x0800)
+                return mapped_address & 0x03FF;
+            else
+                return ((mapped_address - 0x0800) & 0x03FF) + 0x0400;
+        }
     }
     else if (address < 0x6000)
         return address;

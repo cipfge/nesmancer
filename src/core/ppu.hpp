@@ -75,6 +75,13 @@ public:
         };
     };
 
+    enum SpriteAttribute
+    {
+        SPRITE_ATTR_PRIORITY = (1 << 5),
+        SPRITE_ATTR_FLIP_HORIZONTAL = (1 << 6),
+        SPRITE_ATTR_FLIP_VERTICAL = (1 << 7)
+    };
+
     struct ObjectAttributeEntry
     {
         uint8_t y = 0;
@@ -104,14 +111,13 @@ public:
     void reset();
     void frame_clear();
     bool frame_completed();
+    uint32_t* frame_buffer();
     bool cpu_nmi() const;
     void cpu_nmi_clear();
     void tick();
 
     uint8_t read(uint16_t address);
     void write(uint16_t address, uint8_t data);
-
-    uint32_t* frame_buffer();
 
 private:
     static uint32_t m_palette[64];
@@ -137,6 +143,7 @@ private:
     uint8_t m_oam_address = 0;
     ObjectAttributeEntry m_sprite_scanline[8];
     uint8_t m_sprite_count = 0;
+    bool m_sprite_zero_hit_possible = false;
     SpriteShifter m_sprite_shifter;
 
     uint8_t m_bg_nametable = 0;
@@ -147,9 +154,17 @@ private:
 
     uint32_t m_frame_buffer[EMU_SCREEN_WIDTH * EMU_SCREEN_HEIGHT];
 
-    void render_cycle();
-    void render_pixel();
     uint8_t video_bus_read(uint16_t address);
     void video_bus_write(uint16_t address, uint8_t data);
-    uint32_t read_color_from_palette(int nr, int index);
+
+    void render_cycle();
+    void render_pixel();
+
+    void scroll_x();
+    void scroll_y();
+    void clear_sprite_shifters();
+    uint8_t reverse_byte(uint8_t byte);
+    void evaluate_sprites();
+    void set_sprite_zero_hit(uint8_t fg_palette, uint8_t bg_palette);
+    uint32_t read_color_from_palette(uint8_t palette, uint8_t pixel);
 };

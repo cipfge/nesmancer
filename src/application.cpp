@@ -210,7 +210,7 @@ void Application::render()
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 
-    SDL_UpdateTexture(m_frame_texture, NULL, m_nes.frame_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+    SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.frame_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
     SDL_Rect window_rect = { 0, 0, m_window_width, m_window_height };
     SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, &window_rect);
     SDL_RenderPresent(m_renderer);
