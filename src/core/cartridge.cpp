@@ -137,8 +137,7 @@ uint8_t Cartridge::ppu_read(uint16_t address)
 
     if (address < 0x2000)
         return m_chr_rom[mapped_address];
-    else
-        return m_vram[mapped_address];
+    return m_vram[mapped_address];
 }
 
 void Cartridge::ppu_write(uint16_t address, uint8_t data)

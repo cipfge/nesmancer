@@ -1,9 +1,8 @@
-#include "global.hpp"
 #include "platform.hpp"
 #include "application.hpp"
-#include <iostream>
 
 #ifdef EMU_PLATFORM_WINDOWS
+#include "global.hpp"
 #include <Windows.h>
 #endif // Windows
 

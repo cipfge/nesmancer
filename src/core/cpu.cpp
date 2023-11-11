@@ -314,36 +314,34 @@ void CPU::nmi()
 
 void CPU::tick()
 {
-    if (m_cycles > 0)
+    if (m_cycles == 0)
     {
-        m_cycles--;
-        return;
+        if (m_nmi_pending)
+        {
+            nmi();
+            m_nmi_pending = false;
+            return;
+        }
+
+        if (m_irq_pending)
+        {
+            irq();
+            m_irq_pending = false;
+            return;
+        }
+
+        m_opcode = m_memory->read(m_registers.PC++);
+        Opcode op = m_opcode_table[m_opcode];
+        m_addressing_mode = op.addressing_mode;
+        m_cycles = op.cycles;
+
+        bool am_cycle = (this->*op.read_address)();
+        bool op_cycle = (this->*op.execute)();
+
+        if (am_cycle && op_cycle)
+            m_cycles++;
     }
-
-    if (m_nmi_pending)
-    {
-        nmi();
-        m_nmi_pending = false;
-        return;
-    }
-
-    if (m_irq_pending)
-    {
-        irq();
-        m_irq_pending = false;
-        return;
-    }
-
-    m_opcode = m_memory->read(m_registers.PC++);
-    Opcode op = m_opcode_table[m_opcode];
-    m_addressing_mode = op.addressing_mode;
-    m_cycles = op.cycles;
-
-    bool am_cycle = (this->*op.read_address)();
-    bool op_cycle = (this->*op.execute)();
-
-    if (am_cycle && op_cycle)
-        m_cycles++;
+    m_cycles--;
 }
 
 void CPU::nmi_pending()
