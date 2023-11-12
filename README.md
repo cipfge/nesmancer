@@ -1,6 +1,8 @@
 # NES Emulator
 Work in progress.
 
+![screenshot_nestest](docs/screenshot_nestest.png)
+
 ## Build instructions
 ### Linux
 * Install dependencies
