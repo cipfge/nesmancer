@@ -10,104 +10,89 @@ Cartridge::~Cartridge()
 
 void Cartridge::reset()
 {
-    memset(m_vram, 0, sizeof(m_vram));
-
-    m_info.mapper = 0;
-    m_info.prg_banks = 0;
-    m_info.chr_banks = 0;
-    m_info.prg_ram_size = 0;
-    m_info.prg_rom_size = 0;
-    m_info.chr_rom_size = 0;
-    m_info.mirror_mode = Mapper::MIRROR_HORIZONTAL;
-    m_info.baterry = false;
-    m_info.trainer = false;
-    m_info.four_screen_mode = false;
-    m_info.vs_unisystem = false;
-    m_info.playchoice_10 = false;
-    m_info.is_nes2_format = false;
-
     m_prg_ram.clear();
     m_prg_rom.clear();
     m_chr_rom.clear();
+    memset(m_vram, 0, sizeof(m_vram));
+
+    m_mapper_id = 0;
+    m_prg_banks = 0;
+    m_chr_banks = 0;
+    m_prg_ram_size = 0;
+    m_prg_rom_size = 0;
+    m_chr_rom_size = 0;
 
     m_mapper.reset();
 
-    m_chr_ram = false;
-    m_rom_loaded = false;
+    m_has_trainer = false;
+    m_use_chr_ram = false;
+    m_loaded = false;
 }
 
-const Cartridge::Info& Cartridge::info() const
+bool Cartridge::load_from_file(const std::string& file_path)
 {
-    return m_info;
-}
-
-bool Cartridge::rom_loaded() const
-{
-    return m_rom_loaded;
-}
-
-bool Cartridge::load_from_file(const std::string& rom_file_path)
-{
-    std::ifstream rom_file(rom_file_path, std::ifstream::binary);
+    std::ifstream rom_file(file_path, std::ifstream::binary);
     if (!rom_file.is_open())
     {
-        std::cerr << "Failed to open rom file " << rom_file_path << "\n";
+        std::cerr << "Failed to open rom file " << file_path << "\n";
         return false;
     }
 
-    uint8_t rom_header[16];
-    if (!rom_file.read(reinterpret_cast<char*>(&rom_header), sizeof(rom_header)))
+    uint8_t nes_header[16];
+    if (!rom_file.read(reinterpret_cast<char*>(&nes_header), sizeof(nes_header)))
         return false;
 
-    if (strncmp((char *)rom_header, "NES\x1A", 4) != 0)
+    if (strncmp((char *)nes_header, "NES\x1A", 4) != 0)
     {
-        std::cerr << "Invalid signature for file " << rom_file_path << "\n";
+        std::cerr << "Invalid signature for file " << file_path << "\n";
         return false;
     }
 
     reset();
-    parse_rom_header(rom_header);
+    parse_nes_header(nes_header);
 
-    switch (m_info.mapper)
+    switch (m_mapper_id)
     {
     case 0:
-        m_mapper = std::make_shared<Mapper0>(m_info.prg_banks,
-                                             m_info.chr_banks,
-                                             m_info.mirror_mode);
+        m_mapper = std::make_shared<Mapper0>(m_prg_banks,
+                                             m_chr_banks,
+                                             m_mirroring_mode);
         break;
 
-    // TODO: Mapper1, Mapper2, ...
-
     default:
-        std::cerr << "Unsupported mapper id " << (unsigned)m_info.mapper << "\n";
+        std::cerr << "Unsupported mapper id " << (unsigned)m_mapper_id << "\n";
         return false;
     }
 
-    m_prg_ram.resize(m_info.prg_ram_size);
+    m_prg_ram.resize(m_prg_ram_size);
 
-    if (m_info.trainer)
+    // Skip trainer information
+    if (m_has_trainer)
         rom_file.seekg(512, std::ios::cur);
 
-    m_prg_rom.resize(m_info.prg_rom_size);
-    if (!rom_file.read(reinterpret_cast<char*>(m_prg_rom.data()), m_info.prg_rom_size))
+    m_prg_rom.resize(m_prg_rom_size);
+    if (!rom_file.read(reinterpret_cast<char*>(m_prg_rom.data()), m_prg_rom.size()))
     {
-        std::cerr << "Error while reading PRG data from " << rom_file_path << "\n";
+        std::cerr << "Error while reading PRG data from " << file_path << "\n";
         return false;
     }
 
-    if (m_info.chr_rom_size == 0)
-        m_chr_ram = true;
+    if (m_chr_rom_size == 0)
+    {
+        m_use_chr_ram = true;
+        m_chr_rom.resize(m_prg_ram_size);
+    }
     else
     {
-        m_chr_rom.resize(m_info.chr_rom_size);
-        if (!rom_file.read(reinterpret_cast<char*>(m_chr_rom.data()), m_info.chr_rom_size))
+        m_chr_rom.resize(m_chr_rom_size);
+        if (!rom_file.read(reinterpret_cast<char*>(m_chr_rom.data()), m_chr_rom.size()))
         {
-            std::cerr << "Error while reading CHR data from " << rom_file_path << "\n";
+            std::cerr << "Error while reading CHR data from " << file_path << "\n";
             return false;
         }
     }
 
-    m_rom_loaded = true;
+    m_loaded = true;
     return true;
 }
 
@@ -150,34 +135,35 @@ void Cartridge::ppu_write(uint16_t address, uint8_t data)
         m_vram[mapped_address] = data;
 }
 
-bool Cartridge::cpu_irq()
+bool Cartridge::irq()
 {
-    return m_mapper->cpu_irq();
+    if (!m_loaded)
+        return false;
+    return m_mapper->irq();
 }
 
-void Cartridge::cpu_irq_clear()
+void Cartridge::irq_clear()
 {
-    m_mapper->cpu_irq_clear();
+    if (!m_loaded)
+        return;
+    m_mapper->irq_clear();
 }
 
-void Cartridge::ppu_scanline()
+void Cartridge::scanline()
 {
-    m_mapper->ppu_scanline();
+    if (!m_loaded)
+        return;
+    m_mapper->scanline();
 }
 
-void Cartridge::parse_rom_header(const uint8_t* header)
+void Cartridge::parse_nes_header(const uint8_t* header)
 {
-    m_info.mapper = (header[6] >> 4) | (header[7] & 0xF0);
-    m_info.prg_banks = header[4];
-    m_info.chr_banks = header[5];
-    m_info.prg_ram_size = header[8] ? header[8] * 8192 : 8192;
-    m_info.prg_rom_size = static_cast<uint32_t>(header[4] << 14);
-    m_info.chr_rom_size = static_cast<uint32_t>(header[5] << 13);
-    m_info.mirror_mode = static_cast<Mapper::MirrorMode>(header[6] & 0x1);
-    m_info.baterry = header[6] & 0x2;
-    m_info.trainer = header[6] & 0x4;
-    m_info.four_screen_mode = header[6] & 0x2;
-    m_info.vs_unisystem = header[7] & 0x1;
-    m_info.playchoice_10 = header[7] & 0x2;
-    m_info.is_nes2_format = ((header[7] >> 2) & 0x3) == 2;
+    m_mapper_id = (header[6] >> 4) | (header[7] & 0xF0);
+    m_prg_banks = header[4];
+    m_chr_banks = header[5];
+    m_prg_ram_size = header[8] > 0 ? header[8] * 8192 : 8192;
+    m_prg_rom_size = static_cast<uint32_t>(header[4] << 14);
+    m_chr_rom_size = static_cast<uint32_t>(header[5] << 13);
+    m_mirroring_mode = header[6] & 0x1 ? MIRROR_VERTICAL: MIRROR_HORIZONTAL;
+    m_has_trainer = header[6] & 0x4;
 }

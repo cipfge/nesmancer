@@ -38,7 +38,6 @@ if __name__ == '__main__':
 
     for op in opcodes:
         mnemonic = op["mnemonics"][0]
-        mnemonic += ","
 
         am_name = "CPU::AM_IMPLIED"
         am_func = "CPU::read_implied"
@@ -54,5 +53,6 @@ if __name__ == '__main__':
             cycles = op["cycles"]
 
         op_func = "CPU::op_" + mnemonic.lower()
+        op_func += ","
 
-        print(f"{{ \"{mnemonic:<3}\" {am_name:<27} &{op_func} &{am_func:<27} {cycles} }}, // 0x{op['opcode']:X}")
+        print(f"{{ &{am_func:<27} &{op_func} \"{mnemonic:<3}\", {am_name:<27} {cycles} }}, // 0x{op['opcode']:X}")

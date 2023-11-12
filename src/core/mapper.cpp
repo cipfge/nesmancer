@@ -2,11 +2,11 @@
 #include "global.hpp"
 
 Mapper::Mapper(uint16_t id, uint8_t prg_banks,
-               uint8_t chr_banks, MirrorMode mirror_mode)
+               uint8_t chr_banks, MirroringMode mirroring_mode)
     : m_id(id)
     , m_prg_banks(prg_banks)
     , m_chr_banks(chr_banks)
-    , m_mirror_mode(mirror_mode)
+    , m_mirroring_mode(mirroring_mode)
 {
 }
 
@@ -14,8 +14,8 @@ Mapper::~Mapper()
 {
 }
 
-Mapper0::Mapper0(uint8_t prg_banks, uint8_t chr_banks, MirrorMode mirror_mode)
-    : Mapper(0, prg_banks, chr_banks, mirror_mode)
+Mapper0::Mapper0(uint8_t prg_banks, uint8_t chr_banks, MirroringMode mirroring_mode)
+    : Mapper(0, prg_banks, chr_banks, mirroring_mode)
 {
 }
 
@@ -41,7 +41,7 @@ uint32_t Mapper0::map_address(uint16_t address)
     else if (address < 0x3F00)
     {
         uint32_t mapped_address = address & 0x0FFF;
-        if (m_mirror_mode == MIRROR_VERTICAL)
+        if (m_mirroring_mode == MIRROR_VERTICAL)
             return mapped_address & 0x07FF;
         else
         {
@@ -59,17 +59,4 @@ uint32_t Mapper0::map_address(uint16_t address)
         return address - 0x8000;
     else
         return m_prg_banks == 1 ? address - 0xC000 : address - 0x8000;
-}
-
-bool Mapper0::cpu_irq()
-{
-    return false;
-}
-
-void Mapper0::cpu_irq_clear()
-{
-}
-
-void Mapper0::ppu_scanline()
-{
 }

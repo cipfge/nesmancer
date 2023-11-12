@@ -2,263 +2,263 @@
 #include "memory.hpp"
 #include <iostream>
 
-CPU::Opcode CPU::m_opcode_table[256] = {
-    { "BRK", CPU::AM_IMPLIED,            &CPU::op_brk, &CPU::read_implied,          7 }, // 0x00
-    { "ORA", CPU::AM_INDEXED_INDIRECT,   &CPU::op_ora, &CPU::read_indexed_indirect, 6 }, // 0x01
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0x02
-    { "SLO", CPU::AM_INDEXED_INDIRECT,   &CPU::op_slo, &CPU::read_indexed_indirect, 8 }, // 0x03
-    { "NOP", CPU::AM_ZEROPAGE,           &CPU::op_nop, &CPU::read_zeropage,         3 }, // 0x04
-    { "ORA", CPU::AM_ZEROPAGE,           &CPU::op_ora, &CPU::read_zeropage,         3 }, // 0x05
-    { "ASL", CPU::AM_ZEROPAGE,           &CPU::op_asl, &CPU::read_zeropage,         5 }, // 0x06
-    { "SLO", CPU::AM_ZEROPAGE,           &CPU::op_slo, &CPU::read_zeropage,         5 }, // 0x07
-    { "PHP", CPU::AM_IMPLIED,            &CPU::op_php, &CPU::read_implied,          3 }, // 0x08
-    { "ORA", CPU::AM_IMMEDIATE,          &CPU::op_ora, &CPU::read_immediate,        2 }, // 0x09
-    { "ASL", CPU::AM_IMPLIED,            &CPU::op_asl, &CPU::read_implied,          2 }, // 0x0A
-    { "ANC", CPU::AM_IMMEDIATE,          &CPU::op_anc, &CPU::read_immediate,        2 }, // 0x0B
-    { "NOP", CPU::AM_ABSOLUTE,           &CPU::op_nop, &CPU::read_absolute,         4 }, // 0x0C
-    { "ORA", CPU::AM_ABSOLUTE,           &CPU::op_ora, &CPU::read_absolute,         4 }, // 0x0D
-    { "ASL", CPU::AM_ABSOLUTE,           &CPU::op_asl, &CPU::read_absolute,         6 }, // 0x0E
-    { "SLO", CPU::AM_ABSOLUTE,           &CPU::op_slo, &CPU::read_absolute,         6 }, // 0x0F
-    { "BPL", CPU::AM_RELATIVE,           &CPU::op_bpl, &CPU::read_relative,         2 }, // 0x10
-    { "ORA", CPU::AM_INDIRECT_INDEXED,   &CPU::op_ora, &CPU::read_indirect_indexed, 5 }, // 0x11
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0x12
-    { "SLO", CPU::AM_INDIRECT_INDEXED,   &CPU::op_slo, &CPU::read_indirect_indexed, 8 }, // 0x13
-    { "NOP", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_nop, &CPU::read_zeropage_x,       4 }, // 0x14
-    { "ORA", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_ora, &CPU::read_zeropage_x,       4 }, // 0x15
-    { "ASL", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_asl, &CPU::read_zeropage_x,       6 }, // 0x16
-    { "SLO", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_slo, &CPU::read_zeropage_x,       6 }, // 0x17
-    { "CLC", CPU::AM_IMPLIED,            &CPU::op_clc, &CPU::read_implied,          2 }, // 0x18
-    { "ORA", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_ora, &CPU::read_absolute_y,       4 }, // 0x19
-    { "NOP", CPU::AM_IMPLIED,            &CPU::op_nop, &CPU::read_implied,          2 }, // 0x1A
-    { "SLO", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_slo, &CPU::read_absolute_y,       7 }, // 0x1B
-    { "NOP", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_nop, &CPU::read_absolute_x,       4 }, // 0x1C
-    { "ORA", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_ora, &CPU::read_absolute_x,       4 }, // 0x1D
-    { "ASL", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_asl, &CPU::read_absolute_x,       7 }, // 0x1E
-    { "SLO", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_slo, &CPU::read_absolute_x,       7 }, // 0x1F
-    { "JSR", CPU::AM_ABSOLUTE,           &CPU::op_jsr, &CPU::read_absolute,         6 }, // 0x20
-    { "AND", CPU::AM_INDEXED_INDIRECT,   &CPU::op_and, &CPU::read_indexed_indirect, 6 }, // 0x21
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0x22
-    { "RLA", CPU::AM_INDEXED_INDIRECT,   &CPU::op_rla, &CPU::read_indexed_indirect, 8 }, // 0x23
-    { "BIT", CPU::AM_ZEROPAGE,           &CPU::op_bit, &CPU::read_zeropage,         3 }, // 0x24
-    { "AND", CPU::AM_ZEROPAGE,           &CPU::op_and, &CPU::read_zeropage,         3 }, // 0x25
-    { "ROL", CPU::AM_ZEROPAGE,           &CPU::op_rol, &CPU::read_zeropage,         5 }, // 0x26
-    { "RLA", CPU::AM_ZEROPAGE,           &CPU::op_rla, &CPU::read_zeropage,         5 }, // 0x27
-    { "PLP", CPU::AM_IMPLIED,            &CPU::op_plp, &CPU::read_implied,          4 }, // 0x28
-    { "AND", CPU::AM_IMMEDIATE,          &CPU::op_and, &CPU::read_immediate,        2 }, // 0x29
-    { "ROL", CPU::AM_IMPLIED,            &CPU::op_rol, &CPU::read_implied,          2 }, // 0x2A
-    { "ANC", CPU::AM_IMMEDIATE,          &CPU::op_anc, &CPU::read_immediate,        2 }, // 0x2B
-    { "BIT", CPU::AM_ABSOLUTE,           &CPU::op_bit, &CPU::read_absolute,         4 }, // 0x2C
-    { "AND", CPU::AM_ABSOLUTE,           &CPU::op_and, &CPU::read_absolute,         4 }, // 0x2D
-    { "ROL", CPU::AM_ABSOLUTE,           &CPU::op_rol, &CPU::read_absolute,         6 }, // 0x2E
-    { "RLA", CPU::AM_ABSOLUTE,           &CPU::op_rla, &CPU::read_absolute,         6 }, // 0x2F
-    { "BMI", CPU::AM_RELATIVE,           &CPU::op_bmi, &CPU::read_relative,         2 }, // 0x30
-    { "AND", CPU::AM_INDIRECT_INDEXED,   &CPU::op_and, &CPU::read_indirect_indexed, 5 }, // 0x31
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0x32
-    { "RLA", CPU::AM_INDIRECT_INDEXED,   &CPU::op_rla, &CPU::read_indirect_indexed, 8 }, // 0x33
-    { "NOP", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_nop, &CPU::read_zeropage_x,       4 }, // 0x34
-    { "AND", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_and, &CPU::read_zeropage_x,       4 }, // 0x35
-    { "ROL", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_rol, &CPU::read_zeropage_x,       6 }, // 0x36
-    { "RLA", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_rla, &CPU::read_zeropage_x,       6 }, // 0x37
-    { "SEC", CPU::AM_IMPLIED,            &CPU::op_sec, &CPU::read_implied,          2 }, // 0x38
-    { "AND", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_and, &CPU::read_absolute_y,       4 }, // 0x39
-    { "NOP", CPU::AM_IMPLIED,            &CPU::op_nop, &CPU::read_implied,          2 }, // 0x3A
-    { "RLA", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_rla, &CPU::read_absolute_y,       7 }, // 0x3B
-    { "NOP", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_nop, &CPU::read_absolute_x,       4 }, // 0x3C
-    { "AND", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_and, &CPU::read_absolute_x,       4 }, // 0x3D
-    { "ROL", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_rol, &CPU::read_absolute_x,       7 }, // 0x3E
-    { "RLA", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_rla, &CPU::read_absolute_x,       7 }, // 0x3F
-    { "RTI", CPU::AM_IMPLIED,            &CPU::op_rti, &CPU::read_implied,          6 }, // 0x40
-    { "EOR", CPU::AM_INDEXED_INDIRECT,   &CPU::op_eor, &CPU::read_indexed_indirect, 6 }, // 0x41
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0x42
-    { "SRE", CPU::AM_INDEXED_INDIRECT,   &CPU::op_sre, &CPU::read_indexed_indirect, 8 }, // 0x43
-    { "NOP", CPU::AM_ZEROPAGE,           &CPU::op_nop, &CPU::read_zeropage,         3 }, // 0x44
-    { "EOR", CPU::AM_ZEROPAGE,           &CPU::op_eor, &CPU::read_zeropage,         3 }, // 0x45
-    { "LSR", CPU::AM_ZEROPAGE,           &CPU::op_lsr, &CPU::read_zeropage,         5 }, // 0x46
-    { "SRE", CPU::AM_ZEROPAGE,           &CPU::op_sre, &CPU::read_zeropage,         5 }, // 0x47
-    { "PHA", CPU::AM_IMPLIED,            &CPU::op_pha, &CPU::read_implied,          3 }, // 0x48
-    { "EOR", CPU::AM_IMMEDIATE,          &CPU::op_eor, &CPU::read_immediate,        2 }, // 0x49
-    { "LSR", CPU::AM_IMPLIED,            &CPU::op_lsr, &CPU::read_implied,          2 }, // 0x4A
-    { "ALR", CPU::AM_IMMEDIATE,          &CPU::op_alr, &CPU::read_immediate,        2 }, // 0x4B
-    { "JMP", CPU::AM_ABSOLUTE,           &CPU::op_jmp, &CPU::read_absolute,         3 }, // 0x4C
-    { "EOR", CPU::AM_ABSOLUTE,           &CPU::op_eor, &CPU::read_absolute,         4 }, // 0x4D
-    { "LSR", CPU::AM_ABSOLUTE,           &CPU::op_lsr, &CPU::read_absolute,         6 }, // 0x4E
-    { "SRE", CPU::AM_ABSOLUTE,           &CPU::op_sre, &CPU::read_absolute,         6 }, // 0x4F
-    { "BVC", CPU::AM_RELATIVE,           &CPU::op_bvc, &CPU::read_relative,         2 }, // 0x50
-    { "EOR", CPU::AM_INDIRECT_INDEXED,   &CPU::op_eor, &CPU::read_indirect_indexed, 5 }, // 0x51
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0x52
-    { "SRE", CPU::AM_INDIRECT_INDEXED,   &CPU::op_sre, &CPU::read_indirect_indexed, 8 }, // 0x53
-    { "NOP", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_nop, &CPU::read_zeropage_x,       4 }, // 0x54
-    { "EOR", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_eor, &CPU::read_zeropage_x,       4 }, // 0x55
-    { "LSR", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_lsr, &CPU::read_zeropage_x,       6 }, // 0x56
-    { "SRE", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_sre, &CPU::read_zeropage_x,       6 }, // 0x57
-    { "CLI", CPU::AM_IMPLIED,            &CPU::op_cli, &CPU::read_implied,          2 }, // 0x58
-    { "EOR", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_eor, &CPU::read_absolute_y,       4 }, // 0x59
-    { "NOP", CPU::AM_IMPLIED,            &CPU::op_nop, &CPU::read_implied,          2 }, // 0x5A
-    { "SRE", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_sre, &CPU::read_absolute_y,       7 }, // 0x5B
-    { "NOP", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_nop, &CPU::read_absolute_x,       4 }, // 0x5C
-    { "EOR", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_eor, &CPU::read_absolute_x,       4 }, // 0x5D
-    { "LSR", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_lsr, &CPU::read_absolute_x,       7 }, // 0x5E
-    { "SRE", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_sre, &CPU::read_absolute_x,       7 }, // 0x5F
-    { "RTS", CPU::AM_IMPLIED,            &CPU::op_rts, &CPU::read_implied,          6 }, // 0x60
-    { "ADC", CPU::AM_INDEXED_INDIRECT,   &CPU::op_adc, &CPU::read_indexed_indirect, 6 }, // 0x61
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0x62
-    { "RRA", CPU::AM_INDEXED_INDIRECT,   &CPU::op_rra, &CPU::read_indexed_indirect, 8 }, // 0x63
-    { "NOP", CPU::AM_ZEROPAGE,           &CPU::op_nop, &CPU::read_zeropage,         3 }, // 0x64
-    { "ADC", CPU::AM_ZEROPAGE,           &CPU::op_adc, &CPU::read_zeropage,         3 }, // 0x65
-    { "ROR", CPU::AM_ZEROPAGE,           &CPU::op_ror, &CPU::read_zeropage,         5 }, // 0x66
-    { "RRA", CPU::AM_ZEROPAGE,           &CPU::op_rra, &CPU::read_zeropage,         5 }, // 0x67
-    { "PLA", CPU::AM_IMPLIED,            &CPU::op_pla, &CPU::read_implied,          4 }, // 0x68
-    { "ADC", CPU::AM_IMMEDIATE,          &CPU::op_adc, &CPU::read_immediate,        2 }, // 0x69
-    { "ROR", CPU::AM_IMPLIED,            &CPU::op_ror, &CPU::read_implied,          2 }, // 0x6A
-    { "ARR", CPU::AM_IMMEDIATE,          &CPU::op_arr, &CPU::read_immediate,        2 }, // 0x6B
-    { "JMP", CPU::AM_INDIRECT,           &CPU::op_jmp, &CPU::read_indirect,         5 }, // 0x6C
-    { "ADC", CPU::AM_ABSOLUTE,           &CPU::op_adc, &CPU::read_absolute,         4 }, // 0x6D
-    { "ROR", CPU::AM_ABSOLUTE,           &CPU::op_ror, &CPU::read_absolute,         6 }, // 0x6E
-    { "RRA", CPU::AM_ABSOLUTE,           &CPU::op_rra, &CPU::read_absolute,         6 }, // 0x6F
-    { "BVS", CPU::AM_RELATIVE,           &CPU::op_bvs, &CPU::read_relative,         2 }, // 0x70
-    { "ADC", CPU::AM_INDIRECT_INDEXED,   &CPU::op_adc, &CPU::read_indirect_indexed, 5 }, // 0x71
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0x72
-    { "RRA", CPU::AM_INDIRECT_INDEXED,   &CPU::op_rra, &CPU::read_indirect_indexed, 8 }, // 0x73
-    { "NOP", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_nop, &CPU::read_zeropage_x,       4 }, // 0x74
-    { "ADC", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_adc, &CPU::read_zeropage_x,       4 }, // 0x75
-    { "ROR", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_ror, &CPU::read_zeropage_x,       6 }, // 0x76
-    { "RRA", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_rra, &CPU::read_zeropage_x,       6 }, // 0x77
-    { "SEI", CPU::AM_IMPLIED,            &CPU::op_sei, &CPU::read_implied,          2 }, // 0x78
-    { "ADC", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_adc, &CPU::read_absolute_y,       4 }, // 0x79
-    { "NOP", CPU::AM_IMPLIED,            &CPU::op_nop, &CPU::read_implied,          2 }, // 0x7A
-    { "RRA", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_rra, &CPU::read_absolute_y,       7 }, // 0x7B
-    { "NOP", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_nop, &CPU::read_absolute_x,       4 }, // 0x7C
-    { "ADC", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_adc, &CPU::read_absolute_x,       4 }, // 0x7D
-    { "ROR", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_ror, &CPU::read_absolute_x,       7 }, // 0x7E
-    { "RRA", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_rra, &CPU::read_absolute_x,       7 }, // 0x7F
-    { "NOP", CPU::AM_IMMEDIATE,          &CPU::op_nop, &CPU::read_immediate,        2 }, // 0x80
-    { "STA", CPU::AM_INDEXED_INDIRECT,   &CPU::op_sta, &CPU::read_indexed_indirect, 6 }, // 0x81
-    { "NOP", CPU::AM_IMMEDIATE,          &CPU::op_nop, &CPU::read_immediate,        2 }, // 0x82
-    { "SAX", CPU::AM_INDEXED_INDIRECT,   &CPU::op_sax, &CPU::read_indexed_indirect, 6 }, // 0x83
-    { "STY", CPU::AM_ZEROPAGE,           &CPU::op_sty, &CPU::read_zeropage,         3 }, // 0x84
-    { "STA", CPU::AM_ZEROPAGE,           &CPU::op_sta, &CPU::read_zeropage,         3 }, // 0x85
-    { "STX", CPU::AM_ZEROPAGE,           &CPU::op_stx, &CPU::read_zeropage,         3 }, // 0x86
-    { "SAX", CPU::AM_ZEROPAGE,           &CPU::op_sax, &CPU::read_zeropage,         3 }, // 0x87
-    { "DEY", CPU::AM_IMPLIED,            &CPU::op_dey, &CPU::read_implied,          2 }, // 0x88
-    { "NOP", CPU::AM_IMMEDIATE,          &CPU::op_nop, &CPU::read_immediate,        2 }, // 0x89
-    { "TXA", CPU::AM_IMPLIED,            &CPU::op_txa, &CPU::read_implied,          2 }, // 0x8A
-    { "XAA", CPU::AM_IMMEDIATE,          &CPU::op_xaa, &CPU::read_immediate,        2 }, // 0x8B
-    { "STY", CPU::AM_ABSOLUTE,           &CPU::op_sty, &CPU::read_absolute,         4 }, // 0x8C
-    { "STA", CPU::AM_ABSOLUTE,           &CPU::op_sta, &CPU::read_absolute,         4 }, // 0x8D
-    { "STX", CPU::AM_ABSOLUTE,           &CPU::op_stx, &CPU::read_absolute,         4 }, // 0x8E
-    { "SAX", CPU::AM_ABSOLUTE,           &CPU::op_sax, &CPU::read_absolute,         4 }, // 0x8F
-    { "BCC", CPU::AM_RELATIVE,           &CPU::op_bcc, &CPU::read_relative,         2 }, // 0x90
-    { "STA", CPU::AM_INDIRECT_INDEXED,   &CPU::op_sta, &CPU::read_indirect_indexed, 6 }, // 0x91
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0x92
-    { "AHX", CPU::AM_INDIRECT_INDEXED,   &CPU::op_ahx, &CPU::read_indirect_indexed, 6 }, // 0x93
-    { "STY", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_sty, &CPU::read_zeropage_x,       4 }, // 0x94
-    { "STA", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_sta, &CPU::read_zeropage_x,       4 }, // 0x95
-    { "STX", CPU::AM_ZEROPAGE_INDEXED_Y, &CPU::op_stx, &CPU::read_zeropage_y,       4 }, // 0x96
-    { "SAX", CPU::AM_ZEROPAGE_INDEXED_Y, &CPU::op_sax, &CPU::read_zeropage_y,       4 }, // 0x97
-    { "TYA", CPU::AM_IMPLIED,            &CPU::op_tya, &CPU::read_implied,          2 }, // 0x98
-    { "STA", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_sta, &CPU::read_absolute_y,       5 }, // 0x99
-    { "TXS", CPU::AM_IMPLIED,            &CPU::op_txs, &CPU::read_implied,          2 }, // 0x9A
-    { "TAS", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_tas, &CPU::read_absolute_y,       5 }, // 0x9B
-    { "SHY", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_shy, &CPU::read_absolute_x,       5 }, // 0x9C
-    { "STA", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_sta, &CPU::read_absolute_x,       5 }, // 0x9D
-    { "SHX", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_shx, &CPU::read_absolute_y,       5 }, // 0x9E
-    { "AHX", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_ahx, &CPU::read_absolute_y,       5 }, // 0x9F
-    { "LDY", CPU::AM_IMMEDIATE,          &CPU::op_ldy, &CPU::read_immediate,        2 }, // 0xA0
-    { "LDA", CPU::AM_INDEXED_INDIRECT,   &CPU::op_lda, &CPU::read_indexed_indirect, 6 }, // 0xA1
-    { "LDX", CPU::AM_IMMEDIATE,          &CPU::op_ldx, &CPU::read_immediate,        2 }, // 0xA2
-    { "LAX", CPU::AM_INDEXED_INDIRECT,   &CPU::op_lax, &CPU::read_indexed_indirect, 6 }, // 0xA3
-    { "LDY", CPU::AM_ZEROPAGE,           &CPU::op_ldy, &CPU::read_zeropage,         3 }, // 0xA4
-    { "LDA", CPU::AM_ZEROPAGE,           &CPU::op_lda, &CPU::read_zeropage,         3 }, // 0xA5
-    { "LDX", CPU::AM_ZEROPAGE,           &CPU::op_ldx, &CPU::read_zeropage,         3 }, // 0xA6
-    { "LAX", CPU::AM_ZEROPAGE,           &CPU::op_lax, &CPU::read_zeropage,         3 }, // 0xA7
-    { "TAY", CPU::AM_IMPLIED,            &CPU::op_tay, &CPU::read_implied,          2 }, // 0xA8
-    { "LDA", CPU::AM_IMMEDIATE,          &CPU::op_lda, &CPU::read_immediate,        2 }, // 0xA9
-    { "TAX", CPU::AM_IMPLIED,            &CPU::op_tax, &CPU::read_implied,          2 }, // 0xAA
-    { "LAX", CPU::AM_IMMEDIATE,          &CPU::op_lax, &CPU::read_immediate,        2 }, // 0xAB
-    { "LDY", CPU::AM_ABSOLUTE,           &CPU::op_ldy, &CPU::read_absolute,         4 }, // 0xAC
-    { "LDA", CPU::AM_ABSOLUTE,           &CPU::op_lda, &CPU::read_absolute,         4 }, // 0xAD
-    { "LDX", CPU::AM_ABSOLUTE,           &CPU::op_ldx, &CPU::read_absolute,         4 }, // 0xAE
-    { "LAX", CPU::AM_ABSOLUTE,           &CPU::op_lax, &CPU::read_absolute,         4 }, // 0xAF
-    { "BCS", CPU::AM_RELATIVE,           &CPU::op_bcs, &CPU::read_relative,         2 }, // 0xB0
-    { "LDA", CPU::AM_INDIRECT_INDEXED,   &CPU::op_lda, &CPU::read_indirect_indexed, 5 }, // 0xB1
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0xB2
-    { "LAX", CPU::AM_INDIRECT_INDEXED,   &CPU::op_lax, &CPU::read_indirect_indexed, 5 }, // 0xB3
-    { "LDY", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_ldy, &CPU::read_zeropage_x,       4 }, // 0xB4
-    { "LDA", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_lda, &CPU::read_zeropage_x,       4 }, // 0xB5
-    { "LDX", CPU::AM_ZEROPAGE_INDEXED_Y, &CPU::op_ldx, &CPU::read_zeropage_y,       4 }, // 0xB6
-    { "LAX", CPU::AM_ZEROPAGE_INDEXED_Y, &CPU::op_lax, &CPU::read_zeropage_y,       4 }, // 0xB7
-    { "CLV", CPU::AM_IMPLIED,            &CPU::op_clv, &CPU::read_implied,          2 }, // 0xB8
-    { "LDA", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_lda, &CPU::read_absolute_y,       4 }, // 0xB9
-    { "TSX", CPU::AM_IMPLIED,            &CPU::op_tsx, &CPU::read_implied,          2 }, // 0xBA
-    { "LAS", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_las, &CPU::read_absolute_y,       4 }, // 0xBB
-    { "LDY", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_ldy, &CPU::read_absolute_x,       4 }, // 0xBC
-    { "LDA", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_lda, &CPU::read_absolute_x,       4 }, // 0xBD
-    { "LDX", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_ldx, &CPU::read_absolute_y,       4 }, // 0xBE
-    { "LAX", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_lax, &CPU::read_absolute_y,       4 }, // 0xBF
-    { "CPY", CPU::AM_IMMEDIATE,          &CPU::op_cpy, &CPU::read_immediate,        2 }, // 0xC0
-    { "CMP", CPU::AM_INDEXED_INDIRECT,   &CPU::op_cmp, &CPU::read_indexed_indirect, 6 }, // 0xC1
-    { "NOP", CPU::AM_IMMEDIATE,          &CPU::op_nop, &CPU::read_immediate,        2 }, // 0xC2
-    { "DCP", CPU::AM_INDEXED_INDIRECT,   &CPU::op_dcp, &CPU::read_indexed_indirect, 8 }, // 0xC3
-    { "CPY", CPU::AM_ZEROPAGE,           &CPU::op_cpy, &CPU::read_zeropage,         3 }, // 0xC4
-    { "CMP", CPU::AM_ZEROPAGE,           &CPU::op_cmp, &CPU::read_zeropage,         3 }, // 0xC5
-    { "DEC", CPU::AM_ZEROPAGE,           &CPU::op_dec, &CPU::read_zeropage,         5 }, // 0xC6
-    { "DCP", CPU::AM_ZEROPAGE,           &CPU::op_dcp, &CPU::read_zeropage,         5 }, // 0xC7
-    { "INY", CPU::AM_IMPLIED,            &CPU::op_iny, &CPU::read_implied,          2 }, // 0xC8
-    { "CMP", CPU::AM_IMMEDIATE,          &CPU::op_cmp, &CPU::read_immediate,        2 }, // 0xC9
-    { "DEX", CPU::AM_IMPLIED,            &CPU::op_dex, &CPU::read_implied,          2 }, // 0xCA
-    { "SAX", CPU::AM_IMMEDIATE,          &CPU::op_sax, &CPU::read_immediate,        2 }, // 0xCB
-    { "CPY", CPU::AM_ABSOLUTE,           &CPU::op_cpy, &CPU::read_absolute,         4 }, // 0xCC
-    { "CMP", CPU::AM_ABSOLUTE,           &CPU::op_cmp, &CPU::read_absolute,         4 }, // 0xCD
-    { "DEC", CPU::AM_ABSOLUTE,           &CPU::op_dec, &CPU::read_absolute,         6 }, // 0xCE
-    { "DCP", CPU::AM_ABSOLUTE,           &CPU::op_dcp, &CPU::read_absolute,         6 }, // 0xCF
-    { "BNE", CPU::AM_RELATIVE,           &CPU::op_bne, &CPU::read_relative,         2 }, // 0xD0
-    { "CMP", CPU::AM_INDIRECT_INDEXED,   &CPU::op_cmp, &CPU::read_indirect_indexed, 5 }, // 0xD1
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0xD2
-    { "DCP", CPU::AM_INDIRECT_INDEXED,   &CPU::op_dcp, &CPU::read_indirect_indexed, 8 }, // 0xD3
-    { "NOP", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_nop, &CPU::read_zeropage_x,       4 }, // 0xD4
-    { "CMP", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_cmp, &CPU::read_zeropage_x,       4 }, // 0xD5
-    { "DEC", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_dec, &CPU::read_zeropage_x,       6 }, // 0xD6
-    { "DCP", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_dcp, &CPU::read_zeropage_x,       6 }, // 0xD7
-    { "CLD", CPU::AM_IMPLIED,            &CPU::op_cld, &CPU::read_implied,          2 }, // 0xD8
-    { "CMP", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_cmp, &CPU::read_absolute_y,       4 }, // 0xD9
-    { "NOP", CPU::AM_IMPLIED,            &CPU::op_nop, &CPU::read_implied,          2 }, // 0xDA
-    { "DCP", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_dcp, &CPU::read_absolute_y,       7 }, // 0xDB
-    { "NOP", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_nop, &CPU::read_absolute_x,       4 }, // 0xDC
-    { "CMP", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_cmp, &CPU::read_absolute_x,       4 }, // 0xDD
-    { "DEC", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_dec, &CPU::read_absolute_x,       7 }, // 0xDE
-    { "DCP", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_dcp, &CPU::read_absolute_x,       7 }, // 0xDF
-    { "CPX", CPU::AM_IMMEDIATE,          &CPU::op_cpx, &CPU::read_immediate,        2 }, // 0xE0
-    { "SBC", CPU::AM_INDEXED_INDIRECT,   &CPU::op_sbc, &CPU::read_indexed_indirect, 6 }, // 0xE1
-    { "NOP", CPU::AM_IMMEDIATE,          &CPU::op_nop, &CPU::read_immediate,        2 }, // 0xE2
-    { "ISC", CPU::AM_INDEXED_INDIRECT,   &CPU::op_isc, &CPU::read_indexed_indirect, 8 }, // 0xE3
-    { "CPX", CPU::AM_ZEROPAGE,           &CPU::op_cpx, &CPU::read_zeropage,         3 }, // 0xE4
-    { "SBC", CPU::AM_ZEROPAGE,           &CPU::op_sbc, &CPU::read_zeropage,         3 }, // 0xE5
-    { "INC", CPU::AM_ZEROPAGE,           &CPU::op_inc, &CPU::read_zeropage,         5 }, // 0xE6
-    { "ISC", CPU::AM_ZEROPAGE,           &CPU::op_isc, &CPU::read_zeropage,         5 }, // 0xE7
-    { "INX", CPU::AM_IMPLIED,            &CPU::op_inx, &CPU::read_implied,          2 }, // 0xE8
-    { "SBC", CPU::AM_IMMEDIATE,          &CPU::op_sbc, &CPU::read_immediate,        2 }, // 0xE9
-    { "NOP", CPU::AM_IMPLIED,            &CPU::op_nop, &CPU::read_implied,          2 }, // 0xEA
-    { "SBC", CPU::AM_IMMEDIATE,          &CPU::op_sbc, &CPU::read_immediate,        2 }, // 0xEB
-    { "CPX", CPU::AM_ABSOLUTE,           &CPU::op_cpx, &CPU::read_absolute,         4 }, // 0xEC
-    { "SBC", CPU::AM_ABSOLUTE,           &CPU::op_sbc, &CPU::read_absolute,         4 }, // 0xED
-    { "INC", CPU::AM_ABSOLUTE,           &CPU::op_inc, &CPU::read_absolute,         6 }, // 0xEE
-    { "ISC", CPU::AM_ABSOLUTE,           &CPU::op_isc, &CPU::read_absolute,         6 }, // 0xEF
-    { "BEQ", CPU::AM_RELATIVE,           &CPU::op_beq, &CPU::read_relative,         2 }, // 0xF0
-    { "SBC", CPU::AM_INDIRECT_INDEXED,   &CPU::op_sbc, &CPU::read_indirect_indexed, 5 }, // 0xF1
-    { "HLT", CPU::AM_IMPLIED,            &CPU::op_hlt, &CPU::read_implied,          2 }, // 0xF2
-    { "ISC", CPU::AM_INDIRECT_INDEXED,   &CPU::op_isc, &CPU::read_indirect_indexed, 8 }, // 0xF3
-    { "NOP", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_nop, &CPU::read_zeropage_x,       4 }, // 0xF4
-    { "SBC", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_sbc, &CPU::read_zeropage_x,       4 }, // 0xF5
-    { "INC", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_inc, &CPU::read_zeropage_x,       6 }, // 0xF6
-    { "ISC", CPU::AM_ZEROPAGE_INDEXED_X, &CPU::op_isc, &CPU::read_zeropage_x,       6 }, // 0xF7
-    { "SED", CPU::AM_IMPLIED,            &CPU::op_sed, &CPU::read_implied,          2 }, // 0xF8
-    { "SBC", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_sbc, &CPU::read_absolute_y,       4 }, // 0xF9
-    { "NOP", CPU::AM_IMPLIED,            &CPU::op_nop, &CPU::read_implied,          2 }, // 0xFA
-    { "ISC", CPU::AM_ABSOLUTE_INDEXED_Y, &CPU::op_isc, &CPU::read_absolute_y,       7 }, // 0xFB
-    { "NOP", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_nop, &CPU::read_absolute_x,       4 }, // 0xFC
-    { "SBC", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_sbc, &CPU::read_absolute_x,       4 }, // 0xFD
-    { "INC", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_inc, &CPU::read_absolute_x,       7 }, // 0xFE
-    { "ISC", CPU::AM_ABSOLUTE_INDEXED_X, &CPU::op_isc, &CPU::read_absolute_x,       7 }  // 0xFF
+CPU::Instruction CPU::m_instruction_table[256] = {
+    { &CPU::read_implied,          &CPU::op_brk, "BRK", CPU::AM_IMPLIED,            7 }, // 0x00
+    { &CPU::read_indexed_indirect, &CPU::op_ora, "ORA", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x01
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x02
+    { &CPU::read_indexed_indirect, &CPU::op_slo, "SLO", CPU::AM_INDEXED_INDIRECT,   8 }, // 0x03
+    { &CPU::read_zeropage,         &CPU::op_nop, "NOP", CPU::AM_ZEROPAGE,           3 }, // 0x04
+    { &CPU::read_zeropage,         &CPU::op_ora, "ORA", CPU::AM_ZEROPAGE,           3 }, // 0x05
+    { &CPU::read_zeropage,         &CPU::op_asl, "ASL", CPU::AM_ZEROPAGE,           5 }, // 0x06
+    { &CPU::read_zeropage,         &CPU::op_slo, "SLO", CPU::AM_ZEROPAGE,           5 }, // 0x07
+    { &CPU::read_implied,          &CPU::op_php, "PHP", CPU::AM_IMPLIED,            3 }, // 0x08
+    { &CPU::read_immediate,        &CPU::op_ora, "ORA", CPU::AM_IMMEDIATE,          2 }, // 0x09
+    { &CPU::read_implied,          &CPU::op_asl, "ASL", CPU::AM_IMPLIED,            2 }, // 0x0A
+    { &CPU::read_immediate,        &CPU::op_anc, "ANC", CPU::AM_IMMEDIATE,          2 }, // 0x0B
+    { &CPU::read_absolute,         &CPU::op_nop, "NOP", CPU::AM_ABSOLUTE,           4 }, // 0x0C
+    { &CPU::read_absolute,         &CPU::op_ora, "ORA", CPU::AM_ABSOLUTE,           4 }, // 0x0D
+    { &CPU::read_absolute,         &CPU::op_asl, "ASL", CPU::AM_ABSOLUTE,           6 }, // 0x0E
+    { &CPU::read_absolute,         &CPU::op_slo, "SLO", CPU::AM_ABSOLUTE,           6 }, // 0x0F
+    { &CPU::read_relative,         &CPU::op_bpl, "BPL", CPU::AM_RELATIVE,           2 }, // 0x10
+    { &CPU::read_indirect_indexed, &CPU::op_ora, "ORA", CPU::AM_INDIRECT_INDEXED,   5 }, // 0x11
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x12
+    { &CPU::read_indirect_indexed, &CPU::op_slo, "SLO", CPU::AM_INDIRECT_INDEXED,   8 }, // 0x13
+    { &CPU::read_zeropage_x,       &CPU::op_nop, "NOP", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x14
+    { &CPU::read_zeropage_x,       &CPU::op_ora, "ORA", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x15
+    { &CPU::read_zeropage_x,       &CPU::op_asl, "ASL", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0x16
+    { &CPU::read_zeropage_x,       &CPU::op_slo, "SLO", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0x17
+    { &CPU::read_implied,          &CPU::op_clc, "CLC", CPU::AM_IMPLIED,            2 }, // 0x18
+    { &CPU::read_absolute_y,       &CPU::op_ora, "ORA", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0x19
+    { &CPU::read_implied,          &CPU::op_nop, "NOP", CPU::AM_IMPLIED,            2 }, // 0x1A
+    { &CPU::read_absolute_y,       &CPU::op_slo, "SLO", CPU::AM_ABSOLUTE_INDEXED_Y, 7 }, // 0x1B
+    { &CPU::read_absolute_x,       &CPU::op_nop, "NOP", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0x1C
+    { &CPU::read_absolute_x,       &CPU::op_ora, "ORA", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0x1D
+    { &CPU::read_absolute_x,       &CPU::op_asl, "ASL", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0x1E
+    { &CPU::read_absolute_x,       &CPU::op_slo, "SLO", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0x1F
+    { &CPU::read_absolute,         &CPU::op_jsr, "JSR", CPU::AM_ABSOLUTE,           6 }, // 0x20
+    { &CPU::read_indexed_indirect, &CPU::op_and, "AND", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x21
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x22
+    { &CPU::read_indexed_indirect, &CPU::op_rla, "RLA", CPU::AM_INDEXED_INDIRECT,   8 }, // 0x23
+    { &CPU::read_zeropage,         &CPU::op_bit, "BIT", CPU::AM_ZEROPAGE,           3 }, // 0x24
+    { &CPU::read_zeropage,         &CPU::op_and, "AND", CPU::AM_ZEROPAGE,           3 }, // 0x25
+    { &CPU::read_zeropage,         &CPU::op_rol, "ROL", CPU::AM_ZEROPAGE,           5 }, // 0x26
+    { &CPU::read_zeropage,         &CPU::op_rla, "RLA", CPU::AM_ZEROPAGE,           5 }, // 0x27
+    { &CPU::read_implied,          &CPU::op_plp, "PLP", CPU::AM_IMPLIED,            4 }, // 0x28
+    { &CPU::read_immediate,        &CPU::op_and, "AND", CPU::AM_IMMEDIATE,          2 }, // 0x29
+    { &CPU::read_implied,          &CPU::op_rol, "ROL", CPU::AM_IMPLIED,            2 }, // 0x2A
+    { &CPU::read_immediate,        &CPU::op_anc, "ANC", CPU::AM_IMMEDIATE,          2 }, // 0x2B
+    { &CPU::read_absolute,         &CPU::op_bit, "BIT", CPU::AM_ABSOLUTE,           4 }, // 0x2C
+    { &CPU::read_absolute,         &CPU::op_and, "AND", CPU::AM_ABSOLUTE,           4 }, // 0x2D
+    { &CPU::read_absolute,         &CPU::op_rol, "ROL", CPU::AM_ABSOLUTE,           6 }, // 0x2E
+    { &CPU::read_absolute,         &CPU::op_rla, "RLA", CPU::AM_ABSOLUTE,           6 }, // 0x2F
+    { &CPU::read_relative,         &CPU::op_bmi, "BMI", CPU::AM_RELATIVE,           2 }, // 0x30
+    { &CPU::read_indirect_indexed, &CPU::op_and, "AND", CPU::AM_INDIRECT_INDEXED,   5 }, // 0x31
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x32
+    { &CPU::read_indirect_indexed, &CPU::op_rla, "RLA", CPU::AM_INDIRECT_INDEXED,   8 }, // 0x33
+    { &CPU::read_zeropage_x,       &CPU::op_nop, "NOP", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x34
+    { &CPU::read_zeropage_x,       &CPU::op_and, "AND", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x35
+    { &CPU::read_zeropage_x,       &CPU::op_rol, "ROL", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0x36
+    { &CPU::read_zeropage_x,       &CPU::op_rla, "RLA", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0x37
+    { &CPU::read_implied,          &CPU::op_sec, "SEC", CPU::AM_IMPLIED,            2 }, // 0x38
+    { &CPU::read_absolute_y,       &CPU::op_and, "AND", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0x39
+    { &CPU::read_implied,          &CPU::op_nop, "NOP", CPU::AM_IMPLIED,            2 }, // 0x3A
+    { &CPU::read_absolute_y,       &CPU::op_rla, "RLA", CPU::AM_ABSOLUTE_INDEXED_Y, 7 }, // 0x3B
+    { &CPU::read_absolute_x,       &CPU::op_nop, "NOP", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0x3C
+    { &CPU::read_absolute_x,       &CPU::op_and, "AND", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0x3D
+    { &CPU::read_absolute_x,       &CPU::op_rol, "ROL", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0x3E
+    { &CPU::read_absolute_x,       &CPU::op_rla, "RLA", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0x3F
+    { &CPU::read_implied,          &CPU::op_rti, "RTI", CPU::AM_IMPLIED,            6 }, // 0x40
+    { &CPU::read_indexed_indirect, &CPU::op_eor, "EOR", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x41
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x42
+    { &CPU::read_indexed_indirect, &CPU::op_sre, "SRE", CPU::AM_INDEXED_INDIRECT,   8 }, // 0x43
+    { &CPU::read_zeropage,         &CPU::op_nop, "NOP", CPU::AM_ZEROPAGE,           3 }, // 0x44
+    { &CPU::read_zeropage,         &CPU::op_eor, "EOR", CPU::AM_ZEROPAGE,           3 }, // 0x45
+    { &CPU::read_zeropage,         &CPU::op_lsr, "LSR", CPU::AM_ZEROPAGE,           5 }, // 0x46
+    { &CPU::read_zeropage,         &CPU::op_sre, "SRE", CPU::AM_ZEROPAGE,           5 }, // 0x47
+    { &CPU::read_implied,          &CPU::op_pha, "PHA", CPU::AM_IMPLIED,            3 }, // 0x48
+    { &CPU::read_immediate,        &CPU::op_eor, "EOR", CPU::AM_IMMEDIATE,          2 }, // 0x49
+    { &CPU::read_implied,          &CPU::op_lsr, "LSR", CPU::AM_IMPLIED,            2 }, // 0x4A
+    { &CPU::read_immediate,        &CPU::op_alr, "ALR", CPU::AM_IMMEDIATE,          2 }, // 0x4B
+    { &CPU::read_absolute,         &CPU::op_jmp, "JMP", CPU::AM_ABSOLUTE,           3 }, // 0x4C
+    { &CPU::read_absolute,         &CPU::op_eor, "EOR", CPU::AM_ABSOLUTE,           4 }, // 0x4D
+    { &CPU::read_absolute,         &CPU::op_lsr, "LSR", CPU::AM_ABSOLUTE,           6 }, // 0x4E
+    { &CPU::read_absolute,         &CPU::op_sre, "SRE", CPU::AM_ABSOLUTE,           6 }, // 0x4F
+    { &CPU::read_relative,         &CPU::op_bvc, "BVC", CPU::AM_RELATIVE,           2 }, // 0x50
+    { &CPU::read_indirect_indexed, &CPU::op_eor, "EOR", CPU::AM_INDIRECT_INDEXED,   5 }, // 0x51
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x52
+    { &CPU::read_indirect_indexed, &CPU::op_sre, "SRE", CPU::AM_INDIRECT_INDEXED,   8 }, // 0x53
+    { &CPU::read_zeropage_x,       &CPU::op_nop, "NOP", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x54
+    { &CPU::read_zeropage_x,       &CPU::op_eor, "EOR", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x55
+    { &CPU::read_zeropage_x,       &CPU::op_lsr, "LSR", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0x56
+    { &CPU::read_zeropage_x,       &CPU::op_sre, "SRE", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0x57
+    { &CPU::read_implied,          &CPU::op_cli, "CLI", CPU::AM_IMPLIED,            2 }, // 0x58
+    { &CPU::read_absolute_y,       &CPU::op_eor, "EOR", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0x59
+    { &CPU::read_implied,          &CPU::op_nop, "NOP", CPU::AM_IMPLIED,            2 }, // 0x5A
+    { &CPU::read_absolute_y,       &CPU::op_sre, "SRE", CPU::AM_ABSOLUTE_INDEXED_Y, 7 }, // 0x5B
+    { &CPU::read_absolute_x,       &CPU::op_nop, "NOP", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0x5C
+    { &CPU::read_absolute_x,       &CPU::op_eor, "EOR", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0x5D
+    { &CPU::read_absolute_x,       &CPU::op_lsr, "LSR", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0x5E
+    { &CPU::read_absolute_x,       &CPU::op_sre, "SRE", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0x5F
+    { &CPU::read_implied,          &CPU::op_rts, "RTS", CPU::AM_IMPLIED,            6 }, // 0x60
+    { &CPU::read_indexed_indirect, &CPU::op_adc, "ADC", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x61
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x62
+    { &CPU::read_indexed_indirect, &CPU::op_rra, "RRA", CPU::AM_INDEXED_INDIRECT,   8 }, // 0x63
+    { &CPU::read_zeropage,         &CPU::op_nop, "NOP", CPU::AM_ZEROPAGE,           3 }, // 0x64
+    { &CPU::read_zeropage,         &CPU::op_adc, "ADC", CPU::AM_ZEROPAGE,           3 }, // 0x65
+    { &CPU::read_zeropage,         &CPU::op_ror, "ROR", CPU::AM_ZEROPAGE,           5 }, // 0x66
+    { &CPU::read_zeropage,         &CPU::op_rra, "RRA", CPU::AM_ZEROPAGE,           5 }, // 0x67
+    { &CPU::read_implied,          &CPU::op_pla, "PLA", CPU::AM_IMPLIED,            4 }, // 0x68
+    { &CPU::read_immediate,        &CPU::op_adc, "ADC", CPU::AM_IMMEDIATE,          2 }, // 0x69
+    { &CPU::read_implied,          &CPU::op_ror, "ROR", CPU::AM_IMPLIED,            2 }, // 0x6A
+    { &CPU::read_immediate,        &CPU::op_arr, "ARR", CPU::AM_IMMEDIATE,          2 }, // 0x6B
+    { &CPU::read_indirect,         &CPU::op_jmp, "JMP", CPU::AM_INDIRECT,           5 }, // 0x6C
+    { &CPU::read_absolute,         &CPU::op_adc, "ADC", CPU::AM_ABSOLUTE,           4 }, // 0x6D
+    { &CPU::read_absolute,         &CPU::op_ror, "ROR", CPU::AM_ABSOLUTE,           6 }, // 0x6E
+    { &CPU::read_absolute,         &CPU::op_rra, "RRA", CPU::AM_ABSOLUTE,           6 }, // 0x6F
+    { &CPU::read_relative,         &CPU::op_bvs, "BVS", CPU::AM_RELATIVE,           2 }, // 0x70
+    { &CPU::read_indirect_indexed, &CPU::op_adc, "ADC", CPU::AM_INDIRECT_INDEXED,   5 }, // 0x71
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x72
+    { &CPU::read_indirect_indexed, &CPU::op_rra, "RRA", CPU::AM_INDIRECT_INDEXED,   8 }, // 0x73
+    { &CPU::read_zeropage_x,       &CPU::op_nop, "NOP", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x74
+    { &CPU::read_zeropage_x,       &CPU::op_adc, "ADC", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x75
+    { &CPU::read_zeropage_x,       &CPU::op_ror, "ROR", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0x76
+    { &CPU::read_zeropage_x,       &CPU::op_rra, "RRA", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0x77
+    { &CPU::read_implied,          &CPU::op_sei, "SEI", CPU::AM_IMPLIED,            2 }, // 0x78
+    { &CPU::read_absolute_y,       &CPU::op_adc, "ADC", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0x79
+    { &CPU::read_implied,          &CPU::op_nop, "NOP", CPU::AM_IMPLIED,            2 }, // 0x7A
+    { &CPU::read_absolute_y,       &CPU::op_rra, "RRA", CPU::AM_ABSOLUTE_INDEXED_Y, 7 }, // 0x7B
+    { &CPU::read_absolute_x,       &CPU::op_nop, "NOP", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0x7C
+    { &CPU::read_absolute_x,       &CPU::op_adc, "ADC", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0x7D
+    { &CPU::read_absolute_x,       &CPU::op_ror, "ROR", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0x7E
+    { &CPU::read_absolute_x,       &CPU::op_rra, "RRA", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0x7F
+    { &CPU::read_immediate,        &CPU::op_nop, "NOP", CPU::AM_IMMEDIATE,          2 }, // 0x80
+    { &CPU::read_indexed_indirect, &CPU::op_sta, "STA", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x81
+    { &CPU::read_immediate,        &CPU::op_nop, "NOP", CPU::AM_IMMEDIATE,          2 }, // 0x82
+    { &CPU::read_indexed_indirect, &CPU::op_sax, "SAX", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x83
+    { &CPU::read_zeropage,         &CPU::op_sty, "STY", CPU::AM_ZEROPAGE,           3 }, // 0x84
+    { &CPU::read_zeropage,         &CPU::op_sta, "STA", CPU::AM_ZEROPAGE,           3 }, // 0x85
+    { &CPU::read_zeropage,         &CPU::op_stx, "STX", CPU::AM_ZEROPAGE,           3 }, // 0x86
+    { &CPU::read_zeropage,         &CPU::op_sax, "SAX", CPU::AM_ZEROPAGE,           3 }, // 0x87
+    { &CPU::read_implied,          &CPU::op_dey, "DEY", CPU::AM_IMPLIED,            2 }, // 0x88
+    { &CPU::read_immediate,        &CPU::op_nop, "NOP", CPU::AM_IMMEDIATE,          2 }, // 0x89
+    { &CPU::read_implied,          &CPU::op_txa, "TXA", CPU::AM_IMPLIED,            2 }, // 0x8A
+    { &CPU::read_immediate,        &CPU::op_xaa, "XAA", CPU::AM_IMMEDIATE,          2 }, // 0x8B
+    { &CPU::read_absolute,         &CPU::op_sty, "STY", CPU::AM_ABSOLUTE,           4 }, // 0x8C
+    { &CPU::read_absolute,         &CPU::op_sta, "STA", CPU::AM_ABSOLUTE,           4 }, // 0x8D
+    { &CPU::read_absolute,         &CPU::op_stx, "STX", CPU::AM_ABSOLUTE,           4 }, // 0x8E
+    { &CPU::read_absolute,         &CPU::op_sax, "SAX", CPU::AM_ABSOLUTE,           4 }, // 0x8F
+    { &CPU::read_relative,         &CPU::op_bcc, "BCC", CPU::AM_RELATIVE,           2 }, // 0x90
+    { &CPU::read_indirect_indexed, &CPU::op_sta, "STA", CPU::AM_INDIRECT_INDEXED,   6 }, // 0x91
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x92
+    { &CPU::read_indirect_indexed, &CPU::op_ahx, "AHX", CPU::AM_INDIRECT_INDEXED,   6 }, // 0x93
+    { &CPU::read_zeropage_x,       &CPU::op_sty, "STY", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x94
+    { &CPU::read_zeropage_x,       &CPU::op_sta, "STA", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0x95
+    { &CPU::read_zeropage_y,       &CPU::op_stx, "STX", CPU::AM_ZEROPAGE_INDEXED_Y, 4 }, // 0x96
+    { &CPU::read_zeropage_y,       &CPU::op_sax, "SAX", CPU::AM_ZEROPAGE_INDEXED_Y, 4 }, // 0x97
+    { &CPU::read_implied,          &CPU::op_tya, "TYA", CPU::AM_IMPLIED,            2 }, // 0x98
+    { &CPU::read_absolute_y,       &CPU::op_sta, "STA", CPU::AM_ABSOLUTE_INDEXED_Y, 5 }, // 0x99
+    { &CPU::read_implied,          &CPU::op_txs, "TXS", CPU::AM_IMPLIED,            2 }, // 0x9A
+    { &CPU::read_absolute_y,       &CPU::op_tas, "TAS", CPU::AM_ABSOLUTE_INDEXED_Y, 5 }, // 0x9B
+    { &CPU::read_absolute_x,       &CPU::op_shy, "SHY", CPU::AM_ABSOLUTE_INDEXED_X, 5 }, // 0x9C
+    { &CPU::read_absolute_x,       &CPU::op_sta, "STA", CPU::AM_ABSOLUTE_INDEXED_X, 5 }, // 0x9D
+    { &CPU::read_absolute_y,       &CPU::op_shx, "SHX", CPU::AM_ABSOLUTE_INDEXED_Y, 5 }, // 0x9E
+    { &CPU::read_absolute_y,       &CPU::op_ahx, "AHX", CPU::AM_ABSOLUTE_INDEXED_Y, 5 }, // 0x9F
+    { &CPU::read_immediate,        &CPU::op_ldy, "LDY", CPU::AM_IMMEDIATE,          2 }, // 0xA0
+    { &CPU::read_indexed_indirect, &CPU::op_lda, "LDA", CPU::AM_INDEXED_INDIRECT,   6 }, // 0xA1
+    { &CPU::read_immediate,        &CPU::op_ldx, "LDX", CPU::AM_IMMEDIATE,          2 }, // 0xA2
+    { &CPU::read_indexed_indirect, &CPU::op_lax, "LAX", CPU::AM_INDEXED_INDIRECT,   6 }, // 0xA3
+    { &CPU::read_zeropage,         &CPU::op_ldy, "LDY", CPU::AM_ZEROPAGE,           3 }, // 0xA4
+    { &CPU::read_zeropage,         &CPU::op_lda, "LDA", CPU::AM_ZEROPAGE,           3 }, // 0xA5
+    { &CPU::read_zeropage,         &CPU::op_ldx, "LDX", CPU::AM_ZEROPAGE,           3 }, // 0xA6
+    { &CPU::read_zeropage,         &CPU::op_lax, "LAX", CPU::AM_ZEROPAGE,           3 }, // 0xA7
+    { &CPU::read_implied,          &CPU::op_tay, "TAY", CPU::AM_IMPLIED,            2 }, // 0xA8
+    { &CPU::read_immediate,        &CPU::op_lda, "LDA", CPU::AM_IMMEDIATE,          2 }, // 0xA9
+    { &CPU::read_implied,          &CPU::op_tax, "TAX", CPU::AM_IMPLIED,            2 }, // 0xAA
+    { &CPU::read_immediate,        &CPU::op_lax, "LAX", CPU::AM_IMMEDIATE,          2 }, // 0xAB
+    { &CPU::read_absolute,         &CPU::op_ldy, "LDY", CPU::AM_ABSOLUTE,           4 }, // 0xAC
+    { &CPU::read_absolute,         &CPU::op_lda, "LDA", CPU::AM_ABSOLUTE,           4 }, // 0xAD
+    { &CPU::read_absolute,         &CPU::op_ldx, "LDX", CPU::AM_ABSOLUTE,           4 }, // 0xAE
+    { &CPU::read_absolute,         &CPU::op_lax, "LAX", CPU::AM_ABSOLUTE,           4 }, // 0xAF
+    { &CPU::read_relative,         &CPU::op_bcs, "BCS", CPU::AM_RELATIVE,           2 }, // 0xB0
+    { &CPU::read_indirect_indexed, &CPU::op_lda, "LDA", CPU::AM_INDIRECT_INDEXED,   5 }, // 0xB1
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0xB2
+    { &CPU::read_indirect_indexed, &CPU::op_lax, "LAX", CPU::AM_INDIRECT_INDEXED,   5 }, // 0xB3
+    { &CPU::read_zeropage_x,       &CPU::op_ldy, "LDY", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0xB4
+    { &CPU::read_zeropage_x,       &CPU::op_lda, "LDA", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0xB5
+    { &CPU::read_zeropage_y,       &CPU::op_ldx, "LDX", CPU::AM_ZEROPAGE_INDEXED_Y, 4 }, // 0xB6
+    { &CPU::read_zeropage_y,       &CPU::op_lax, "LAX", CPU::AM_ZEROPAGE_INDEXED_Y, 4 }, // 0xB7
+    { &CPU::read_implied,          &CPU::op_clv, "CLV", CPU::AM_IMPLIED,            2 }, // 0xB8
+    { &CPU::read_absolute_y,       &CPU::op_lda, "LDA", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0xB9
+    { &CPU::read_implied,          &CPU::op_tsx, "TSX", CPU::AM_IMPLIED,            2 }, // 0xBA
+    { &CPU::read_absolute_y,       &CPU::op_las, "LAS", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0xBB
+    { &CPU::read_absolute_x,       &CPU::op_ldy, "LDY", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0xBC
+    { &CPU::read_absolute_x,       &CPU::op_lda, "LDA", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0xBD
+    { &CPU::read_absolute_y,       &CPU::op_ldx, "LDX", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0xBE
+    { &CPU::read_absolute_y,       &CPU::op_lax, "LAX", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0xBF
+    { &CPU::read_immediate,        &CPU::op_cpy, "CPY", CPU::AM_IMMEDIATE,          2 }, // 0xC0
+    { &CPU::read_indexed_indirect, &CPU::op_cmp, "CMP", CPU::AM_INDEXED_INDIRECT,   6 }, // 0xC1
+    { &CPU::read_immediate,        &CPU::op_nop, "NOP", CPU::AM_IMMEDIATE,          2 }, // 0xC2
+    { &CPU::read_indexed_indirect, &CPU::op_dcp, "DCP", CPU::AM_INDEXED_INDIRECT,   8 }, // 0xC3
+    { &CPU::read_zeropage,         &CPU::op_cpy, "CPY", CPU::AM_ZEROPAGE,           3 }, // 0xC4
+    { &CPU::read_zeropage,         &CPU::op_cmp, "CMP", CPU::AM_ZEROPAGE,           3 }, // 0xC5
+    { &CPU::read_zeropage,         &CPU::op_dec, "DEC", CPU::AM_ZEROPAGE,           5 }, // 0xC6
+    { &CPU::read_zeropage,         &CPU::op_dcp, "DCP", CPU::AM_ZEROPAGE,           5 }, // 0xC7
+    { &CPU::read_implied,          &CPU::op_iny, "INY", CPU::AM_IMPLIED,            2 }, // 0xC8
+    { &CPU::read_immediate,        &CPU::op_cmp, "CMP", CPU::AM_IMMEDIATE,          2 }, // 0xC9
+    { &CPU::read_implied,          &CPU::op_dex, "DEX", CPU::AM_IMPLIED,            2 }, // 0xCA
+    { &CPU::read_immediate,        &CPU::op_sax, "SAX", CPU::AM_IMMEDIATE,          2 }, // 0xCB
+    { &CPU::read_absolute,         &CPU::op_cpy, "CPY", CPU::AM_ABSOLUTE,           4 }, // 0xCC
+    { &CPU::read_absolute,         &CPU::op_cmp, "CMP", CPU::AM_ABSOLUTE,           4 }, // 0xCD
+    { &CPU::read_absolute,         &CPU::op_dec, "DEC", CPU::AM_ABSOLUTE,           6 }, // 0xCE
+    { &CPU::read_absolute,         &CPU::op_dcp, "DCP", CPU::AM_ABSOLUTE,           6 }, // 0xCF
+    { &CPU::read_relative,         &CPU::op_bne, "BNE", CPU::AM_RELATIVE,           2 }, // 0xD0
+    { &CPU::read_indirect_indexed, &CPU::op_cmp, "CMP", CPU::AM_INDIRECT_INDEXED,   5 }, // 0xD1
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0xD2
+    { &CPU::read_indirect_indexed, &CPU::op_dcp, "DCP", CPU::AM_INDIRECT_INDEXED,   8 }, // 0xD3
+    { &CPU::read_zeropage_x,       &CPU::op_nop, "NOP", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0xD4
+    { &CPU::read_zeropage_x,       &CPU::op_cmp, "CMP", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0xD5
+    { &CPU::read_zeropage_x,       &CPU::op_dec, "DEC", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0xD6
+    { &CPU::read_zeropage_x,       &CPU::op_dcp, "DCP", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0xD7
+    { &CPU::read_implied,          &CPU::op_cld, "CLD", CPU::AM_IMPLIED,            2 }, // 0xD8
+    { &CPU::read_absolute_y,       &CPU::op_cmp, "CMP", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0xD9
+    { &CPU::read_implied,          &CPU::op_nop, "NOP", CPU::AM_IMPLIED,            2 }, // 0xDA
+    { &CPU::read_absolute_y,       &CPU::op_dcp, "DCP", CPU::AM_ABSOLUTE_INDEXED_Y, 7 }, // 0xDB
+    { &CPU::read_absolute_x,       &CPU::op_nop, "NOP", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0xDC
+    { &CPU::read_absolute_x,       &CPU::op_cmp, "CMP", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0xDD
+    { &CPU::read_absolute_x,       &CPU::op_dec, "DEC", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0xDE
+    { &CPU::read_absolute_x,       &CPU::op_dcp, "DCP", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0xDF
+    { &CPU::read_immediate,        &CPU::op_cpx, "CPX", CPU::AM_IMMEDIATE,          2 }, // 0xE0
+    { &CPU::read_indexed_indirect, &CPU::op_sbc, "SBC", CPU::AM_INDEXED_INDIRECT,   6 }, // 0xE1
+    { &CPU::read_immediate,        &CPU::op_nop, "NOP", CPU::AM_IMMEDIATE,          2 }, // 0xE2
+    { &CPU::read_indexed_indirect, &CPU::op_isc, "ISC", CPU::AM_INDEXED_INDIRECT,   8 }, // 0xE3
+    { &CPU::read_zeropage,         &CPU::op_cpx, "CPX", CPU::AM_ZEROPAGE,           3 }, // 0xE4
+    { &CPU::read_zeropage,         &CPU::op_sbc, "SBC", CPU::AM_ZEROPAGE,           3 }, // 0xE5
+    { &CPU::read_zeropage,         &CPU::op_inc, "INC", CPU::AM_ZEROPAGE,           5 }, // 0xE6
+    { &CPU::read_zeropage,         &CPU::op_isc, "ISC", CPU::AM_ZEROPAGE,           5 }, // 0xE7
+    { &CPU::read_implied,          &CPU::op_inx, "INX", CPU::AM_IMPLIED,            2 }, // 0xE8
+    { &CPU::read_immediate,        &CPU::op_sbc, "SBC", CPU::AM_IMMEDIATE,          2 }, // 0xE9
+    { &CPU::read_implied,          &CPU::op_nop, "NOP", CPU::AM_IMPLIED,            2 }, // 0xEA
+    { &CPU::read_immediate,        &CPU::op_sbc, "SBC", CPU::AM_IMMEDIATE,          2 }, // 0xEB
+    { &CPU::read_absolute,         &CPU::op_cpx, "CPX", CPU::AM_ABSOLUTE,           4 }, // 0xEC
+    { &CPU::read_absolute,         &CPU::op_sbc, "SBC", CPU::AM_ABSOLUTE,           4 }, // 0xED
+    { &CPU::read_absolute,         &CPU::op_inc, "INC", CPU::AM_ABSOLUTE,           6 }, // 0xEE
+    { &CPU::read_absolute,         &CPU::op_isc, "ISC", CPU::AM_ABSOLUTE,           6 }, // 0xEF
+    { &CPU::read_relative,         &CPU::op_beq, "BEQ", CPU::AM_RELATIVE,           2 }, // 0xF0
+    { &CPU::read_indirect_indexed, &CPU::op_sbc, "SBC", CPU::AM_INDIRECT_INDEXED,   5 }, // 0xF1
+    { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0xF2
+    { &CPU::read_indirect_indexed, &CPU::op_isc, "ISC", CPU::AM_INDIRECT_INDEXED,   8 }, // 0xF3
+    { &CPU::read_zeropage_x,       &CPU::op_nop, "NOP", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0xF4
+    { &CPU::read_zeropage_x,       &CPU::op_sbc, "SBC", CPU::AM_ZEROPAGE_INDEXED_X, 4 }, // 0xF5
+    { &CPU::read_zeropage_x,       &CPU::op_inc, "INC", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0xF6
+    { &CPU::read_zeropage_x,       &CPU::op_isc, "ISC", CPU::AM_ZEROPAGE_INDEXED_X, 6 }, // 0xF7
+    { &CPU::read_implied,          &CPU::op_sed, "SED", CPU::AM_IMPLIED,            2 }, // 0xF8
+    { &CPU::read_absolute_y,       &CPU::op_sbc, "SBC", CPU::AM_ABSOLUTE_INDEXED_Y, 4 }, // 0xF9
+    { &CPU::read_implied,          &CPU::op_nop, "NOP", CPU::AM_IMPLIED,            2 }, // 0xFA
+    { &CPU::read_absolute_y,       &CPU::op_isc, "ISC", CPU::AM_ABSOLUTE_INDEXED_Y, 7 }, // 0xFB
+    { &CPU::read_absolute_x,       &CPU::op_nop, "NOP", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0xFC
+    { &CPU::read_absolute_x,       &CPU::op_sbc, "SBC", CPU::AM_ABSOLUTE_INDEXED_X, 4 }, // 0xFD
+    { &CPU::read_absolute_x,       &CPU::op_inc, "INC", CPU::AM_ABSOLUTE_INDEXED_X, 7 }, // 0xFE
+    { &CPU::read_absolute_x,       &CPU::op_isc, "ISC", CPU::AM_ABSOLUTE_INDEXED_X, 7 }  // 0xFF
 };
 
 CPU::CPU(Memory* memory)
@@ -281,13 +281,11 @@ void CPU::reset()
     m_opcode = 0;
     m_address = 0;
     m_cycles = 7;
-    m_nmi_pending = false;
-    m_irq_pending = false;
 }
 
 void CPU::irq()
 {
-    if (check_flag(STATUS_I))
+    if (status_check_flag(STATUS_I))
         return;
 
     Word address;
@@ -296,7 +294,7 @@ void CPU::irq()
     stack_push(address.byte_low);
     stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
     m_registers.PC = m_memory->read(0xFFFE) | (m_memory->read(0xFFFF) << 8);
-    set_flag(STATUS_I, true);
+    status_set_flag(STATUS_I, true);
     m_cycles = 7;
 }
 
@@ -308,7 +306,7 @@ void CPU::nmi()
     stack_push(address.byte_low);
     stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
     m_registers.PC = m_memory->read(0xFFFA) | (m_memory->read(0xFFFB) << 8);
-    set_flag(STATUS_I, true);
+    status_set_flag(STATUS_I, true);
     m_cycles = 7;
 }
 
@@ -316,61 +314,35 @@ void CPU::tick()
 {
     if (m_cycles == 0)
     {
-        if (m_nmi_pending)
-        {
-            nmi();
-            m_nmi_pending = false;
-            return;
-        }
-
-        if (m_irq_pending)
-        {
-            irq();
-            m_irq_pending = false;
-            return;
-        }
-
         m_opcode = m_memory->read(m_registers.PC++);
-        Opcode op = m_opcode_table[m_opcode];
+        Instruction op = m_instruction_table[m_opcode];
         m_addressing_mode = op.addressing_mode;
         m_cycles = op.cycles;
-
         bool am_cycle = (this->*op.read_address)();
         bool op_cycle = (this->*op.execute)();
-
         if (am_cycle && op_cycle)
             m_cycles++;
     }
     m_cycles--;
 }
 
-void CPU::nmi_pending()
-{
-    m_nmi_pending = true;
-}
-
-void CPU::irq_pending()
-{
-    m_irq_pending = true;
-}
-
-void CPU::set_flag(StatusFlag flag, bool value)
+inline void CPU::status_set_flag(StatusFlag flag, bool value)
 {
     m_registers.P = value ? m_registers.P | flag : m_registers.P & (~flag);
 }
 
-bool CPU::check_flag(StatusFlag flag)
+inline bool CPU::status_check_flag(StatusFlag flag)
 {
     return (m_registers.P & flag) != 0;
 }
 
-void CPU::stack_push(uint8_t data)
+inline void CPU::stack_push(uint8_t data)
 {
     m_memory->write(0x100 | m_registers.SP, data);
     m_registers.SP--;
 }
 
-uint8_t CPU::stack_pop()
+inline uint8_t CPU::stack_pop()
 {
     m_registers.SP++;
     return m_memory->read(0x100 | m_registers.SP);
@@ -498,91 +470,81 @@ bool CPU::read_indirect_indexed()
     return false;
 }
 
-bool CPU::op_bcs()
+inline void CPU::branch()
 {
-    if (!check_flag(STATUS_C))
-        return false;
-
     m_cycles++;
     m_registers.PC = m_address;
+}
 
+bool CPU::op_bcs()
+{
+    if (!status_check_flag(STATUS_C))
+        return false;
+
+    branch();
     return true;
 }
 
 bool CPU::op_bcc()
 {
-    if (check_flag(STATUS_C))
+    if (status_check_flag(STATUS_C))
         return false;
 
-    m_cycles++;
-    m_registers.PC = m_address;
-
+    branch();
     return true;
 }
 
 bool CPU::op_beq()
 {
-    if (!check_flag(STATUS_Z))
+    if (!status_check_flag(STATUS_Z))
         return false;
 
-    m_cycles++;
-    m_registers.PC = m_address;
-
+    branch();
     return true;
 }
 
 bool CPU::op_bne()
 {
-    if (check_flag(STATUS_Z))
+    if (status_check_flag(STATUS_Z))
         return false;
 
-    m_cycles++;
-    m_registers.PC = m_address;
-
+    branch();
     return true;
 }
 
 bool CPU::op_bmi()
 {
-    if (!check_flag(STATUS_N))
+    if (!status_check_flag(STATUS_N))
         return false;
 
-    m_cycles++;
-    m_registers.PC = m_address;
-
+    branch();
     return true;
 }
 
 bool CPU::op_bpl()
 {
-    if (check_flag(STATUS_N))
+    if (status_check_flag(STATUS_N))
         return false;
 
-    m_cycles++;
-    m_registers.PC = m_address;
-
+    branch();
     return true;
 }
 
 bool CPU::op_bvs()
 {
-    if (!check_flag(STATUS_V))
+    if (!status_check_flag(STATUS_V))
         return false;
 
-    m_cycles++;
-    m_registers.PC = m_address;
-
+    branch();
     return true;
 }
 
 bool CPU::op_bvc()
 {
-    if (check_flag(STATUS_V))
+    if (status_check_flag(STATUS_V))
         return false;
 
-    m_cycles++;
-    m_registers.PC = m_address;
-
+    branch();
     return true;
 }
 
@@ -601,8 +563,8 @@ bool CPU::op_php()
 bool CPU::op_pla()
 {
     m_registers.A = stack_pop();
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -616,8 +578,8 @@ bool CPU::op_plp()
 bool CPU::op_inc()
 {
     uint8_t value = m_memory->read(m_address) + 1;
-    set_flag(STATUS_N, value >> 7);
-    set_flag(STATUS_Z, value == 0);
+    status_set_flag(STATUS_N, value >> 7);
+    status_set_flag(STATUS_Z, value == 0);
     m_memory->write(m_address, value);
 
     return false;
@@ -626,8 +588,8 @@ bool CPU::op_inc()
 bool CPU::op_inx()
 {
     m_registers.X++;
-    set_flag(STATUS_N, m_registers.X >> 7);
-    set_flag(STATUS_Z, m_registers.X == 0);
+    status_set_flag(STATUS_N, m_registers.X >> 7);
+    status_set_flag(STATUS_Z, m_registers.X == 0);
 
     return false;
 }
@@ -635,8 +597,8 @@ bool CPU::op_inx()
 bool CPU::op_iny()
 {
     m_registers.Y++;
-    set_flag(STATUS_N, m_registers.Y >> 7);
-    set_flag(STATUS_Z, m_registers.Y == 0);
+    status_set_flag(STATUS_N, m_registers.Y >> 7);
+    status_set_flag(STATUS_Z, m_registers.Y == 0);
 
     return false;
 }
@@ -644,8 +606,8 @@ bool CPU::op_iny()
 bool CPU::op_dec()
 {
     uint8_t value = m_memory->read(m_address) - 1;
-    set_flag(STATUS_N, value >> 7);
-    set_flag(STATUS_Z, value == 0);
+    status_set_flag(STATUS_N, value >> 7);
+    status_set_flag(STATUS_Z, value == 0);
     m_memory->write(m_address, value);
 
     return false;
@@ -654,8 +616,8 @@ bool CPU::op_dec()
 bool CPU::op_dex()
 {
     m_registers.X--;
-    set_flag(STATUS_N, m_registers.X >> 7);
-    set_flag(STATUS_Z, m_registers.X == 0);
+    status_set_flag(STATUS_N, m_registers.X >> 7);
+    status_set_flag(STATUS_Z, m_registers.X == 0);
 
     return false;
 }
@@ -663,8 +625,8 @@ bool CPU::op_dex()
 bool CPU::op_dey()
 {
     m_registers.Y--;
-    set_flag(STATUS_N, m_registers.Y >> 7);
-    set_flag(STATUS_Z, m_registers.Y == 0);
+    status_set_flag(STATUS_N, m_registers.Y >> 7);
+    status_set_flag(STATUS_Z, m_registers.Y == 0);
 
     return false;
 }
@@ -673,14 +635,14 @@ bool CPU::op_adc()
 {
     uint8_t operand = m_memory->read(m_address);
     int sign = (m_registers.A >> 7) == (operand >> 7);
-    uint16_t value = m_registers.A + operand + (check_flag(STATUS_C) ? 1 : 0);
+    uint16_t value = m_registers.A + operand + (status_check_flag(STATUS_C) ? 1 : 0);
     m_registers.A = value & 0xFF;
     uint8_t overflow = sign && (m_registers.A >> 7) != (operand >> 7);
 
-    set_flag(STATUS_C, (value & 0x100) >> 8);
-    set_flag(STATUS_Z, m_registers.A == 0);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_V, overflow);
+    status_set_flag(STATUS_C, (value & 0x100) >> 8);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_V, overflow);
 
     return true;
 }
@@ -689,65 +651,65 @@ bool CPU::op_sbc()
 {
     uint8_t operand = m_memory->read(m_address) ^ 0xFF;
     int sign = (m_registers.A & 0x80) == (operand & 0x80);
-    uint16_t value = m_registers.A + operand + (check_flag(STATUS_C) ? 1 : 0);
+    uint16_t value = m_registers.A + operand + (status_check_flag(STATUS_C) ? 1 : 0);
     m_registers.A = value & 0xFF;
     uint8_t overflow = sign && (m_registers.A & 0x80) != (operand & 0x80);
 
-    set_flag(STATUS_C, (value & 0x100) >> 8);
-    set_flag(STATUS_Z, m_registers.A == 0);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_V, overflow);
+    status_set_flag(STATUS_C, (value & 0x100) >> 8);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_V, overflow);
 
     return true;
 }
 
 bool CPU::op_clc()
 {
-    set_flag(STATUS_C, false);
+    status_set_flag(STATUS_C, false);
     return false;
 }
 
 bool CPU::op_cld()
 {
-    set_flag(STATUS_D, false);
+    status_set_flag(STATUS_D, false);
     return false;
 }
 
 bool CPU::op_cli()
 {
-    set_flag(STATUS_I, false);
+    status_set_flag(STATUS_I, false);
     return false;
 }
 
 bool CPU::op_clv()
 {
-    set_flag(STATUS_V, false);
+    status_set_flag(STATUS_V, false);
     return false;
 }
 
 bool CPU::op_sec()
 {
-    set_flag(STATUS_C, true);
+    status_set_flag(STATUS_C, true);
     return false;
 }
 
 bool CPU::op_sed()
 {
-    set_flag(STATUS_D, true);
+    status_set_flag(STATUS_D, true);
     return false;
 }
 
 bool CPU::op_sei()
 {
-    set_flag(STATUS_I, true);
+    status_set_flag(STATUS_I, true);
     return false;
 }
 
 bool CPU::op_lda()
 {
     m_registers.A = m_memory->read(m_address);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return true;
 }
@@ -755,8 +717,8 @@ bool CPU::op_lda()
 bool CPU::op_ldx()
 {
     m_registers.X = m_memory->read(m_address);
-    set_flag(STATUS_N, m_registers.X >> 7);
-    set_flag(STATUS_Z, m_registers.X == 0);
+    status_set_flag(STATUS_N, m_registers.X >> 7);
+    status_set_flag(STATUS_Z, m_registers.X == 0);
 
     return true;
 }
@@ -764,8 +726,8 @@ bool CPU::op_ldx()
 bool CPU::op_ldy()
 {
     m_registers.Y = m_memory->read(m_address);
-    set_flag(STATUS_N, m_registers.Y >> 7);
-    set_flag(STATUS_Z, m_registers.Y == 0);
+    status_set_flag(STATUS_N, m_registers.Y >> 7);
+    status_set_flag(STATUS_Z, m_registers.Y == 0);
 
     return true;
 }
@@ -791,8 +753,8 @@ bool CPU::op_sty()
 bool CPU::op_tax()
 {
     m_registers.X = m_registers.A;
-    set_flag(STATUS_N, m_registers.X >> 7);
-    set_flag(STATUS_Z, m_registers.X == 0);
+    status_set_flag(STATUS_N, m_registers.X >> 7);
+    status_set_flag(STATUS_Z, m_registers.X == 0);
 
     return false;
 }
@@ -800,8 +762,8 @@ bool CPU::op_tax()
 bool CPU::op_tay()
 {
     m_registers.Y = m_registers.A;
-    set_flag(STATUS_N, m_registers.Y >> 7);
-    set_flag(STATUS_Z, m_registers.Y == 0);
+    status_set_flag(STATUS_N, m_registers.Y >> 7);
+    status_set_flag(STATUS_Z, m_registers.Y == 0);
 
     return false;
 }
@@ -809,8 +771,8 @@ bool CPU::op_tay()
 bool CPU::op_tsx()
 {
     m_registers.X = m_registers.SP;
-    set_flag(STATUS_N, m_registers.X >> 7);
-    set_flag(STATUS_Z, m_registers.X == 0);
+    status_set_flag(STATUS_N, m_registers.X >> 7);
+    status_set_flag(STATUS_Z, m_registers.X == 0);
 
     return false;
 }
@@ -818,8 +780,8 @@ bool CPU::op_tsx()
 bool CPU::op_txa()
 {
     m_registers.A = m_registers.X;
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -833,8 +795,8 @@ bool CPU::op_txs()
 bool CPU::op_tya()
 {
     m_registers.A = m_registers.Y;
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -874,7 +836,7 @@ bool CPU::op_brk()
     stack_push(address.byte_low);
     stack_push(m_registers.P | STATUS_U | STATUS_B);
     m_registers.PC = m_memory->read(0xFFFE) | (m_memory->read(0xFFFF) << 8);
-    set_flag(STATUS_I, true);
+    status_set_flag(STATUS_I, true);
 
     return false;
 }
@@ -895,9 +857,9 @@ bool CPU::op_cmp()
 {
     uint8_t operand = m_memory->read(m_address);
     uint8_t value = m_registers.A - operand;
-    set_flag(STATUS_C, m_registers.A >= operand);
-    set_flag(STATUS_N, value >> 7);
-    set_flag(STATUS_Z, value == 0);
+    status_set_flag(STATUS_C, m_registers.A >= operand);
+    status_set_flag(STATUS_N, value >> 7);
+    status_set_flag(STATUS_Z, value == 0);
 
     return true;
 }
@@ -906,9 +868,9 @@ bool CPU::op_cpx()
 {
     uint8_t operand = m_memory->read(m_address);
     uint8_t value = m_registers.X - operand;
-    set_flag(STATUS_C, m_registers.X >= operand);
-    set_flag(STATUS_N, value >> 7);
-    set_flag(STATUS_Z, value == 0);
+    status_set_flag(STATUS_C, m_registers.X >= operand);
+    status_set_flag(STATUS_N, value >> 7);
+    status_set_flag(STATUS_Z, value == 0);
 
     return true;
 }
@@ -917,9 +879,9 @@ bool CPU::op_cpy()
 {
     uint8_t operand = m_memory->read(m_address);
     uint8_t value = m_registers.Y - operand;
-    set_flag(STATUS_C, m_registers.Y >= operand);
-    set_flag(STATUS_N, value >> 7);
-    set_flag(STATUS_Z, value == 0);
+    status_set_flag(STATUS_C, m_registers.Y >= operand);
+    status_set_flag(STATUS_N, value >> 7);
+    status_set_flag(STATUS_Z, value == 0);
 
     return true;
 }
@@ -927,8 +889,8 @@ bool CPU::op_cpy()
 bool CPU::op_and()
 {
     m_registers.A &= m_memory->read(m_address);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return true;
 }
@@ -936,8 +898,8 @@ bool CPU::op_and()
 bool CPU::op_eor()
 {
     m_registers.A ^= m_memory->read(m_address);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return true;
 }
@@ -945,8 +907,8 @@ bool CPU::op_eor()
 bool CPU::op_ora()
 {
     m_registers.A |= m_memory->read(m_address);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return true;
 }
@@ -956,19 +918,19 @@ bool CPU::op_asl()
     if (m_addressing_mode == AM_IMPLIED)
     {
         // Accumulator
-        set_flag(STATUS_C, m_registers.A >> 7);
+        status_set_flag(STATUS_C, m_registers.A >> 7);
         m_registers.A <<= 1;
-        set_flag(STATUS_N, m_registers.A >> 7);
-        set_flag(STATUS_Z, m_registers.A == 0);
+        status_set_flag(STATUS_N, m_registers.A >> 7);
+        status_set_flag(STATUS_Z, m_registers.A == 0);
     }
     else
     {
         // Memory
         uint8_t operand = m_memory->read(m_address);
         uint8_t value = operand << 1;
-        set_flag(STATUS_C, operand >> 7);
-        set_flag(STATUS_N, value >> 7);
-        set_flag(STATUS_Z, value == 0);
+        status_set_flag(STATUS_C, operand >> 7);
+        status_set_flag(STATUS_N, value >> 7);
+        status_set_flag(STATUS_Z, value == 0);
         m_memory->write(m_address, value);
     }
 
@@ -980,19 +942,19 @@ bool CPU::op_lsr()
     if (m_addressing_mode == AM_IMPLIED)
     {
         // Accumulator
-        set_flag(STATUS_C, m_registers.A & 1);
+        status_set_flag(STATUS_C, m_registers.A & 1);
         m_registers.A >>= 1;
-        set_flag(STATUS_N, m_registers.A >> 7);
-        set_flag(STATUS_Z, m_registers.A == 0);
+        status_set_flag(STATUS_N, m_registers.A >> 7);
+        status_set_flag(STATUS_Z, m_registers.A == 0);
     }
     else
     {
         // Memory
         uint8_t operand = m_memory->read(m_address);
         uint8_t value = operand >> 1;
-        set_flag(STATUS_C, operand & 1);
-        set_flag(STATUS_N, value >> 7);
-        set_flag(STATUS_Z, value == 0);
+        status_set_flag(STATUS_C, operand & 1);
+        status_set_flag(STATUS_N, value >> 7);
+        status_set_flag(STATUS_Z, value == 0);
         m_memory->write(m_address, value);
     }
 
@@ -1001,23 +963,23 @@ bool CPU::op_lsr()
 
 bool CPU::op_rol()
 {
-    uint8_t carry = check_flag(STATUS_C);
+    uint8_t carry = status_check_flag(STATUS_C);
     if (m_addressing_mode == AM_IMPLIED)
     {
         // Accumulator
-        set_flag(STATUS_C, m_registers.A >> 7);
+        status_set_flag(STATUS_C, m_registers.A >> 7);
         m_registers.A = (m_registers.A << 1) | carry;
-        set_flag(STATUS_N, m_registers.A >> 7);
-        set_flag(STATUS_Z, m_registers.A == 0);
+        status_set_flag(STATUS_N, m_registers.A >> 7);
+        status_set_flag(STATUS_Z, m_registers.A == 0);
     }
     else
     {
         // Memory
         uint8_t operand = m_memory->read(m_address);
         uint8_t value = (operand << 1) | carry;
-        set_flag(STATUS_C, operand >> 7);
-        set_flag(STATUS_N, value >> 7);
-        set_flag(STATUS_Z, value == 0);
+        status_set_flag(STATUS_C, operand >> 7);
+        status_set_flag(STATUS_N, value >> 7);
+        status_set_flag(STATUS_Z, value == 0);
         m_memory->write(m_address, value);
     }
 
@@ -1026,23 +988,23 @@ bool CPU::op_rol()
 
 bool CPU::op_ror()
 {
-    uint8_t carry = check_flag(STATUS_C);
+    uint8_t carry = status_check_flag(STATUS_C);
     if (m_addressing_mode == AM_IMPLIED)
     {
         // Accumulator
-        set_flag(STATUS_C, m_registers.A & 1);
+        status_set_flag(STATUS_C, m_registers.A & 1);
         m_registers.A = (carry << 7) | (m_registers.A >> 1);
-        set_flag(STATUS_N, m_registers.A >> 7);
-        set_flag(STATUS_Z, m_registers.A == 0);
+        status_set_flag(STATUS_N, m_registers.A >> 7);
+        status_set_flag(STATUS_Z, m_registers.A == 0);
     }
     else
     {
         // Memory
         uint8_t operand = m_memory->read(m_address);
         uint8_t value = (carry << 7) | (operand >> 1);
-        set_flag(STATUS_C, operand & 7);
-        set_flag(STATUS_N, value >> 7);
-        set_flag(STATUS_Z, value == 0);
+        status_set_flag(STATUS_C, operand & 7);
+        status_set_flag(STATUS_N, value >> 7);
+        status_set_flag(STATUS_Z, value == 0);
         m_memory->write(m_address, value);
     }
 
@@ -1053,7 +1015,7 @@ bool CPU::op_bit()
 {
     uint8_t operand = m_memory->read(m_address);
     m_registers.P = (m_registers.P & ~0xC0) | (operand & 0xC0);
-    set_flag(STATUS_Z, !(m_registers.A & operand));
+    status_set_flag(STATUS_Z, !(m_registers.A & operand));
 
     return false;
 }
@@ -1062,8 +1024,8 @@ bool CPU::op_lax()
 {
     m_registers.A = m_memory->read(m_address);
     m_registers.X = m_registers.A;
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return true;
 }
@@ -1079,9 +1041,9 @@ bool CPU::op_dcp()
     uint8_t value = m_memory->read(m_address) - 1;
     m_memory->write(m_address, value);
     uint8_t result = m_registers.A - value;
-    set_flag(STATUS_C, m_registers.A >= value);
-    set_flag(STATUS_N, result >> 7);
-    set_flag(STATUS_Z, result == 0);
+    status_set_flag(STATUS_C, m_registers.A >= value);
+    status_set_flag(STATUS_N, result >> 7);
+    status_set_flag(STATUS_Z, result == 0);
 
     return false;
 }
@@ -1092,14 +1054,14 @@ bool CPU::op_isc()
     m_memory->write(m_address, value);
     value ^= 0xFF;
     uint8_t sign = (m_registers.A & 0x80) != (value & 0x80);
-    uint16_t result = m_registers.A + value + (check_flag(STATUS_C) ? 1 : 0);
+    uint16_t result = m_registers.A + value + (status_check_flag(STATUS_C) ? 1 : 0);
     m_registers.A = result & 0xFF;
     uint8_t overflow = sign && (m_registers.A & 0x80) != (value & 0x80);
 
-    set_flag(STATUS_C, (result & 0x100) >> 8);
-    set_flag(STATUS_Z, m_registers.A == 0);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_V, overflow);
+    status_set_flag(STATUS_C, (result & 0x100) >> 8);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_V, overflow);
 
     return false;
 }
@@ -1108,12 +1070,12 @@ bool CPU::op_slo()
 {
     uint8_t operand = m_memory->read(m_address);
     uint8_t value = operand << 1;
-    set_flag(STATUS_C, operand >> 7);
+    status_set_flag(STATUS_C, operand >> 7);
     m_memory->write(m_address, value);
 
     m_registers.A |= value;
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -1121,13 +1083,13 @@ bool CPU::op_slo()
 bool CPU::op_rla()
 {
     uint8_t operand = m_memory->read(m_address);
-    uint8_t value = (operand << 1) | (check_flag(STATUS_C) ? 1 : 0);
-    set_flag(STATUS_C, operand >> 7);
+    uint8_t value = (operand << 1) | (status_check_flag(STATUS_C) ? 1 : 0);
+    status_set_flag(STATUS_C, operand >> 7);
     m_memory->write(m_address, value);
 
     m_registers.A &= value;
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -1136,12 +1098,12 @@ bool CPU::op_sre()
 {
     uint8_t operand = m_memory->read(m_address);
     uint8_t value = operand >> 1;
-    set_flag(STATUS_C, operand & 1);
+    status_set_flag(STATUS_C, operand & 1);
     m_memory->write(m_address, value);
 
     m_registers.A ^= value;
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -1149,19 +1111,19 @@ bool CPU::op_sre()
 bool CPU::op_rra()
 {
     uint8_t operand = m_memory->read(m_address);
-    uint8_t value = ((check_flag(STATUS_C) ? 1 : 0) << 7) | (operand >> 1);
-    set_flag(STATUS_C, operand & 1);
+    uint8_t value = ((status_check_flag(STATUS_C) ? 1 : 0) << 7) | (operand >> 1);
+    status_set_flag(STATUS_C, operand & 1);
     m_memory->write(m_address, value);
 
     int sign = (m_registers.A >> 7) == (value >> 7);
-    uint16_t result = m_registers.A + value + (check_flag(STATUS_C) ? 1 : 0);
+    uint16_t result = m_registers.A + value + (status_check_flag(STATUS_C) ? 1 : 0);
     m_registers.A = result & 0xFF;
     uint8_t overflow = sign && (m_registers.A >> 7) != (value >> 7);
 
-    set_flag(STATUS_C, (result & 0x100) >> 8);
-    set_flag(STATUS_Z, m_registers.A == 0);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_V, overflow);
+    status_set_flag(STATUS_C, (result & 0x100) >> 8);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_V, overflow);
 
     return false;
 }
@@ -1169,9 +1131,9 @@ bool CPU::op_rra()
 bool CPU::op_anc()
 {
     m_registers.A &= m_memory->read(m_address);
-    set_flag(STATUS_C, m_registers.A >> 7);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_C, m_registers.A >> 7);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -1179,11 +1141,11 @@ bool CPU::op_anc()
 bool CPU::op_alr()
 {
     m_registers.A &= m_memory->read(m_address);
-    set_flag(STATUS_C, m_registers.A & 1);
+    status_set_flag(STATUS_C, m_registers.A & 1);
 
     m_registers.A >>= 1;
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -1191,15 +1153,15 @@ bool CPU::op_alr()
 bool CPU::op_arr()
 {
     m_registers.A &= m_memory->read(m_address);
-    m_registers.A = ((check_flag(STATUS_C) ? 1 : 0) << 7) | (m_registers.A >> 1);
+    m_registers.A = ((status_check_flag(STATUS_C) ? 1 : 0) << 7) | (m_registers.A >> 1);
 
     bool bit6 = (m_registers.A >> 6) & 1;
     bool bit5 = (m_registers.A >> 5) & 1;
 
-    set_flag(STATUS_C, bit6);
-    set_flag(STATUS_V, bit5 ^ bit6);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_C, bit6);
+    status_set_flag(STATUS_V, bit5 ^ bit6);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -1208,8 +1170,8 @@ bool CPU::op_xaa()
 {
     m_registers.A = m_registers.X;
     m_registers.A &= m_memory->read(m_address);
-    set_flag(STATUS_N, m_registers.A >> 7);
-    set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_flag(STATUS_N, m_registers.A >> 7);
+    status_set_flag(STATUS_Z, m_registers.A == 0);
 
     return false;
 }
@@ -1220,8 +1182,8 @@ bool CPU::op_las()
     m_registers.A = value;
     m_registers.X = value;
     m_registers.SP = value;
-    set_flag(STATUS_N, value >> 7);
-    set_flag(STATUS_Z, value == 0);
+    status_set_flag(STATUS_N, value >> 7);
+    status_set_flag(STATUS_Z, value == 0);
 
     return true;
 }
@@ -1270,7 +1232,7 @@ bool CPU::op_nop()
 
 bool CPU::op_hlt()
 {
-    std::cerr << "CPU halt! opcode: " << std::hex << (unsigned)m_opcode << "\n";
+    std::cout << "CPU: halt! opcode " << std::hex << (unsigned)m_opcode << "\n";
     exit(1);
 
     return false;

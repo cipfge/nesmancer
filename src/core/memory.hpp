@@ -1,16 +1,18 @@
 #pragma once
 
-#include "types.hpp"
+#include <cstdint>
 
-class PPU;
 class APU;
+class PPU;
 class Cartridge;
 class Controller;
 
 class Memory
 {
 public:
-    Memory(PPU* ppu, APU* apu, Cartridge* cartridge,
+    Memory(APU* apu,
+           PPU* ppu,
+           Cartridge* cartridge,
            Controller* controller);
     ~Memory();
 
@@ -19,8 +21,10 @@ public:
 
 private:
     uint8_t m_internal_ram[2048];
-    PPU* m_ppu = nullptr;
     APU* m_apu = nullptr;
+    PPU* m_ppu = nullptr;
     Cartridge* m_cartrige = nullptr;
     Controller* m_controller = nullptr;
+
+    void oam_dma(uint8_t data);
 };

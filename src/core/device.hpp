@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.hpp"
+#include <cstdint>
 #include <string>
 
 class CPU;
@@ -17,10 +17,9 @@ public:
     ~Device();
 
     void reset();
-    void run_one_frame();
-    bool load_rom(const std::string rom_file_path);
-
-    uint32_t* frame_buffer();
+    void run();
+    bool load_rom_file(const std::string& file_path);
+    uint32_t* screen();
 
 private:
     CPU* m_cpu = nullptr;

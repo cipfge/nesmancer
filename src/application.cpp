@@ -23,13 +23,13 @@ int Application::run(int argc, char* argv[])
     if (!m_running)
         return -1;
 
-    if (argc > 1 && !m_nes.load_rom(argv[1]))
+    if (argc > 1 && !m_nes.load_rom_file(argv[1]))
         return -1;
 
     while (m_running)
     {
         process_events();
-        m_nes.run_one_frame();
+        m_nes.run();
         render();
     }
 
@@ -210,7 +210,8 @@ void Application::render()
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 
-    SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.frame_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+    SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.screen(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+
     SDL_Rect window_rect = { 0, 0, m_window_width, m_window_height };
     SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, &window_rect);
     SDL_RenderPresent(m_renderer);

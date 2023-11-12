@@ -22,8 +22,8 @@ private:
     SDL_GameController* m_controller = nullptr;
 
     std::string m_window_title = "NES Emulator";
-    int m_window_width = EMU_DEFAULT_WINDOW_WIDTH;
-    int m_window_height = EMU_DEFAULT_WINDOW_HEIGHT;
+    int m_window_width = EMU_SCREEN_WIDTH * 2;
+    int m_window_height = EMU_SCREEN_HEIGHT * 2;
     bool m_running = false;
 
     bool init();

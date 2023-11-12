@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.hpp"
+#include <cstdint>
 #include <string>
 
 class Memory;
@@ -46,15 +46,6 @@ public:
         AM_INDIRECT_INDEXED
     };
 
-    struct Opcode
-    {
-        std::string mnemonic = "";
-        AddressingMode addressing_mode = AddressingMode::AM_IMPLIED;
-        bool (CPU::*execute)(void) = nullptr;
-        bool (CPU::*read_address)(void) = nullptr;
-        uint8_t cycles = 0;
-    };
-
 public:
     CPU(Memory* memory);
     ~CPU();
@@ -64,25 +55,46 @@ public:
     void nmi();
     void tick();
 
-    void nmi_pending();
-    void irq_pending();
+    const Registers& registers() const { return m_registers; }
+    uint8_t cycles() const { return m_cycles; }
 
 private:
-    Registers m_registers;
+    union Word
+    {
+        struct
+        {
+            uint8_t byte_low;
+            uint8_t byte_high;
+        };
+        uint16_t value = 0;
+    };
+
+    struct Instruction
+    {
+        bool (CPU::*read_address)(void) = nullptr;
+        bool (CPU::*execute)(void) = nullptr;
+        std::string mnemonic = "";
+        AddressingMode addressing_mode = AddressingMode::AM_IMPLIED;
+        uint8_t cycles = 0;
+    };
+
+    static Instruction m_instruction_table[256];
+
     Memory* m_memory = nullptr;
+    Registers m_registers;
     uint8_t m_opcode = 0;
     AddressingMode m_addressing_mode = AM_IMPLIED;
     uint16_t m_address = 0;
     uint8_t m_cycles = 0;
-    bool m_nmi_pending = false;
-    bool m_irq_pending = false;
-    static Opcode m_opcode_table[256];
 
-    void set_flag(StatusFlag flag, bool value);
-    bool check_flag(StatusFlag flag);
+    void status_set_flag(StatusFlag flag, bool value);
+    bool status_check_flag(StatusFlag flag);
 
     void stack_push(uint8_t data);
     uint8_t stack_pop();
+
+    // For branch instructions
+    void branch();
 
     // Addressing modes
     bool read_implied();
@@ -98,7 +110,7 @@ private:
     bool read_indexed_indirect();
     bool read_indirect_indexed();
 
-    // Opcodes
+    // Instructions
     bool op_bcs();
     bool op_bcc();
     bool op_beq();

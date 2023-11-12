@@ -5,7 +5,6 @@
 #include "cartridge.hpp"
 #include "controller.hpp"
 #include "memory.hpp"
-#include "global.hpp"
 
 Device::Device()
 {
@@ -13,7 +12,7 @@ Device::Device()
     m_ppu = new PPU(m_cartridge);
     m_apu = new APU();
     m_controller = new Controller();
-    m_memory = new Memory(m_ppu, m_apu, m_cartridge, m_controller);
+    m_memory = new Memory(m_apu, m_ppu, m_cartridge, m_controller);
     m_cpu = new CPU(m_memory);
 }
 
@@ -29,50 +28,44 @@ Device::~Device()
 
 void Device::reset()
 {
-    m_cpu->reset();
     m_apu->reset();
     m_ppu->reset();
+    m_cpu->reset();
 }
 
-void Device::run_one_frame()
+void Device::run()
 {
-    if (!m_cartridge->rom_loaded())
+    if (!m_cartridge->is_loaded())
         return;
 
-    while (!m_ppu->frame_completed())
+    m_ppu->frame_start();
+    while (!m_ppu->frame_rendered())
     {
-        if (m_ppu->cpu_nmi())
+        if (m_cpu->cycles() == 0 && m_ppu->nmi())
         {
-            m_cpu->nmi_pending();
-            m_ppu->cpu_nmi_clear();
-        }
-
-        if (m_cartridge->cpu_irq())
-        {
-            m_cpu->irq_pending();
-            m_cartridge->cpu_irq_clear();
+            m_cpu->nmi();
+            m_ppu->nmi_clear();
         }
 
         m_cpu->tick();
-        m_apu->tick();
+
+        // PPU is 3 times faster
         m_ppu->tick();
         m_ppu->tick();
         m_ppu->tick();
     }
-
-    m_ppu->frame_clear();
 }
 
-bool Device::load_rom(const std::string rom_file_path)
+bool Device::load_rom_file(const std::string& file_path)
 {
-    if (!m_cartridge->load_from_file(rom_file_path))
+    if (!m_cartridge->load_from_file(file_path))
         return false;
-    reset();
 
+    reset();
     return true;
 }
 
-uint32_t* Device::frame_buffer()
+uint32_t* Device::screen()
 {
     return m_ppu->frame_buffer();
 }
