@@ -26,11 +26,23 @@ int Application::run(int argc, char* argv[])
     if (argc > 1 && !m_nes.load_rom_file(argv[1]))
         return -1;
 
+    // NTSC ~ 60 FPS?
+    constexpr int DELAY = 1000.0f / 60;
+
+    uint32_t frame_start = 0;
+    uint32_t frame_time = 0;
+
     while (m_running)
     {
+        frame_start = SDL_GetTicks();
+
         process_events();
         m_nes.run();
         render();
+
+        frame_time = SDL_GetTicks() - frame_start;
+        if (frame_time < DELAY)
+            SDL_Delay((int)(DELAY - frame_time));
     }
 
     return 0;
@@ -65,7 +77,7 @@ bool Application::init()
 
     m_renderer = SDL_CreateRenderer(m_window,
                                     -1, // Initialize the first rendering driver supporting the requested flags
-                                    SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+                                    SDL_RENDERER_ACCELERATED);
     if (!m_renderer)
     {
         std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << "\n";
