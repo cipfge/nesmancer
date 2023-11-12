@@ -167,6 +167,7 @@ private:
     void scroll_vertical();
     void load_background_shifter();
     void update_background_shifter();
+    void update_sprite_shifter();
     uint8_t reverse_byte(uint8_t byte);
     void clear_sprite_shifter();
     void update_sprites();

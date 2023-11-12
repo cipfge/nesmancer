@@ -320,6 +320,27 @@ inline void PPU::update_background_shifter()
     m_bg_shifter.attribute_high <<= 1;
 }
 
+inline void PPU::update_sprite_shifter()
+{
+    if (m_mask.render_sprites && m_cycle < 256)
+    {
+        Sprite* sprite = nullptr;
+        for (int i = 0; i < m_sprite_count; i++)
+        {
+            sprite = m_sprite_scanline + i;
+            if (sprite->x > 0)
+            {
+                sprite->x--;
+            }
+            else
+            {
+                m_sprite_shifter.pattern_low[i] <<= 1;
+                m_sprite_shifter.pattern_high[i] <<= 1;
+            }
+        }
+    }
+}
+
 uint8_t PPU::reverse_byte(uint8_t byte)
 {
     uint8_t value = 0;
@@ -427,6 +448,8 @@ void PPU::render_cycle()
 
     if (m_cycle > 0 && (m_cycle < 256 || m_cycle > 320) && m_cycle < 337)
     {
+        update_sprite_shifter();
+
         switch ((m_cycle - 1) % 8)
         {
         case 0:
