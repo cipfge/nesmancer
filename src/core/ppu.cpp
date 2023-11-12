@@ -252,7 +252,7 @@ void PPU::video_bus_write(uint16_t address, uint8_t data)
 
 inline uint32_t PPU::read_color_from_palette(uint8_t pixel, uint8_t palette)
 {
-    uint16_t address = pixel * 4 + palette;
+    uint16_t address = palette * 4 + pixel;
     if (address > 0x0F && address % 4 == 0)
         address -= 0x10;
     uint8_t index = m_palette_ram[address];

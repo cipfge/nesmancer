@@ -149,7 +149,7 @@ void Application::process_events()
 
         case SDL_KEYDOWN:
         case SDL_KEYUP:
-            process_keyboard_event(event);
+            process_keyboard_event(event.key);
             break;
 
         case SDL_CONTROLLERDEVICEADDED:
@@ -175,10 +175,48 @@ void Application::process_events()
     }
 }
 
-void Application::process_keyboard_event(const SDL_Event& event)
+void Application::process_keyboard_event(const SDL_KeyboardEvent& event)
 {
-    // TODO: Keyboard events
-    EMU_UNUSED(event);
+    if (event.repeat)
+        return;
+
+    switch (event.keysym.scancode)
+    {
+    case SDL_SCANCODE_C:
+        m_nes.set_button_state(BUTTON_A, event.type == SDL_KEYDOWN);
+        break;
+
+    case SDL_SCANCODE_X:
+        m_nes.set_button_state(BUTTON_B, event.type == SDL_KEYDOWN);
+        break;
+
+    case SDL_SCANCODE_S:
+        m_nes.set_button_state(BUTTON_SELECT, event.type == SDL_KEYDOWN);
+        break;
+
+    case SDL_SCANCODE_D:
+        m_nes.set_button_state(BUTTON_START, event.type == SDL_KEYDOWN);
+        break;
+
+    case SDL_SCANCODE_UP:
+        m_nes.set_button_state(BUTTON_UP, event.type == SDL_KEYDOWN);
+        break;
+
+    case SDL_SCANCODE_DOWN:
+        m_nes.set_button_state(BUTTON_DOWN, event.type == SDL_KEYDOWN);
+        break;
+
+    case SDL_SCANCODE_LEFT:
+        m_nes.set_button_state(BUTTON_LEFT, event.type == SDL_KEYDOWN);
+        break;
+
+    case SDL_SCANCODE_RIGHT:
+        m_nes.set_button_state(BUTTON_RIGHT, event.type == SDL_KEYDOWN);
+        break;
+
+    default:
+        break;
+    }
 }
 
 void Application::process_controller_event(const SDL_Event& event)

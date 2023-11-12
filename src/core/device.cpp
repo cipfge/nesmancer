@@ -65,6 +65,12 @@ bool Device::load_rom_file(const std::string& file_path)
     return true;
 }
 
+void Device::set_button_state(Button btn, bool pressed)
+{
+    uint8_t state = (m_controller->state(0) & ~btn) | (pressed ? btn : 0);
+    m_controller->set_state(0, state);
+}
+
 uint32_t* Device::screen()
 {
     return m_ppu->frame_buffer();

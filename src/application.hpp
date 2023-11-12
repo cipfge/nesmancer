@@ -22,8 +22,8 @@ private:
     SDL_GameController* m_controller = nullptr;
 
     std::string m_window_title = "NES Emulator";
-    int m_window_width = EMU_SCREEN_WIDTH * 2;
-    int m_window_height = EMU_SCREEN_HEIGHT * 2;
+    int m_window_width = EMU_SCREEN_WIDTH * 4;
+    int m_window_height = EMU_SCREEN_HEIGHT * 4;
     bool m_running = false;
 
     bool init();
@@ -31,7 +31,7 @@ private:
     void controller_connected(SDL_JoystickID id);
     void controller_disconnected(SDL_JoystickID id);
     void process_events();
-    void process_keyboard_event(const SDL_Event& event);
+    void process_keyboard_event(const SDL_KeyboardEvent& event);
     void process_controller_event(const SDL_Event& event);
     void process_window_event(const SDL_Event& event);
     void render();
