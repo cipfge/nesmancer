@@ -9,7 +9,7 @@ Work in progress.
 
 Debian based distributions
 ```bash
-sudo apt install build-essential cmake ninja-build sdl2-devel
+sudo apt install build-essential cmake ninja-build libsdl2-dev
 ```
 Fedora
 ```bash

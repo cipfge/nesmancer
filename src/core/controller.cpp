@@ -18,6 +18,6 @@ uint8_t Controller::read(uint8_t index)
 
 void Controller::write(uint8_t index, uint8_t data)
 {
-    EMU_UNUSED(index);
-    EMU_UNUSED(data);
+    if (data == 0)
+        m_registers[index] = m_state[index];
 }

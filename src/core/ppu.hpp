@@ -95,6 +95,14 @@ private:
         uint16_t value = 0;
     };
 
+    struct BackgroundTile
+    {
+        uint8_t nametable = 0;
+        uint8_t attribute = 0;
+        uint8_t byte_low = 0;
+        uint8_t byte_high = 0;
+    };
+
     struct BackgroundShifter
     {
         uint16_t pattern_low = 0;
@@ -140,15 +148,12 @@ private:
     bool m_offset = false;
     bool m_nmi = false;
 
-    uint8_t m_bg_nametable = 0;
-    uint8_t m_bg_attribute = 0;
-    uint8_t m_bg_tile_low = 0;
-    uint8_t m_bg_tile_high = 0;
+    BackgroundTile m_bg_tile;
     BackgroundShifter m_bg_shifter;
 
     uint8_t m_oam[256];
     uint8_t m_oam_address = 0;
-    Sprite m_sprite_scanline[8];
+    Sprite m_oam_scanline[8];
     uint8_t m_sprite_count = 0;
     bool m_sprite_zero_hit_possible = false;
     SpriteShifter m_sprite_shifter;

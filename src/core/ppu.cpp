@@ -1,26 +1,25 @@
 #include "ppu.hpp"
 #include "cartridge.hpp"
 #include <cstring>
-#include <iostream>
 
 // TODO: Generate or load from file
 uint32_t PPU::m_palette[64] = {
-    0X464646, 0X000154, 0X000070, 0X07006B,
-    0X280048, 0X3C000E, 0X3E0000, 0X2C0000,
-    0X0D0300, 0X001500, 0X001F00, 0X001F00,
-    0X001420, 0X000000, 0X000000, 0X000000,
-    0X9D9D9D, 0X0041B0, 0X1825D5, 0X4A0DCF,
-    0X75009F, 0X900153, 0X920F00, 0X7B2800,
-    0X514400, 0X205C00, 0X006900, 0X006916,
-    0X005A6A, 0X000000, 0X000000, 0X000000,
-    0XFEFFFF, 0X4896FF, 0X626DFF, 0X8E5BFF,
-    0XD45EFF, 0XF160B4, 0XF36F5E, 0XDC8817,
-    0XB2A400, 0X7FBD00, 0X53CA28, 0X38CA76,
-    0X36BBCB, 0X2B2B2B, 0X000000, 0X000000,
-    0XFEFFFF, 0XB0D2FF, 0XB6BBFF, 0XCBB4FF,
-    0XEDBCFF, 0XF9BDE0, 0XFAC3BD, 0XF0CE9F,
-    0XDFD990, 0XCAE393, 0XB8E9A6, 0XADE9C6,
-    0XACE3E9, 0XA7A7A7, 0X000000, 0X000000
+    0x7C7C7C, 0x0000FC, 0x0000BC, 0x4428BC,
+    0x940084, 0xA80020, 0xA81000, 0x881400,
+    0x503000, 0x007800, 0x006800, 0x005800,
+    0x004058, 0x000000, 0x000000, 0x000000,
+    0xBCBCBC, 0x0078F8, 0x0058F8, 0x6844FC,
+    0xD800CC, 0xE40058, 0xF83800, 0xE45C10,
+    0xAC7C00, 0x00B800, 0x00A800, 0x00A844,
+    0x008888, 0x000000, 0x000000, 0x000000,
+    0xF8F8F8, 0x3CBCFC, 0x6888FC, 0x9878F8,
+    0xF878F8, 0xF85898, 0xF87858, 0xFCA044,
+    0xF8B800, 0xB8F818, 0x58D854, 0x58F898,
+    0x00E8D8, 0x787878, 0x000000, 0x000000,
+    0xFCFCFC, 0xA4E4FC, 0xB8B8F8, 0xD8B8F8,
+    0xF8B8F8, 0xF8A4C0, 0xF0D0B0, 0xFCE0A8,
+    0xF8D878, 0xD8F878, 0xB8F8B8, 0xB8F8D8,
+    0x00FCFC, 0xF8D8F8, 0x000000, 0x000000
 };
 
 PPU::PPU(Cartridge* cartridge)
@@ -46,10 +45,15 @@ void PPU::reset()
     m_offset = false;
     m_nmi = false;
 
-    m_bg_nametable = 0;
-    m_bg_attribute = 0;
-    m_bg_tile_low = 0;
-    m_bg_tile_high = 0;
+    m_bg_tile.nametable = 0;
+    m_bg_tile.attribute = 0;
+    m_bg_tile.byte_low = 0;
+    m_bg_tile.byte_high = 0;
+
+    m_bg_shifter.pattern_low = 0;
+    m_bg_shifter.pattern_high = 0;
+    m_bg_shifter.attribute_low = 0;
+    m_bg_shifter.attribute_high = 0;
 
     m_oam_address = 0;
     m_sprite_count = 0;
@@ -60,7 +64,7 @@ void PPU::reset()
 
     memset(m_palette_ram, 0, sizeof(m_palette_ram));
     memset(m_oam, 0, sizeof(m_oam));
-    memset(m_sprite_scanline, 0, sizeof(m_sprite_scanline));
+    memset(m_oam_scanline, 0, sizeof(m_oam_scanline));
     memset(m_frame_buffer, 0, sizeof(m_frame_buffer));
 }
 
@@ -102,6 +106,7 @@ void PPU::tick()
             m_scanline = 0;
             m_frame_rendered = true;
             m_frame_odd = !m_frame_odd;
+            return;
         }
     }
 
@@ -149,8 +154,6 @@ uint8_t PPU::read(uint16_t address)
         break;
 
     default:
-        std::cout << "PPU: reading from invalid register " << reg
-                  << " address " << std::hex << address << "\n";
         break;
     }
 
@@ -214,9 +217,6 @@ void PPU::write(uint16_t address, uint8_t data)
         break;
 
     default:
-        std::cout << "PPU: writing to invalid register " << reg
-                  << " address " << std::hex << address
-                  << " data " << std::hex << (unsigned)data << "\n";
         break;
     }
 }
@@ -255,9 +255,8 @@ inline uint32_t PPU::read_color_from_palette(uint8_t pixel, uint8_t palette)
     uint16_t address = palette * 4 + pixel;
     if (address > 0x0F && address % 4 == 0)
         address -= 0x10;
-    uint8_t index = m_palette_ram[address];
 
-    return m_palette[index];
+    return m_palette[m_palette_ram[address]];
 }
 
 inline bool PPU::is_rendering()
@@ -293,7 +292,7 @@ inline void PPU::scroll_vertical()
     if (m_vram_address.fine_y == 0)
     {
         m_vram_address.coarse_y++;
-        if (m_vram_address.coarse_y == 0)
+        if (m_vram_address.coarse_y == 30)
         {
             m_vram_address.coarse_y = 0;
             m_vram_address.nametable ^= 2;
@@ -303,17 +302,17 @@ inline void PPU::scroll_vertical()
 
 inline void PPU::load_background_shifter()
 {
-    m_bg_shifter.pattern_low = (m_bg_shifter.pattern_low & 0xFF00) | m_bg_tile_low;
-    m_bg_shifter.pattern_high = (m_bg_shifter.pattern_high & 0xFF00) | m_bg_tile_high;
-    m_bg_shifter.attribute_low = (m_bg_shifter.attribute_low & 0xFF00) | ((m_bg_attribute & 1) ? 0xFF : 0);
-    m_bg_shifter.attribute_high = (m_bg_shifter.attribute_high & 0xFF00) | ((m_bg_attribute & 2) ? 0xFF : 0);
+    m_bg_shifter.pattern_low = (m_bg_shifter.pattern_low & 0xFF00) | m_bg_tile.byte_low;
+    m_bg_shifter.pattern_high = (m_bg_shifter.pattern_high & 0xFF00) | m_bg_tile.byte_high;
+
+    m_bg_shifter.attribute_low = (m_bg_shifter.attribute_low & 0xFF00) |
+                                 ((m_bg_tile.attribute & 1) ? 0xFF : 0);
+    m_bg_shifter.attribute_high = (m_bg_shifter.attribute_high & 0xFF00) |
+                                  ((m_bg_tile.attribute & 2) ? 0xFF : 0);
 }
 
 inline void PPU::update_background_shifter()
 {
-    if (!m_mask.render_background)
-        return;
-
     m_bg_shifter.pattern_low <<= 1;
     m_bg_shifter.pattern_high <<= 1;
     m_bg_shifter.attribute_low <<= 1;
@@ -322,21 +321,18 @@ inline void PPU::update_background_shifter()
 
 inline void PPU::update_sprite_shifter()
 {
-    if (m_mask.render_sprites && m_cycle < 256)
+    Sprite* sprite = nullptr;
+    for (int i = 0; i < m_sprite_count; i++)
     {
-        Sprite* sprite = nullptr;
-        for (int i = 0; i < m_sprite_count; i++)
+        sprite = m_oam_scanline + i;
+        if (sprite->x > 0)
         {
-            sprite = m_sprite_scanline + i;
-            if (sprite->x > 0)
-            {
-                sprite->x--;
-            }
-            else
-            {
-                m_sprite_shifter.pattern_low[i] <<= 1;
-                m_sprite_shifter.pattern_high[i] <<= 1;
-            }
+            sprite->x--;
+        }
+        else
+        {
+            m_sprite_shifter.pattern_low[i] <<= 1;
+            m_sprite_shifter.pattern_high[i] <<= 1;
         }
     }
 }
@@ -368,7 +364,7 @@ void PPU::update_sprites()
     if (m_scanline == 261)
         return;
 
-    memset(m_sprite_scanline, 0xFF, 8 * sizeof(Sprite));
+    memset(m_oam_scanline, 0xFF, 8 * sizeof(Sprite));
     m_sprite_count = 0;
 
     m_status.sprite_overflow = 0;
@@ -425,7 +421,10 @@ void PPU::update_sprites()
             m_sprite_shifter.pattern_low[m_sprite_count] = sprite_data_low;
             m_sprite_shifter.pattern_high[m_sprite_count] = sprite_data_high;
 
-            memcpy(m_sprite_scanline + m_sprite_count, m_oam + i, sizeof(m_sprite_scanline[0]));
+            memcpy(m_oam_scanline + m_sprite_count,
+                   m_oam + i,
+                   sizeof(m_oam_scanline[0]));
+
             m_sprite_count++;
         }
     }
@@ -444,42 +443,46 @@ void PPU::sprite_zero_hit(uint8_t spr_pixel, uint8_t bg_pixel)
 void PPU::render_cycle()
 {
     if ((m_cycle > 1 && m_cycle < 258) || (m_cycle > 321 && m_cycle < 338))
-        update_background_shifter();
+    {
+        if (m_mask.render_background)
+            update_background_shifter();
+    }
 
     if (m_cycle > 0 && (m_cycle < 256 || m_cycle > 320) && m_cycle < 337)
     {
-        update_sprite_shifter();
+        if (m_mask.render_sprites && m_cycle < 256)
+            update_sprite_shifter();
 
         switch ((m_cycle - 1) % 8)
         {
         case 0:
             load_background_shifter();
-            m_bg_nametable = video_bus_read(0x2000 | (m_vram_address.value & 0x0FFF));
+            m_bg_tile.nametable = video_bus_read(0x2000 | (m_vram_address.value & 0x0FFF));
             break;
 
         case 2:
-            m_bg_attribute = video_bus_read(0x23C0 |
-                                            (m_vram_address.value & 0x0C00) |
-                                            ((m_vram_address.value >> 4) & 0x38) |
-                                            ((m_vram_address.value >> 2) & 0x7));
+            m_bg_tile.attribute = video_bus_read(0x23C0 |
+                                                 (m_vram_address.value & 0x0C00) |
+                                                 ((m_vram_address.value >> 4) & 0x38) |
+                                                 ((m_vram_address.value >> 2) & 0x7));
             if (m_vram_address.coarse_y & 2)
-                m_bg_attribute >>= 4;
+                m_bg_tile.attribute >>= 4;
             if (m_vram_address.coarse_x & 2)
-                m_bg_attribute >>= 2;
-            m_bg_attribute &= 3;
+                m_bg_tile.attribute >>= 2;
+            m_bg_tile.attribute &= 3;
             break;
 
         case 4:
-            m_bg_tile_low = video_bus_read(((uint16_t)m_control.background_table << 12) |
-                                            (((uint16_t)m_bg_nametable) << 4) |
-                                            m_vram_address.fine_y);
+            m_bg_tile.byte_low = video_bus_read(((uint16_t)m_control.background_table << 12) |
+                                                (((uint16_t)m_bg_tile.nametable) << 4) |
+                                                m_vram_address.fine_y);
             break;
 
         case 6:
-            m_bg_tile_high = video_bus_read(((uint16_t)m_control.background_table << 12) |
-                                            (((uint16_t)m_bg_nametable) << 4) |
-                                            0x8 |
-                                            m_vram_address.fine_y);
+            m_bg_tile.byte_high = video_bus_read(((uint16_t)m_control.background_table << 12) |
+                                                 (((uint16_t)m_bg_tile.nametable) << 4) |
+                                                 m_vram_address.fine_y |
+                                                 0x8);
             break;
 
         case 7:
@@ -501,7 +504,7 @@ void PPU::render_cycle()
     }
     else if (m_cycle == 337 || m_cycle == 339)
     {
-        m_bg_nametable = video_bus_read(0x2000 | (m_vram_address.value & 0x0FFF));
+        m_bg_tile.nametable = video_bus_read(0x2000 | (m_vram_address.value & 0x0FFF));
     }
 }
 
@@ -535,7 +538,7 @@ void PPU::render_pixel()
         Sprite* sprite = nullptr;
         for (int i = 0; i < m_sprite_count; i++)
         {
-            sprite = m_sprite_scanline + i;
+            sprite = m_oam_scanline + i;
             if (sprite->x == 0)
             {
                 uint8_t low = (m_sprite_shifter.pattern_low[i] >> 7) & 1;
