@@ -277,7 +277,7 @@ void CPU::reset()
     m_registers.Y = 0;
     m_registers.P = STATUS_I | STATUS_U;
     m_registers.SP = 0xFD;
-    m_registers.PC = m_memory->read(0xFFFC) | (m_memory->read(0xFFFD) << 8);
+    m_registers.PC = read_word(0xFFFC);
     m_opcode = 0;
     m_address = 0;
     m_cycles = 7;
@@ -293,7 +293,7 @@ void CPU::irq()
     stack_push(address.byte_high);
     stack_push(address.byte_low);
     stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
-    m_registers.PC = m_memory->read(0xFFFE) | (m_memory->read(0xFFFF) << 8);
+    m_registers.PC = read_word(0xFFFE);
     status_set_flag(STATUS_I, true);
     m_cycles = 7;
 }
@@ -305,24 +305,28 @@ void CPU::nmi()
     stack_push(address.byte_high);
     stack_push(address.byte_low);
     stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
-    m_registers.PC = m_memory->read(0xFFFA) | (m_memory->read(0xFFFB) << 8);
+    m_registers.PC = read_word(0xFFFA);
     status_set_flag(STATUS_I, true);
     m_cycles = 7;
 }
 
 void CPU::tick()
 {
-    if (m_cycles == 0)
+    if (m_cycles > 0)
     {
-        m_opcode = m_memory->read(m_registers.PC++);
-        Instruction op = m_instruction_table[m_opcode];
-        m_addressing_mode = op.addressing_mode;
-        m_cycles = op.cycles;
-        bool am_cycle = (this->*op.read_address)();
-        bool op_cycle = (this->*op.execute)();
-        if (am_cycle && op_cycle)
-            m_cycles++;
+        m_cycles--;
+        return;
     }
+
+    m_opcode = read(m_registers.PC++);
+    Instruction op = m_instruction_table[m_opcode];
+    m_addressing_mode = op.addressing_mode;
+    m_cycles = op.cycles;
+    bool am_cycle = (this->*op.read_address)();
+    bool op_cycle = (this->*op.execute)();
+    if (am_cycle && op_cycle)
+        m_cycles++;
+
     m_cycles--;
 }
 
@@ -336,16 +340,38 @@ inline bool CPU::status_check_flag(StatusFlag flag)
     return (m_registers.P & flag) != 0;
 }
 
+inline void CPU::status_set_zn(uint8_t value)
+{
+    status_set_flag(STATUS_Z, value == 0);
+    status_set_flag(STATUS_N, value >> 7);
+}
+
+inline uint8_t CPU::read(uint16_t address)
+{
+    return m_memory->read(address);
+}
+
+inline uint16_t CPU::read_word(uint16_t address)
+{
+    return (m_memory->read(address) |
+            (m_memory->read(address + 1) << 8));
+}
+
+inline void CPU::write(uint16_t address, uint8_t data)
+{
+    m_memory->write(address, data);
+}
+
 inline void CPU::stack_push(uint8_t data)
 {
-    m_memory->write(0x100 | m_registers.SP, data);
+    write(0x100 | m_registers.SP, data);
     m_registers.SP--;
 }
 
 inline uint8_t CPU::stack_pop()
 {
     m_registers.SP++;
-    return m_memory->read(0x100 | m_registers.SP);
+    return read(0x100 | m_registers.SP);
 }
 
 bool CPU::read_implied()
@@ -362,8 +388,8 @@ bool CPU::read_immediate()
 bool CPU::read_absolute()
 {
     Word address;
-    address.byte_low = m_memory->read(m_registers.PC++);
-    address.byte_high = m_memory->read(m_registers.PC++);
+    address.byte_low = read(m_registers.PC++);
+    address.byte_high = read(m_registers.PC++);
     m_address = address.value;
 
     return false;
@@ -372,8 +398,8 @@ bool CPU::read_absolute()
 bool CPU::read_absolute_x()
 {
     Word address;
-    address.byte_low = m_memory->read(m_registers.PC++);
-    address.byte_high = m_memory->read(m_registers.PC++);
+    address.byte_low = read(m_registers.PC++);
+    address.byte_high = read(m_registers.PC++);
     m_address = address.value + m_registers.X;
 
     if ((address.value & 0xFF00) != (m_address & 0xFF00))
@@ -385,8 +411,8 @@ bool CPU::read_absolute_x()
 bool CPU::read_absolute_y()
 {
     Word address;
-    address.byte_low = m_memory->read(m_registers.PC++);
-    address.byte_high = m_memory->read(m_registers.PC++);
+    address.byte_low = read(m_registers.PC++);
+    address.byte_high = read(m_registers.PC++);
     m_address = address.value + m_registers.Y;
 
     if ((address.value & 0xFF00) != (m_address & 0xFF00))
@@ -397,7 +423,7 @@ bool CPU::read_absolute_y()
 
 bool CPU::read_relative()
 {
-    int8_t offset = m_memory->read(m_registers.PC++);
+    int8_t offset = read(m_registers.PC++);
     m_address = m_registers.PC + offset;
 
     if ((m_registers.PC & 0xFF00) != (m_address & 0xFF00))
@@ -408,36 +434,38 @@ bool CPU::read_relative()
 
 bool CPU::read_zeropage()
 {
-    m_address = m_memory->read(m_registers.PC++);
+    m_address = read(m_registers.PC++);
     return false;
 }
 
 bool CPU::read_zeropage_x()
 {
-    m_address = m_memory->read(m_registers.PC++) + m_registers.X;
+    m_address = read(m_registers.PC++) + m_registers.X;
     m_address &= 0xFF;
+
     return false;
 }
 
 bool CPU::read_zeropage_y()
 {
-    m_address = m_memory->read(m_registers.PC++) + m_registers.Y;
+    m_address = read(m_registers.PC++) + m_registers.Y;
     m_address &= 0xFF;
+
     return false;
 }
 
 bool CPU::read_indirect()
 {
     Word pointer;
-    pointer.byte_low = m_memory->read(m_registers.PC++);
-    pointer.byte_high = m_memory->read(m_registers.PC++);
+    pointer.byte_low = read(m_registers.PC++);
+    pointer.byte_high = read(m_registers.PC++);
 
     // 6502 page boundary hardware bug
     uint16_t byte_high = pointer.byte_low == 0xFF ? pointer.value & 0xFF00 : pointer.value + 1;
 
     Word address;
-    address.byte_low = m_memory->read(pointer.value);
-    address.byte_high = m_memory->read(byte_high);
+    address.byte_low = read(pointer.value);
+    address.byte_high = read(byte_high);
     m_address = address.value;
 
     return false;
@@ -445,11 +473,11 @@ bool CPU::read_indirect()
 
 bool CPU::read_indexed_indirect()
 {
-    uint8_t zpg = m_registers.X + m_memory->read(m_registers.PC++);
+    uint8_t zpg = m_registers.X + read(m_registers.PC++);
 
     Word address;
-    address.byte_low = m_memory->read(zpg++);
-    address.byte_high = m_memory->read(zpg);
+    address.byte_low = read(zpg++);
+    address.byte_high = read(zpg);
     m_address = address.value;
 
     return false;
@@ -457,11 +485,11 @@ bool CPU::read_indexed_indirect()
 
 bool CPU::read_indirect_indexed()
 {
-    uint8_t zpg = m_memory->read(m_registers.PC++);
+    uint8_t zpg = read(m_registers.PC++);
 
     Word address;
-    address.byte_low = m_memory->read(zpg++);
-    address.byte_high = m_memory->read(zpg);
+    address.byte_low = read(zpg++);
+    address.byte_high = read(zpg);
     m_address = address.value + m_registers.Y;
 
     if ((address.value & 0xFF00) != (m_address & 0xFF00))
@@ -472,8 +500,8 @@ bool CPU::read_indirect_indexed()
 
 inline void CPU::branch()
 {
-    m_cycles++;
     m_registers.PC = m_address;
+    m_cycles++;
 }
 
 bool CPU::op_bcs()
@@ -563,8 +591,7 @@ bool CPU::op_php()
 bool CPU::op_pla()
 {
     m_registers.A = stack_pop();
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return false;
 }
@@ -577,10 +604,9 @@ bool CPU::op_plp()
 
 bool CPU::op_inc()
 {
-    uint8_t value = m_memory->read(m_address) + 1;
-    status_set_flag(STATUS_N, value >> 7);
-    status_set_flag(STATUS_Z, value == 0);
-    m_memory->write(m_address, value);
+    uint8_t value = read(m_address) + 1;
+    write(m_address, value);
+    status_set_zn(value);
 
     return false;
 }
@@ -588,8 +614,7 @@ bool CPU::op_inc()
 bool CPU::op_inx()
 {
     m_registers.X++;
-    status_set_flag(STATUS_N, m_registers.X >> 7);
-    status_set_flag(STATUS_Z, m_registers.X == 0);
+    status_set_zn(m_registers.X);
 
     return false;
 }
@@ -597,18 +622,16 @@ bool CPU::op_inx()
 bool CPU::op_iny()
 {
     m_registers.Y++;
-    status_set_flag(STATUS_N, m_registers.Y >> 7);
-    status_set_flag(STATUS_Z, m_registers.Y == 0);
+    status_set_zn(m_registers.Y);
 
     return false;
 }
 
 bool CPU::op_dec()
 {
-    uint8_t value = m_memory->read(m_address) - 1;
-    status_set_flag(STATUS_N, value >> 7);
-    status_set_flag(STATUS_Z, value == 0);
-    m_memory->write(m_address, value);
+    uint8_t value = read(m_address) - 1;
+    write(m_address, value);
+    status_set_zn(value);
 
     return false;
 }
@@ -616,8 +639,7 @@ bool CPU::op_dec()
 bool CPU::op_dex()
 {
     m_registers.X--;
-    status_set_flag(STATUS_N, m_registers.X >> 7);
-    status_set_flag(STATUS_Z, m_registers.X == 0);
+    status_set_zn(m_registers.X);
 
     return false;
 }
@@ -625,40 +647,37 @@ bool CPU::op_dex()
 bool CPU::op_dey()
 {
     m_registers.Y--;
-    status_set_flag(STATUS_N, m_registers.Y >> 7);
-    status_set_flag(STATUS_Z, m_registers.Y == 0);
+    status_set_zn(m_registers.Y);
 
     return false;
 }
 
 bool CPU::op_adc()
 {
-    uint8_t operand = m_memory->read(m_address);
+    uint8_t operand = read(m_address);
     int sign = (m_registers.A >> 7) == (operand >> 7);
     uint16_t value = m_registers.A + operand + (status_check_flag(STATUS_C) ? 1 : 0);
     m_registers.A = value & 0xFF;
     uint8_t overflow = sign && (m_registers.A >> 7) != (operand >> 7);
 
     status_set_flag(STATUS_C, (value & 0x100) >> 8);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
     status_set_flag(STATUS_V, overflow);
+    status_set_zn(m_registers.A);
 
     return true;
 }
 
 bool CPU::op_sbc()
 {
-    uint8_t operand = m_memory->read(m_address) ^ 0xFF;
+    uint8_t operand = read(m_address) ^ 0xFF;
     int sign = (m_registers.A & 0x80) == (operand & 0x80);
     uint16_t value = m_registers.A + operand + (status_check_flag(STATUS_C) ? 1 : 0);
     m_registers.A = value & 0xFF;
     uint8_t overflow = sign && (m_registers.A & 0x80) != (operand & 0x80);
 
     status_set_flag(STATUS_C, (value & 0x100) >> 8);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
     status_set_flag(STATUS_V, overflow);
+    status_set_zn(m_registers.A);
 
     return true;
 }
@@ -707,54 +726,50 @@ bool CPU::op_sei()
 
 bool CPU::op_lda()
 {
-    m_registers.A = m_memory->read(m_address);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    m_registers.A = read(m_address);
+    status_set_zn(m_registers.A);
 
     return true;
 }
 
 bool CPU::op_ldx()
 {
-    m_registers.X = m_memory->read(m_address);
-    status_set_flag(STATUS_N, m_registers.X >> 7);
-    status_set_flag(STATUS_Z, m_registers.X == 0);
+    m_registers.X = read(m_address);
+    status_set_zn(m_registers.X);
 
     return true;
 }
 
 bool CPU::op_ldy()
 {
-    m_registers.Y = m_memory->read(m_address);
-    status_set_flag(STATUS_N, m_registers.Y >> 7);
-    status_set_flag(STATUS_Z, m_registers.Y == 0);
+    m_registers.Y = read(m_address);
+    status_set_zn(m_registers.Y);
 
     return true;
 }
 
 bool CPU::op_sta()
 {
-    m_memory->write(m_address, m_registers.A);
+    write(m_address, m_registers.A);
     return false;
 }
 
 bool CPU::op_stx()
 {
-    m_memory->write(m_address, m_registers.X);
+    write(m_address, m_registers.X);
     return false;
 }
 
 bool CPU::op_sty()
 {
-    m_memory->write(m_address, m_registers.Y);
+    write(m_address, m_registers.Y);
     return false;
 }
 
 bool CPU::op_tax()
 {
     m_registers.X = m_registers.A;
-    status_set_flag(STATUS_N, m_registers.X >> 7);
-    status_set_flag(STATUS_Z, m_registers.X == 0);
+    status_set_zn(m_registers.X);
 
     return false;
 }
@@ -762,8 +777,7 @@ bool CPU::op_tax()
 bool CPU::op_tay()
 {
     m_registers.Y = m_registers.A;
-    status_set_flag(STATUS_N, m_registers.Y >> 7);
-    status_set_flag(STATUS_Z, m_registers.Y == 0);
+    status_set_zn(m_registers.Y);
 
     return false;
 }
@@ -771,8 +785,7 @@ bool CPU::op_tay()
 bool CPU::op_tsx()
 {
     m_registers.X = m_registers.SP;
-    status_set_flag(STATUS_N, m_registers.X >> 7);
-    status_set_flag(STATUS_Z, m_registers.X == 0);
+    status_set_zn(m_registers.X);
 
     return false;
 }
@@ -780,8 +793,7 @@ bool CPU::op_tsx()
 bool CPU::op_txa()
 {
     m_registers.A = m_registers.X;
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return false;
 }
@@ -795,8 +807,7 @@ bool CPU::op_txs()
 bool CPU::op_tya()
 {
     m_registers.A = m_registers.Y;
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return false;
 }
@@ -835,7 +846,7 @@ bool CPU::op_brk()
     stack_push(address.byte_high);
     stack_push(address.byte_low);
     stack_push(m_registers.P | STATUS_U | STATUS_B);
-    m_registers.PC = m_memory->read(0xFFFE) | (m_memory->read(0xFFFF) << 8);
+    m_registers.PC = read(0xFFFE) | (read(0xFFFF) << 8);
     status_set_flag(STATUS_I, true);
 
     return false;
@@ -855,60 +866,54 @@ bool CPU::op_rti()
 
 bool CPU::op_cmp()
 {
-    uint8_t operand = m_memory->read(m_address);
+    uint8_t operand = read(m_address);
     uint8_t value = m_registers.A - operand;
     status_set_flag(STATUS_C, m_registers.A >= operand);
-    status_set_flag(STATUS_N, value >> 7);
-    status_set_flag(STATUS_Z, value == 0);
+    status_set_zn(value);
 
     return true;
 }
 
 bool CPU::op_cpx()
 {
-    uint8_t operand = m_memory->read(m_address);
+    uint8_t operand = read(m_address);
     uint8_t value = m_registers.X - operand;
     status_set_flag(STATUS_C, m_registers.X >= operand);
-    status_set_flag(STATUS_N, value >> 7);
-    status_set_flag(STATUS_Z, value == 0);
+    status_set_zn(value);
 
     return true;
 }
 
 bool CPU::op_cpy()
 {
-    uint8_t operand = m_memory->read(m_address);
+    uint8_t operand = read(m_address);
     uint8_t value = m_registers.Y - operand;
     status_set_flag(STATUS_C, m_registers.Y >= operand);
-    status_set_flag(STATUS_N, value >> 7);
-    status_set_flag(STATUS_Z, value == 0);
+    status_set_zn(value);
 
     return true;
 }
 
 bool CPU::op_and()
 {
-    m_registers.A &= m_memory->read(m_address);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    m_registers.A &= read(m_address);
+    status_set_zn(m_registers.A);
 
     return true;
 }
 
 bool CPU::op_eor()
 {
-    m_registers.A ^= m_memory->read(m_address);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    m_registers.A ^= read(m_address);
+    status_set_zn(m_registers.A);
 
     return true;
 }
 
 bool CPU::op_ora()
 {
-    m_registers.A |= m_memory->read(m_address);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    m_registers.A |= read(m_address);
+    status_set_zn(m_registers.A);
 
     return true;
 }
@@ -917,21 +922,17 @@ bool CPU::op_asl()
 {
     if (m_addressing_mode == AM_IMPLIED)
     {
-        // Accumulator
         status_set_flag(STATUS_C, m_registers.A >> 7);
         m_registers.A <<= 1;
-        status_set_flag(STATUS_N, m_registers.A >> 7);
-        status_set_flag(STATUS_Z, m_registers.A == 0);
+        status_set_zn(m_registers.A);
     }
     else
     {
-        // Memory
-        uint8_t operand = m_memory->read(m_address);
+        uint8_t operand = read(m_address);
         uint8_t value = operand << 1;
+        write(m_address, value);
         status_set_flag(STATUS_C, operand >> 7);
-        status_set_flag(STATUS_N, value >> 7);
-        status_set_flag(STATUS_Z, value == 0);
-        m_memory->write(m_address, value);
+        status_set_zn(value);
     }
 
     return false;
@@ -941,21 +942,17 @@ bool CPU::op_lsr()
 {
     if (m_addressing_mode == AM_IMPLIED)
     {
-        // Accumulator
         status_set_flag(STATUS_C, m_registers.A & 1);
         m_registers.A >>= 1;
-        status_set_flag(STATUS_N, m_registers.A >> 7);
-        status_set_flag(STATUS_Z, m_registers.A == 0);
+        status_set_zn(m_registers.A);
     }
     else
     {
-        // Memory
-        uint8_t operand = m_memory->read(m_address);
+        uint8_t operand = read(m_address);
         uint8_t value = operand >> 1;
+        write(m_address, value);
         status_set_flag(STATUS_C, operand & 1);
-        status_set_flag(STATUS_N, value >> 7);
-        status_set_flag(STATUS_Z, value == 0);
-        m_memory->write(m_address, value);
+        status_set_zn(value);
     }
 
     return false;
@@ -966,21 +963,17 @@ bool CPU::op_rol()
     uint8_t carry = status_check_flag(STATUS_C);
     if (m_addressing_mode == AM_IMPLIED)
     {
-        // Accumulator
         status_set_flag(STATUS_C, m_registers.A >> 7);
         m_registers.A = (m_registers.A << 1) | carry;
-        status_set_flag(STATUS_N, m_registers.A >> 7);
-        status_set_flag(STATUS_Z, m_registers.A == 0);
+        status_set_zn(m_registers.A);
     }
     else
     {
-        // Memory
-        uint8_t operand = m_memory->read(m_address);
+        uint8_t operand = read(m_address);
         uint8_t value = (operand << 1) | carry;
+        write(m_address, value);
         status_set_flag(STATUS_C, operand >> 7);
-        status_set_flag(STATUS_N, value >> 7);
-        status_set_flag(STATUS_Z, value == 0);
-        m_memory->write(m_address, value);
+        status_set_zn(value);
     }
 
     return false;
@@ -991,21 +984,17 @@ bool CPU::op_ror()
     uint8_t carry = status_check_flag(STATUS_C);
     if (m_addressing_mode == AM_IMPLIED)
     {
-        // Accumulator
         status_set_flag(STATUS_C, m_registers.A & 1);
         m_registers.A = (carry << 7) | (m_registers.A >> 1);
-        status_set_flag(STATUS_N, m_registers.A >> 7);
-        status_set_flag(STATUS_Z, m_registers.A == 0);
+        status_set_zn(m_registers.A);
     }
     else
     {
-        // Memory
-        uint8_t operand = m_memory->read(m_address);
+        uint8_t operand = read(m_address);
         uint8_t value = (carry << 7) | (operand >> 1);
+        write(m_address, value);
         status_set_flag(STATUS_C, operand & 7);
-        status_set_flag(STATUS_N, value >> 7);
-        status_set_flag(STATUS_Z, value == 0);
-        m_memory->write(m_address, value);
+        status_set_zn(value);
     }
 
     return false;
@@ -1013,7 +1002,7 @@ bool CPU::op_ror()
 
 bool CPU::op_bit()
 {
-    uint8_t operand = m_memory->read(m_address);
+    uint8_t operand = read(m_address);
     m_registers.P = (m_registers.P & ~0xC0) | (operand & 0xC0);
     status_set_flag(STATUS_Z, !(m_registers.A & operand));
 
@@ -1022,36 +1011,34 @@ bool CPU::op_bit()
 
 bool CPU::op_lax()
 {
-    m_registers.A = m_memory->read(m_address);
+    m_registers.A = read(m_address);
     m_registers.X = m_registers.A;
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return true;
 }
 
 bool CPU::op_sax()
 {
-    m_memory->write(m_address, m_registers.A & m_registers.X);
+    write(m_address, m_registers.A & m_registers.X);
     return false;
 }
 
 bool CPU::op_dcp()
 {
-    uint8_t value = m_memory->read(m_address) - 1;
-    m_memory->write(m_address, value);
-    uint8_t result = m_registers.A - value;
-    status_set_flag(STATUS_C, m_registers.A >= value);
-    status_set_flag(STATUS_N, result >> 7);
-    status_set_flag(STATUS_Z, result == 0);
+    uint8_t operand = read(m_address) - 1;
+    write(m_address, operand);
+    uint8_t value = m_registers.A - operand;
+    status_set_flag(STATUS_C, m_registers.A >= operand);
+    status_set_zn(value);
 
     return false;
 }
 
 bool CPU::op_isc()
 {
-    uint8_t value = m_memory->read(m_address) + 1;
-    m_memory->write(m_address, value);
+    uint8_t value = read(m_address) + 1;
+    write(m_address, value);
     value ^= 0xFF;
     uint8_t sign = (m_registers.A & 0x80) != (value & 0x80);
     uint16_t result = m_registers.A + value + (status_check_flag(STATUS_C) ? 1 : 0);
@@ -1059,61 +1046,54 @@ bool CPU::op_isc()
     uint8_t overflow = sign && (m_registers.A & 0x80) != (value & 0x80);
 
     status_set_flag(STATUS_C, (result & 0x100) >> 8);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
     status_set_flag(STATUS_V, overflow);
+    status_set_zn(m_registers.A);
 
     return false;
 }
 
 bool CPU::op_slo()
 {
-    uint8_t operand = m_memory->read(m_address);
+    uint8_t operand = read(m_address);
     uint8_t value = operand << 1;
     status_set_flag(STATUS_C, operand >> 7);
-    m_memory->write(m_address, value);
-
+    write(m_address, value);
     m_registers.A |= value;
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return false;
 }
 
 bool CPU::op_rla()
 {
-    uint8_t operand = m_memory->read(m_address);
+    uint8_t operand = read(m_address);
     uint8_t value = (operand << 1) | (status_check_flag(STATUS_C) ? 1 : 0);
     status_set_flag(STATUS_C, operand >> 7);
-    m_memory->write(m_address, value);
-
+    write(m_address, value);
     m_registers.A &= value;
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return false;
 }
 
 bool CPU::op_sre()
 {
-    uint8_t operand = m_memory->read(m_address);
+    uint8_t operand = read(m_address);
     uint8_t value = operand >> 1;
     status_set_flag(STATUS_C, operand & 1);
-    m_memory->write(m_address, value);
-
+    write(m_address, value);
     m_registers.A ^= value;
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return false;
 }
 
 bool CPU::op_rra()
 {
-    uint8_t operand = m_memory->read(m_address);
+    uint8_t operand = read(m_address);
     uint8_t value = ((status_check_flag(STATUS_C) ? 1 : 0) << 7) | (operand >> 1);
     status_set_flag(STATUS_C, operand & 1);
-    m_memory->write(m_address, value);
+    write(m_address, value);
 
     int sign = (m_registers.A >> 7) == (value >> 7);
     uint16_t result = m_registers.A + value + (status_check_flag(STATUS_C) ? 1 : 0);
@@ -1121,38 +1101,34 @@ bool CPU::op_rra()
     uint8_t overflow = sign && (m_registers.A >> 7) != (value >> 7);
 
     status_set_flag(STATUS_C, (result & 0x100) >> 8);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
     status_set_flag(STATUS_V, overflow);
+    status_set_zn(m_registers.A);
 
     return false;
 }
 
 bool CPU::op_anc()
 {
-    m_registers.A &= m_memory->read(m_address);
+    m_registers.A &= read(m_address);
     status_set_flag(STATUS_C, m_registers.A >> 7);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return false;
 }
 
 bool CPU::op_alr()
 {
-    m_registers.A &= m_memory->read(m_address);
+    m_registers.A &= read(m_address);
     status_set_flag(STATUS_C, m_registers.A & 1);
-
     m_registers.A >>= 1;
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return false;
 }
 
 bool CPU::op_arr()
 {
-    m_registers.A &= m_memory->read(m_address);
+    m_registers.A &= read(m_address);
     m_registers.A = ((status_check_flag(STATUS_C) ? 1 : 0) << 7) | (m_registers.A >> 1);
 
     bool bit6 = (m_registers.A >> 6) & 1;
@@ -1160,8 +1136,7 @@ bool CPU::op_arr()
 
     status_set_flag(STATUS_C, bit6);
     status_set_flag(STATUS_V, bit5 ^ bit6);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    status_set_zn(m_registers.A);
 
     return false;
 }
@@ -1169,21 +1144,19 @@ bool CPU::op_arr()
 bool CPU::op_xaa()
 {
     m_registers.A = m_registers.X;
-    m_registers.A &= m_memory->read(m_address);
-    status_set_flag(STATUS_N, m_registers.A >> 7);
-    status_set_flag(STATUS_Z, m_registers.A == 0);
+    m_registers.A &= read(m_address);
+    status_set_zn(m_registers.A);
 
     return false;
 }
 
 bool CPU::op_las()
 {
-    uint8_t value = m_registers.SP & m_memory->read(m_address);
+    uint8_t value = m_registers.SP & read(m_address);
     m_registers.A = value;
     m_registers.X = value;
     m_registers.SP = value;
-    status_set_flag(STATUS_N, value >> 7);
-    status_set_flag(STATUS_Z, value == 0);
+    status_set_zn(value);
 
     return true;
 }
@@ -1192,7 +1165,7 @@ bool CPU::op_ahx()
 {
     Word address;
     address.value = m_address + 1;
-    m_memory->write(m_address, m_registers.A & m_registers.X & address.byte_high);
+    write(m_address, m_registers.A & m_registers.X & address.byte_high);
 
     return false;
 }
@@ -1201,7 +1174,7 @@ bool CPU::op_tas()
 {
     Word address;
     address.value = m_address + 1;
-    m_memory->write(m_address, m_registers.A & m_registers.X & address.byte_high);
+    write(m_address, m_registers.A & m_registers.X & address.byte_high);
     m_registers.SP = m_registers.X & m_registers.A;
 
     return false;
@@ -1211,7 +1184,7 @@ bool CPU::op_shy()
 {
     Word address;
     address.value = m_address;
-    m_memory->write(m_address, m_registers.Y & (address.byte_high + 1));
+    write(m_address, m_registers.Y & (address.byte_high + 1));
 
     return false;
 }
@@ -1220,7 +1193,7 @@ bool CPU::op_shx()
 {
     Word address;
     address.value = m_address;
-    m_memory->write(m_address, m_registers.X & (address.byte_high + 1));
+    write(m_address, m_registers.X & (address.byte_high + 1));
 
     return false;
 }

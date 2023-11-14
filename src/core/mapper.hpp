@@ -11,9 +11,6 @@ enum MirroringMode
 class Mapper
 {
 public:
-
-
-public:
     Mapper(uint16_t id, uint8_t prg_banks,
            uint8_t chr_banks, MirroringMode mirroring_mode);
     virtual ~Mapper();

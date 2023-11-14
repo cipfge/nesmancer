@@ -89,12 +89,14 @@ private:
 
     void status_set_flag(StatusFlag flag, bool value);
     bool status_check_flag(StatusFlag flag);
+    void status_set_zn(uint8_t value);
+
+    uint8_t read(uint16_t address);
+    uint16_t read_word(uint16_t address);
+    void write(uint16_t address, uint8_t data);
 
     void stack_push(uint8_t data);
     uint8_t stack_pop();
-
-    // For branch instructions
-    void branch();
 
     // Addressing modes
     bool read_implied();
@@ -109,6 +111,8 @@ private:
     bool read_indirect();
     bool read_indexed_indirect();
     bool read_indirect_indexed();
+
+    void branch();
 
     // Instructions
     bool op_bcs();
