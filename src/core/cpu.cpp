@@ -435,6 +435,8 @@ bool CPU::read_relative()
 bool CPU::read_zeropage()
 {
     m_address = read(m_registers.PC++);
+    m_address &= 0xFF;
+
     return false;
 }
 
@@ -881,7 +883,7 @@ bool CPU::op_cpx()
     status_set_flag(STATUS_C, m_registers.X >= operand);
     status_set_zn(value);
 
-    return true;
+    return false;
 }
 
 bool CPU::op_cpy()
@@ -891,7 +893,7 @@ bool CPU::op_cpy()
     status_set_flag(STATUS_C, m_registers.Y >= operand);
     status_set_zn(value);
 
-    return true;
+    return false;
 }
 
 bool CPU::op_and()
