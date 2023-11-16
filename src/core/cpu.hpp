@@ -3,12 +3,13 @@
 #include <cstdint>
 #include <string>
 
+class PPU;
 class Memory;
 
 class CPU
 {
 public:
-    enum StatusFlag: uint8_t
+    enum StatusFlag
     {
         STATUS_C = (1 << 0),
         STATUS_Z = (1 << 1),
@@ -172,6 +173,7 @@ private:
     bool op_bit();
     bool op_lax();
     bool op_sax();
+    bool op_axs();
     bool op_dcp();
     bool op_isc();
     bool op_slo();

@@ -1,5 +1,4 @@
 #include "controller.hpp"
-#include "global.hpp"
 
 Controller::Controller()
 {

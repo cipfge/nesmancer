@@ -3,7 +3,7 @@
 #include <iostream>
 
 CPU::Instruction CPU::m_instruction_table[256] = {
-    { &CPU::read_implied,          &CPU::op_brk, "BRK", CPU::AM_IMPLIED,            7 }, // 0x00
+    { &CPU::read_immediate,        &CPU::op_brk, "BRK", CPU::AM_IMMEDIATE,          7 }, // 0x00
     { &CPU::read_indexed_indirect, &CPU::op_ora, "ORA", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x01
     { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x02
     { &CPU::read_indexed_indirect, &CPU::op_slo, "SLO", CPU::AM_INDEXED_INDIRECT,   8 }, // 0x03
@@ -206,7 +206,7 @@ CPU::Instruction CPU::m_instruction_table[256] = {
     { &CPU::read_implied,          &CPU::op_iny, "INY", CPU::AM_IMPLIED,            2 }, // 0xC8
     { &CPU::read_immediate,        &CPU::op_cmp, "CMP", CPU::AM_IMMEDIATE,          2 }, // 0xC9
     { &CPU::read_implied,          &CPU::op_dex, "DEX", CPU::AM_IMPLIED,            2 }, // 0xCA
-    { &CPU::read_immediate,        &CPU::op_sax, "SAX", CPU::AM_IMMEDIATE,          2 }, // 0xCB
+    { &CPU::read_immediate,        &CPU::op_axs, "AXS", CPU::AM_IMMEDIATE,          2 }, // 0xCB
     { &CPU::read_absolute,         &CPU::op_cpy, "CPY", CPU::AM_ABSOLUTE,           4 }, // 0xCC
     { &CPU::read_absolute,         &CPU::op_cmp, "CMP", CPU::AM_ABSOLUTE,           4 }, // 0xCD
     { &CPU::read_absolute,         &CPU::op_dec, "DEC", CPU::AM_ABSOLUTE,           6 }, // 0xCE
@@ -312,20 +312,17 @@ void CPU::nmi()
 
 void CPU::tick()
 {
-    if (m_cycles > 0)
+    if (m_cycles == 0)
     {
-        m_cycles--;
-        return;
+        m_opcode = read(m_registers.PC++);
+        Instruction op = m_instruction_table[m_opcode];
+        m_addressing_mode = op.addressing_mode;
+        m_cycles = op.cycles;
+        bool am_cycle = (this->*op.read_address)();
+        bool op_cycle = (this->*op.execute)();
+        if (am_cycle && op_cycle)
+            m_cycles++;
     }
-
-    m_opcode = read(m_registers.PC++);
-    Instruction op = m_instruction_table[m_opcode];
-    m_addressing_mode = op.addressing_mode;
-    m_cycles = op.cycles;
-    bool am_cycle = (this->*op.read_address)();
-    bool op_cycle = (this->*op.execute)();
-    if (am_cycle && op_cycle)
-        m_cycles++;
 
     m_cycles--;
 }
@@ -995,7 +992,7 @@ bool CPU::op_ror()
         uint8_t operand = read(m_address);
         uint8_t value = (carry << 7) | (operand >> 1);
         write(m_address, value);
-        status_set_flag(STATUS_C, operand & 7);
+        status_set_flag(STATUS_C, operand & 1);
         status_set_zn(value);
     }
 
@@ -1026,6 +1023,18 @@ bool CPU::op_sax()
     return false;
 }
 
+bool CPU::op_axs()
+{
+    uint8_t value = read(m_address);
+    m_registers.X &= m_registers.A;
+    status_set_flag(STATUS_C, m_registers.X >= value);
+
+    m_registers.X -= value;
+    status_set_zn(m_registers.X);
+
+    return false;
+}
+
 bool CPU::op_dcp()
 {
     uint8_t operand = read(m_address) - 1;
@@ -1039,15 +1048,16 @@ bool CPU::op_dcp()
 
 bool CPU::op_isc()
 {
-    uint8_t value = read(m_address) + 1;
-    write(m_address, value);
-    value ^= 0xFF;
-    uint8_t sign = (m_registers.A & 0x80) != (value & 0x80);
-    uint16_t result = m_registers.A + value + (status_check_flag(STATUS_C) ? 1 : 0);
-    m_registers.A = result & 0xFF;
-    uint8_t overflow = sign && (m_registers.A & 0x80) != (value & 0x80);
+    uint8_t inc = read(m_address) + 1;
+    write(m_address, inc);
 
-    status_set_flag(STATUS_C, (result & 0x100) >> 8);
+    inc ^= 0xFF;
+    uint8_t sign = (m_registers.A & 0x80) == (inc & 0x80);
+    uint16_t value = m_registers.A + inc + status_check_flag(STATUS_C);
+    m_registers.A = value & 0xFF;
+    uint8_t overflow = sign && (m_registers.A & 0x80) != (inc & 0x80);
+
+    status_set_flag(STATUS_C, (value & 0x100) >> 8);
     status_set_flag(STATUS_V, overflow);
     status_set_zn(m_registers.A);
 
