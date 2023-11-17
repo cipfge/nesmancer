@@ -38,4 +38,5 @@ private:
     void render_menubar();
 
     void open_nes_file();
+    void set_dark_theme();
 };
