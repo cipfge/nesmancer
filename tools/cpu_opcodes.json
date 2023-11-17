@@ -2002,7 +2002,7 @@
   {
     "opcode": 203,
     "mnemonics": [
-      "SAX"
+      "AXS"
     ],
     "addressingMode": "immediate",
     "cycles": 2,
