@@ -35,4 +35,7 @@ private:
     void process_controller_event(const SDL_Event& event);
     void process_window_event(const SDL_Event& event);
     void render();
+    void render_menubar();
+
+    void open_nes_file();
 };

@@ -54,7 +54,7 @@ add_executable(nes
     ${IMGUI_SOURCE_FILES}
     ${EMU_SOURCE_FILES})
 
-target_link_libraries(nes PRIVATE SDL2::SDL2)
+target_link_libraries(nes PRIVATE SDL2::SDL2 nfd)
 if (TARGET SDL2::SDL2main)
     target_link_libraries(nes PRIVATE SDL2::SDL2main)
 endif()

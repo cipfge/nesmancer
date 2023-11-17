@@ -12,4 +12,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "${EMU_DEFAULT_BUILD_TYPE}" CACHE STRING "Choose the type of build." FORCE)
 endif()
 
+if(UNIX AND NOT APPLE)
+    set(NFD_PORTAL ON CACHE BOOL "Use xdg-desktop-portal instead of GTK" FORCE)
+endif()
+
+add_subdirectory(thirdparty/nativefiledialog)
 add_subdirectory(src)

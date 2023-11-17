@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+#include <nfd.hpp>
 #include <iostream>
 
 Application::~Application()
@@ -105,6 +106,10 @@ bool Application::init()
 
     ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer);
     ImGui_ImplSDLRenderer2_Init(m_renderer);
+
+    // Add menubar height
+    m_window_height = m_window_height + (int)ImGui::GetFrameHeight();
+    SDL_SetWindowSize(m_window, m_window_width, m_window_height);
 
     search_controller();
 
@@ -254,15 +259,64 @@ void Application::render()
     ImGui_ImplSDL2_NewFrame();
 
     ImGui::NewFrame();
-    // TODO: User interface
+    render_menubar();
     ImGui::EndFrame();
+
+    SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.screen(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+
+    SDL_Rect window_rect = {
+        0,
+        (int)ImGui::GetFrameHeight(),
+        m_window_width,
+        m_window_height - (int)ImGui::GetFrameHeight()
+    };
+
+    SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, &window_rect);
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 
-    SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.screen(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
-
-    SDL_Rect window_rect = { 0, 0, m_window_width, m_window_height };
-    SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, &window_rect);
     SDL_RenderPresent(m_renderer);
+}
+
+void Application::render_menubar()
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Open...", "Ctr+O"))
+                open_nes_file();
+
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit", "Alt+F4"))
+                m_running = false;
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Help"))
+        {
+            if (ImGui::MenuItem("About NES Emulator"))
+            {}
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void Application::open_nes_file()
+{
+    NFD::Guard guard;
+    NFD::UniquePath nes_file;
+
+    nfdfilteritem_t filter[1] = {
+        {"NES File", "nes"}
+    };
+
+    nfdresult_t result = NFD::OpenDialog(nes_file, filter, 1);
+    if (result == NFD_OKAY)
+        m_nes.load_rom_file(nes_file.get());
 }

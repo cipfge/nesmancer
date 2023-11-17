@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <string>
 
-class PPU;
 class Memory;
 
 class CPU
