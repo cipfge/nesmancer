@@ -9,15 +9,15 @@ Work in progress.
 
 Debian based distributions
 ```bash
-sudo apt install build-essential cmake ninja-build libsdl2-dev
+sudo apt install build-essential cmake ninja-build libsdl2-dev libdbus-1-dev
 ```
 Fedora
 ```bash
-sudo dnf install gcc-c++ cmake ninja-build SDL2-devel
+sudo dnf install gcc-c++ cmake ninja-build SDL2-devel dbus-devel
 ```
 Arch Linux
 ```bash
-sudo pacman -S gcc cmake ninja sdl2
+sudo pacman -S gcc cmake ninja sdl2 dbus
 ```
 
 * Build
