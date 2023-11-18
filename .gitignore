@@ -9,3 +9,6 @@ build/
 *.lib
 *.user
 *.DS_Store
+
+# Generated files
+src/version.hpp

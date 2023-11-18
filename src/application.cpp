@@ -299,7 +299,7 @@ void Application::render_menubar()
 
         if (ImGui::BeginMenu("Help"))
         {
-            if (ImGui::MenuItem("About NES Emulator"))
+            if (ImGui::MenuItem("About " EMU_VERSION_NAME))
             {}
 
             ImGui::EndMenu();

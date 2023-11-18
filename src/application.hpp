@@ -2,6 +2,7 @@
 
 #include "global.hpp"
 #include "device.hpp"
+#include "version.hpp"
 #include <string>
 #include <SDL.h>
 
@@ -21,7 +22,7 @@ private:
     SDL_Texture* m_frame_texture = nullptr;
     SDL_GameController* m_controller = nullptr;
 
-    std::string m_window_title = "NES Emulator";
+    std::string m_window_title = EMU_VERSION_NAME;
     int m_window_width = EMU_SCREEN_WIDTH * 2;
     int m_window_height = EMU_SCREEN_HEIGHT * 2;
     bool m_running = false;

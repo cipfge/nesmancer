@@ -43,32 +43,36 @@ set(IMGUI_SOURCE_FILES
 
 if (WIN32)
     set(EMU_APPLICATION_TYPE "WIN32")
+    list(APPEND EMU_SOURCE_FILES "platform/windows/nesmancer.rc")
 elseif(APPLE)
     set(EMU_APPLICATION_TYPE "MACOSX_BUNDLE")
 else()
     set(EMU_APPLICATION_TYPE "")
 endif()
 
-add_executable(nes
+configure_file("version.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/version.hpp")
+
+add_executable(nesmancer
     ${EMU_APPLICATION_TYPE}
     ${IMGUI_SOURCE_FILES}
     ${EMU_SOURCE_FILES})
 
-target_link_libraries(nes PRIVATE SDL2::SDL2 nfd)
+target_link_libraries(nesmancer PRIVATE SDL2::SDL2 nfd)
 if (TARGET SDL2::SDL2main)
-    target_link_libraries(nes PRIVATE SDL2::SDL2main)
+    target_link_libraries(nesmancer PRIVATE SDL2::SDL2main)
 endif()
 
-target_include_directories(nes PRIVATE
+target_include_directories(nesmancer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/core"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui"
     "${CMAKE_CURRENT_SOURCE_DIR}/platform")
 
-set_target_properties(nes PROPERTIES
+set_target_properties(nesmancer PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-target_compile_definitions(nes PRIVATE
+target_compile_definitions(nesmancer PRIVATE
     "$<$<CONFIG:Debug>:EMU_DEBUG_ENABLED>")
