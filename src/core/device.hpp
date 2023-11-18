@@ -28,6 +28,7 @@ public:
     Device();
     ~Device();
 
+    bool init();
     void reset();
     void run();
     bool load_rom_file(const std::string& file_path);

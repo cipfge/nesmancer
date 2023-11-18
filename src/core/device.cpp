@@ -26,6 +26,11 @@ Device::~Device()
     delete m_cpu;
 }
 
+bool Device::init()
+{
+    return m_apu->init_audio_device();
+}
+
 void Device::reset()
 {
     m_apu->reset();
