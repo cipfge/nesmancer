@@ -33,7 +33,7 @@ private:
     void controller_disconnected(SDL_JoystickID id);
     void process_events();
     void process_keyboard_event(const SDL_KeyboardEvent& event);
-    void process_controller_event(const SDL_Event& event);
+    void process_controller_event(const SDL_ControllerButtonEvent& event);
     void process_window_event(const SDL_Event& event);
     void render();
     void render_menubar();

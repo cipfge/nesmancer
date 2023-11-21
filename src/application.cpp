@@ -128,7 +128,10 @@ void Application::search_controller()
         {
             m_controller = SDL_GameControllerOpen(id);
             if (m_controller)
+            {
+                LOG_DEBUG("%s connected", SDL_GameControllerName(m_controller));
                 return;
+            }
         }
     }
 }
@@ -150,6 +153,7 @@ void Application::controller_disconnected(SDL_JoystickID id)
     if (m_controller &&
         SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_controller)) == id)
     {
+        LOG_DEBUG("%s disconnected", SDL_GameControllerName(m_controller));
         SDL_GameControllerClose(m_controller);
         search_controller();
     }
@@ -185,7 +189,7 @@ void Application::process_events()
 
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
-            process_controller_event(event);
+            process_controller_event(event.cbutton);
             break;
 
         case SDL_WINDOWEVENT:
@@ -242,10 +246,53 @@ void Application::process_keyboard_event(const SDL_KeyboardEvent& event)
     }
 }
 
-void Application::process_controller_event(const SDL_Event& event)
+void Application::process_controller_event(const SDL_ControllerButtonEvent& event)
 {
-    // TODO: Controller events
-    EMU_UNUSED(event);
+    switch (event.button)
+    {
+    case SDL_CONTROLLER_BUTTON_A:
+        m_nes.set_button_state(BUTTON_A,
+                               event.type == SDL_CONTROLLERBUTTONDOWN);
+        break;
+
+    case SDL_CONTROLLER_BUTTON_B:
+        m_nes.set_button_state(BUTTON_B,
+                               event.type == SDL_CONTROLLERBUTTONDOWN);
+        break;
+
+    case SDL_CONTROLLER_BUTTON_START:
+        m_nes.set_button_state(BUTTON_START,
+                               event.type == SDL_CONTROLLERBUTTONDOWN);
+        break;
+
+    case SDL_CONTROLLER_BUTTON_Y:
+        m_nes.set_button_state(BUTTON_SELECT,
+                               event.type == SDL_CONTROLLERBUTTONDOWN);
+        break;
+
+    case SDL_CONTROLLER_BUTTON_DPAD_UP:
+        m_nes.set_button_state(BUTTON_UP,
+                               event.type == SDL_CONTROLLERBUTTONDOWN);
+        break;
+
+    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+        m_nes.set_button_state(BUTTON_DOWN,
+                               event.type == SDL_CONTROLLERBUTTONDOWN);
+        break;
+
+    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+        m_nes.set_button_state(BUTTON_LEFT,
+                               event.type == SDL_CONTROLLERBUTTONDOWN);
+        break;
+
+    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+        m_nes.set_button_state(BUTTON_RIGHT,
+                               event.type == SDL_CONTROLLERBUTTONDOWN);
+        break;
+
+    default:
+        break;
+    }
 }
 
 void Application::process_window_event(const SDL_Event& event)
