@@ -2,8 +2,8 @@
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+#include "logger.hpp"
 #include <nfd.hpp>
-#include <iostream>
 
 Application::~Application()
 {
@@ -63,7 +63,7 @@ bool Application::init()
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
-        std::cerr << "SDL_Init error: " << SDL_GetError() << "\n";
+        LOG_FATAL("SDL_Init error: %s", SDL_GetError());
         return false;
     }
 
@@ -75,7 +75,7 @@ bool Application::init()
                                 SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (!m_window)
     {
-        std::cerr << "SDL_CreateWindow error: " << SDL_GetError() << "\n";
+        LOG_FATAL("SDL_CreateWindow error: %s", SDL_GetError());
         return false;
     }
 
@@ -84,18 +84,18 @@ bool Application::init()
                                     SDL_RENDERER_ACCELERATED);
     if (!m_renderer)
     {
-        std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << "\n";
+        LOG_FATAL("SDL_CreateRenderer error: %s", SDL_GetError());
         return false;
     }
 
     m_frame_texture = SDL_CreateTexture(m_renderer,
-                                 SDL_PIXELFORMAT_RGB888,
-                                 SDL_TEXTUREACCESS_STREAMING,
-                                 EMU_SCREEN_WIDTH,
-                                 EMU_SCREEN_HEIGHT);
+                                        SDL_PIXELFORMAT_RGB888,
+                                        SDL_TEXTUREACCESS_STREAMING,
+                                        EMU_SCREEN_WIDTH,
+                                        EMU_SCREEN_HEIGHT);
     if (!m_frame_texture)
     {
-        std::cerr << "SDL_CreateTexture error: " << SDL_GetError() << "\n";
+        LOG_FATAL("SDL_CreateTexture error: %s", SDL_GetError());
         return false;
     }
 
@@ -117,7 +117,6 @@ bool Application::init()
     SDL_SetWindowSize(m_window, m_window_width, m_window_height);
 
     search_controller();
-
     return true;
 }
 
@@ -140,7 +139,9 @@ void Application::controller_connected(SDL_JoystickID id)
     {
         m_controller = SDL_GameControllerOpen(id);
         if (!m_controller)
-            std::cerr << "SDL_GameControllerOpen error: " << SDL_GetError() << "\n";
+        {
+            LOG_WARNING("SDL_GameControllerOpen error: %s", SDL_GetError());
+        }
     }
 }
 

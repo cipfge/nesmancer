@@ -1,8 +1,7 @@
 #include "cartridge.hpp"
-#include "global.hpp"
+#include "logger.hpp"
 #include <fstream>
 #include <cstring>
-#include <iostream>
 
 Cartridge::~Cartridge()
 {
@@ -34,7 +33,7 @@ bool Cartridge::load_from_file(const std::string& file_path)
     std::ifstream rom_file(file_path, std::ifstream::binary);
     if (!rom_file.is_open())
     {
-        std::cerr << "Failed to open rom file " << file_path << "\n";
+        LOG_ERROR("Failed to open rom file %s", file_path.c_str());
         return false;
     }
 
@@ -44,7 +43,7 @@ bool Cartridge::load_from_file(const std::string& file_path)
 
     if (strncmp((char *)nes_header, "NES\x1A", 4) != 0)
     {
-        std::cerr << "Invalid signature for file " << file_path << "\n";
+        LOG_ERROR("Invalid signature for file %s", file_path.c_str());
         return false;
     }
 
@@ -60,7 +59,7 @@ bool Cartridge::load_from_file(const std::string& file_path)
         break;
 
     default:
-        std::cerr << "Unsupported mapper id " << (unsigned)m_mapper_id << "\n";
+        LOG_ERROR("Unsupported mapper id %u", m_mapper_id);
         return false;
     }
 
@@ -73,7 +72,7 @@ bool Cartridge::load_from_file(const std::string& file_path)
     m_prg_rom.resize(m_prg_rom_size);
     if (!rom_file.read(reinterpret_cast<char*>(m_prg_rom.data()), m_prg_rom.size()))
     {
-        std::cerr << "Error while reading PRG data from " << file_path << "\n";
+        LOG_ERROR("Error while reading PRG data from %s", file_path.c_str());
         return false;
     }
 
@@ -87,7 +86,7 @@ bool Cartridge::load_from_file(const std::string& file_path)
         m_chr_rom.resize(m_chr_rom_size);
         if (!rom_file.read(reinterpret_cast<char*>(m_chr_rom.data()), m_chr_rom.size()))
         {
-            std::cerr << "Error while reading CHR data from " << file_path << "\n";
+            LOG_ERROR("Error while reading CHR data from %s", file_path.c_str());
             return false;
         }
     }

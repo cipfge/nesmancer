@@ -1,6 +1,6 @@
 #include "cpu.hpp"
 #include "memory.hpp"
-#include <iostream>
+#include "logger.hpp"
 
 CPU::Instruction CPU::m_instruction_table[256] = {
     { &CPU::read_immediate,        &CPU::op_brk, "BRK", CPU::AM_IMMEDIATE,          7 }, // 0x00
@@ -1217,8 +1217,6 @@ bool CPU::op_nop()
 
 bool CPU::op_hlt()
 {
-    std::cout << "CPU: halt! opcode " << std::hex << (unsigned)m_opcode << "\n";
-    exit(1);
-
+    LOG_WARNING("CPU: halt! opcode: %02X", m_opcode);
     return false;
 }
