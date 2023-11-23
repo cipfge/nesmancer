@@ -170,8 +170,7 @@ void Application::process_events()
         switch(event.type)
         {
         case SDL_QUIT:
-            // TODO: Confirm application exit
-            m_running = false;
+            m_exit = true;
             break;
 
         case SDL_KEYDOWN:
@@ -312,7 +311,16 @@ void Application::render()
     ImGui_ImplSDL2_NewFrame();
 
     ImGui::NewFrame();
+
     render_menubar();
+    if (m_exit)
+        ImGui::OpenPopup("Exit");
+    render_exit_dialog();
+
+    if (m_show_about)
+        ImGui::OpenPopup("About");
+    render_about_dialog();
+
     ImGui::EndFrame();
 
     SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.screen(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
@@ -351,12 +359,55 @@ void Application::render_menubar()
         if (ImGui::BeginMenu("Help"))
         {
             if (ImGui::MenuItem("About " EMU_VERSION_NAME))
-            {}
+                m_show_about = true;
 
             ImGui::EndMenu();
         }
 
         ImGui::EndMainMenuBar();
+    }
+}
+
+void Application::render_exit_dialog()
+{
+    if (ImGui::BeginPopupModal("Exit", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        m_exit = false;
+
+        ImGui::Text("Are you sure you want to exit?");
+        ImGui::Separator();
+
+        if (ImGui::Button("Yes", ImVec2(120, 0)))
+        {
+            m_running = false;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+
+        if (ImGui::Button("No", ImVec2(120, 0)))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
+}
+
+void Application::render_about_dialog()
+{
+    if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        m_show_about = false;
+
+        ImGui::Text(EMU_VERSION_NAME);
+        ImGui::Text("Version: %s", EMU_VERSION_NUMBER);
+        ImGui::Separator();
+
+        ImGui::SetItemDefaultFocus();
+        if (ImGui::Button("OK", ImVec2(120, 0)))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
     }
 }
 

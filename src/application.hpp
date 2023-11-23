@@ -26,6 +26,8 @@ private:
     int m_window_width = EMU_SCREEN_WIDTH * 2;
     int m_window_height = EMU_SCREEN_HEIGHT * 2;
     bool m_running = false;
+    bool m_exit = false;
+    bool m_show_about = false;
 
     bool init();
     void search_controller();
@@ -37,6 +39,8 @@ private:
     void process_window_event(const SDL_Event& event);
     void render();
     void render_menubar();
+    void render_exit_dialog();
+    void render_about_dialog();
 
     void open_nes_file();
     void set_dark_theme();
