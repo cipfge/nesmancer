@@ -845,7 +845,7 @@ bool CPU::op_brk()
     stack_push(address.byte_high);
     stack_push(address.byte_low);
     stack_push(m_registers.P | STATUS_U | STATUS_B);
-    m_registers.PC = read(0xFFFE) | (read(0xFFFF) << 8);
+    m_registers.PC = read_word(0xFFFE);
     status_set_flag(STATUS_I, true);
 
     return false;
