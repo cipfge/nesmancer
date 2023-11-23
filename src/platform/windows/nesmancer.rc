@@ -33,7 +33,7 @@ BEGIN
             VALUE "FileVersion",      VER_FILEVERSION_STR
             VALUE "InternalName",     EMU_VERSION_NAME
             VALUE "LegalCopyright",   ""
-            VALUE "OriginalFilename", "chip8.exe"
+            VALUE "OriginalFilename", "nesmancer.exe"
             VALUE "ProductName",      EMU_VERSION_NAME
             VALUE "ProductVersion",   VER_PRODUCTVERSION_STR
         END
