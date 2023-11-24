@@ -1,5 +1,6 @@
 # Directories
 .kdev4/
+.vs/
 .vscode/
 build/
 

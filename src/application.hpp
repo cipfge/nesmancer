@@ -27,6 +27,7 @@ private:
     int m_window_height = EMU_SCREEN_HEIGHT * 2;
     bool m_running = false;
     bool m_exit = false;
+    bool m_paused = false;
     bool m_show_about = false;
 
     bool init();

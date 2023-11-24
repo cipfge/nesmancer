@@ -41,7 +41,8 @@ int Application::run(int argc, char* argv[])
         frame_start = SDL_GetTicks();
 
         process_events();
-        m_nes.run();
+        if (!m_paused)
+            m_nes.run();
         render();
 
         frame_time = SDL_GetTicks() - frame_start;
@@ -351,7 +352,7 @@ void Application::render_menubar()
 
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Alt+F4"))
-                m_running = false;
+                m_exit = true;
 
             ImGui::EndMenu();
         }
@@ -372,6 +373,7 @@ void Application::render_exit_dialog()
 {
     if (ImGui::BeginPopupModal("Exit", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
+        m_paused = true;
         m_exit = false;
 
         ImGui::Text("Are you sure you want to exit?");
@@ -387,7 +389,10 @@ void Application::render_exit_dialog()
         ImGui::SameLine();
 
         if (ImGui::Button("No", ImVec2(120, 0)))
+        {
+            m_paused = false;
             ImGui::CloseCurrentPopup();
+        }
 
         ImGui::EndPopup();
     }
@@ -397,6 +402,7 @@ void Application::render_about_dialog()
 {
     if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
+        m_paused = true;
         m_show_about = false;
 
         ImGui::Text(EMU_VERSION_NAME);
@@ -405,7 +411,10 @@ void Application::render_about_dialog()
 
         ImGui::SetItemDefaultFocus();
         if (ImGui::Button("OK", ImVec2(120, 0)))
+        {
+            m_paused = false;
             ImGui::CloseCurrentPopup();
+        }
 
         ImGui::EndPopup();
     }

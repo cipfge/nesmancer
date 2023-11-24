@@ -15,7 +15,7 @@ inline void log_write_error(const std::string& message)
 {
 #ifndef EMU_DEBUG_ENABLED
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, EMU_VERSION_NAME, message.c_str(), nullptr);
-#elif EMU_PLATFORM_WINDOWS
+#elif defined(EMU_PLATFORM_WINDOWS)
     OutputDebugStringA(message.c_str());
 #else
     std::cerr << message;

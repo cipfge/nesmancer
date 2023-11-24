@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "mapper.hpp"
+#include <string>
 #include <vector>
 #include <memory>
 
