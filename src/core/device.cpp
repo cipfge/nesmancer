@@ -76,6 +76,13 @@ void Device::set_button_state(Button btn, bool pressed)
     m_controller->set_state(0, state);
 }
 
+bool Device::is_running() const
+{
+    if (m_cartridge)
+        return m_cartridge->is_loaded();
+    return false;
+}
+
 uint32_t* Device::screen()
 {
     return m_ppu->frame_buffer();

@@ -112,6 +112,7 @@ bool Application::init()
     ImGui_ImplSDLRenderer2_Init(m_renderer);
 
     set_dark_theme();
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
     // Add menubar height
     m_window_height = m_window_height + (int)ImGui::GetFrameHeight();
@@ -324,16 +325,19 @@ void Application::render()
 
     ImGui::EndFrame();
 
-    SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.screen(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+    if (m_nes.is_running())
+    {
+        SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.screen(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
 
-    SDL_Rect window_rect = {
-        0,
-        (int)ImGui::GetFrameHeight(),
-        m_window_width,
-        m_window_height - (int)ImGui::GetFrameHeight()
-    };
+        SDL_Rect window_rect = {
+            0,
+            (int)ImGui::GetFrameHeight(),
+            m_window_width,
+            m_window_height - (int)ImGui::GetFrameHeight()
+        };
 
-    SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, &window_rect);
+        SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, &window_rect);
+    }
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());

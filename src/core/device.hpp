@@ -33,6 +33,7 @@ public:
     void run();
     bool load_rom_file(const std::string& file_path);
     void set_button_state(Button btn, bool pressed);
+    bool is_running() const;
     uint32_t* screen();
 
 private:

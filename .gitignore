@@ -3,6 +3,7 @@
 .vs/
 .vscode/
 build/
+thirdparty/SDL2*/
 
 # Files
 *.kdev4
