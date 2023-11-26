@@ -34,6 +34,8 @@ public:
     bool load_rom_file(const std::string& file_path);
     void set_button_state(Button btn, bool pressed);
     bool is_running() const;
+    bool is_paused() const { return m_paused; }
+    void toggle_pause();
     uint32_t* screen();
 
 private:
@@ -43,4 +45,5 @@ private:
     Cartridge* m_cartridge = nullptr;
     Controller* m_controller = nullptr;
     Memory* m_memory = nullptr;
+    bool m_paused = false;
 };

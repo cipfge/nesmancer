@@ -1,4 +1,5 @@
 #include "cartridge.hpp"
+#include "nrom.hpp"
 #include "logger.hpp"
 #include <fstream>
 #include <cstring>
@@ -37,7 +38,7 @@ bool Cartridge::load_from_file(const std::string& file_path)
         return false;
     }
 
-    uint8_t nes_header[16];
+    uint8_t nes_header[16] = {0};
     if (!rom_file.read(reinterpret_cast<char*>(&nes_header), sizeof(nes_header)))
         return false;
 
@@ -53,9 +54,9 @@ bool Cartridge::load_from_file(const std::string& file_path)
     switch (m_mapper_id)
     {
     case 0:
-        m_mapper = std::make_shared<Mapper0>(m_prg_banks,
-                                             m_chr_banks,
-                                             m_mirroring_mode);
+        m_mapper = std::make_shared<NROM>(m_prg_banks,
+                                          m_chr_banks,
+                                          m_mirroring_mode);
         break;
 
     default:

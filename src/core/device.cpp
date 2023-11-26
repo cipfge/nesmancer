@@ -43,6 +43,9 @@ void Device::run()
     if (!m_cartridge->is_loaded())
         return;
 
+    if (m_paused)
+        return;
+
     m_ppu->frame_start();
     while (!m_ppu->frame_rendered())
     {
@@ -81,6 +84,12 @@ bool Device::is_running() const
     if (m_cartridge)
         return m_cartridge->is_loaded();
     return false;
+}
+
+void Device::toggle_pause()
+{
+    if (m_cartridge && m_cartridge->is_loaded())
+        m_paused = !m_paused;
 }
 
 uint32_t* Device::screen()

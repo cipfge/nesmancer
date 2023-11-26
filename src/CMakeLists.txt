@@ -2,6 +2,10 @@ find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
 find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
 
 set(EMU_SOURCE_FILES
+    "core/mappers/mapper.cpp"
+    "core/mappers/mapper.hpp"
+    "core/mappers/nrom.cpp"
+    "core/mappers/nrom.hpp"
     "core/apu.cpp"
     "core/apu.hpp"
     "core/cartridge.cpp"
@@ -15,8 +19,6 @@ set(EMU_SOURCE_FILES
     "core/global.hpp"
     "core/logger.hpp"
     "core/logger.cpp"
-    "core/mapper.cpp"
-    "core/mapper.hpp"
     "core/memory.cpp"
     "core/memory.hpp"
     "core/ppu.cpp"
@@ -68,6 +70,7 @@ endif()
 target_include_directories(nesmancer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/core"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/mappers"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui"
     "${CMAKE_CURRENT_SOURCE_DIR}/platform")
 

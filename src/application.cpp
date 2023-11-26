@@ -41,7 +41,7 @@ int Application::run(int argc, char* argv[])
         frame_start = SDL_GetTicks();
 
         process_events();
-        if (!m_paused)
+        if (!m_show_popup)
             m_nes.run();
         render();
 
@@ -208,6 +208,23 @@ void Application::process_keyboard_event(const SDL_KeyboardEvent& event)
     if (event.repeat)
         return;
 
+    if (event.type == SDL_KEYDOWN)
+    {
+        if (event.keysym.sym == SDLK_o &&
+            event.keysym.mod & KMOD_CTRL)
+        {
+            open_nes_file();
+            return;
+        }
+
+        if (event.keysym.sym == SDLK_p &&
+            event.keysym.mod & KMOD_CTRL)
+        {
+            m_nes.toggle_pause();
+            return;
+        }
+    }
+
     switch (event.keysym.scancode)
     {
     case SDL_SCANCODE_C:
@@ -361,6 +378,15 @@ void Application::render_menubar()
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("System"))
+        {
+            const std::string menu_title = m_nes.is_paused() ? "Resume" : "Pause";
+            if (ImGui::MenuItem(menu_title.c_str(), "Ctr+P"))
+                m_nes.toggle_pause();
+
+            ImGui::EndMenu();
+        }
+
         if (ImGui::BeginMenu("Help"))
         {
             if (ImGui::MenuItem("About " EMU_VERSION_NAME))
@@ -377,7 +403,7 @@ void Application::render_exit_dialog()
 {
     if (ImGui::BeginPopupModal("Exit", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        m_paused = true;
+        m_show_popup = true;
         m_exit = false;
 
         ImGui::Text("Are you sure you want to exit?");
@@ -394,7 +420,7 @@ void Application::render_exit_dialog()
 
         if (ImGui::Button("No", ImVec2(120, 0)))
         {
-            m_paused = false;
+            m_show_popup = false;
             ImGui::CloseCurrentPopup();
         }
 
@@ -406,7 +432,7 @@ void Application::render_about_dialog()
 {
     if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        m_paused = true;
+        m_show_popup = true;
         m_show_about = false;
 
         ImGui::Text(EMU_VERSION_NAME);
@@ -416,7 +442,7 @@ void Application::render_about_dialog()
         ImGui::SetItemDefaultFocus();
         if (ImGui::Button("OK", ImVec2(120, 0)))
         {
-            m_paused = false;
+            m_show_popup = false;
             ImGui::CloseCurrentPopup();
         }
 

@@ -1,40 +1,29 @@
-#include "mapper.hpp"
+#include "nrom.hpp"
 #include "global.hpp"
 
-Mapper::Mapper(uint16_t id, uint8_t prg_banks,
-               uint8_t chr_banks, MirroringMode mirroring_mode)
-    : m_id(id)
-    , m_prg_banks(prg_banks)
-    , m_chr_banks(chr_banks)
-    , m_mirroring_mode(mirroring_mode)
-{
-}
-
-Mapper::~Mapper()
-{
-}
-
-Mapper0::Mapper0(uint8_t prg_banks, uint8_t chr_banks, MirroringMode mirroring_mode)
+NROM::NROM(uint8_t prg_banks,
+           uint8_t chr_banks,
+           MirroringMode mirroring_mode)
     : Mapper(0, prg_banks, chr_banks, mirroring_mode)
 {
 }
 
-Mapper0::~Mapper0()
+NROM::~NROM()
 {
 }
 
-uint32_t Mapper0::read(uint16_t address)
+uint32_t NROM::read(uint16_t address)
 {
     return map_address(address);
 }
 
-uint32_t Mapper0::write(uint16_t address, uint8_t data)
+uint32_t NROM::write(uint16_t address, uint8_t data)
 {
     EMU_UNUSED(data);
     return map_address(address);
 }
 
-uint32_t Mapper0::map_address(uint16_t address)
+uint32_t NROM::map_address(uint16_t address)
 {
     if (address < 0x2000)
         return address;
