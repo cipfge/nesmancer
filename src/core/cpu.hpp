@@ -46,6 +46,10 @@ public:
         AM_INDIRECT_INDEXED
     };
 
+    static constexpr uint16_t NMI_Vector = 0xFFFA;
+    static constexpr uint16_t RST_Vector = 0xFFFC;
+    static constexpr uint16_t IRQ_Vector = 0xFFFE;
+
 public:
     CPU(Memory* memory);
     ~CPU();

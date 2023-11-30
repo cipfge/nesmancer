@@ -24,6 +24,12 @@ public:
     virtual void irq_clear() = 0;
     virtual void scanline() = 0;
 
+    static constexpr uint32_t SIZE_1KB = 1024;
+    static constexpr uint32_t SIZE_4KB = 4096;
+    static constexpr uint32_t SIZE_8KB = 8192;
+    static constexpr uint32_t SIZE_16KB = 16384;
+    static constexpr uint32_t SIZE_32KB = 32768;
+
 protected:
     uint16_t m_id = 0;
     uint8_t m_prg_banks = 0;

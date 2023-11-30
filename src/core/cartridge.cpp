@@ -1,5 +1,6 @@
 #include "cartridge.hpp"
 #include "nrom.hpp"
+#include "mmc1.hpp"
 #include "logger.hpp"
 #include <fstream>
 #include <cstring>
@@ -55,6 +56,12 @@ bool Cartridge::load_from_file(const std::string& file_path)
     {
     case 0:
         m_mapper = std::make_shared<NROM>(m_prg_banks,
+                                          m_chr_banks,
+                                          m_mirroring_mode);
+        break;
+
+    case 1:
+        m_mapper = std::make_shared<MMC1>(m_prg_banks,
                                           m_chr_banks,
                                           m_mirroring_mode);
         break;
@@ -161,9 +168,9 @@ void Cartridge::parse_nes_header(const uint8_t* header)
     m_mapper_id = (header[6] >> 4) | (header[7] & 0xF0);
     m_prg_banks = header[4];
     m_chr_banks = header[5];
-    m_prg_ram_size = header[8] > 0 ? header[8] * 8192 : 8192;
-    m_prg_rom_size = static_cast<uint32_t>(header[4] << 14);
-    m_chr_rom_size = static_cast<uint32_t>(header[5] << 13);
+    m_prg_ram_size = (header[8] > 0 ? header[8] * Mapper::SIZE_8KB : Mapper::SIZE_8KB);
+    m_prg_rom_size = m_prg_banks * Mapper::SIZE_16KB;
+    m_chr_rom_size = m_chr_banks * Mapper::SIZE_8KB;
     m_mirroring_mode = header[6] & 0x1 ? MIRROR_VERTICAL: MIRROR_HORIZONTAL;
     m_has_trainer = header[6] & 0x4;
 }

@@ -277,7 +277,7 @@ void CPU::reset()
     m_registers.Y = 0;
     m_registers.P = STATUS_I | STATUS_U;
     m_registers.SP = 0xFD;
-    m_registers.PC = read_word(0xFFFC);
+    m_registers.PC = read_word(RST_Vector);
     m_opcode = 0;
     m_address = 0;
     m_cycles = 7;
@@ -293,7 +293,7 @@ void CPU::irq()
     stack_push(address.byte_high);
     stack_push(address.byte_low);
     stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
-    m_registers.PC = read_word(0xFFFE);
+    m_registers.PC = read_word(IRQ_Vector);
     status_set_flag(STATUS_I, true);
     m_cycles = 7;
 }
@@ -305,7 +305,7 @@ void CPU::nmi()
     stack_push(address.byte_high);
     stack_push(address.byte_low);
     stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
-    m_registers.PC = read_word(0xFFFA);
+    m_registers.PC = read_word(NMI_Vector);
     status_set_flag(STATUS_I, true);
     m_cycles = 7;
 }
@@ -845,7 +845,7 @@ bool CPU::op_brk()
     stack_push(address.byte_high);
     stack_push(address.byte_low);
     stack_push(m_registers.P | STATUS_U | STATUS_B);
-    m_registers.PC = read_word(0xFFFE);
+    m_registers.PC = read_word(IRQ_Vector);
     status_set_flag(STATUS_I, true);
 
     return false;

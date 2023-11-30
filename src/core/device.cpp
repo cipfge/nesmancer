@@ -5,6 +5,7 @@
 #include "cartridge.hpp"
 #include "controller.hpp"
 #include "memory.hpp"
+#include "logger.hpp"
 
 Device::Device()
 {

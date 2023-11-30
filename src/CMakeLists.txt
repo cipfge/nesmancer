@@ -4,6 +4,8 @@ find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
 set(EMU_SOURCE_FILES
     "core/mappers/mapper.cpp"
     "core/mappers/mapper.hpp"
+    "core/mappers/mmc1.cpp"
+    "core/mappers/mmc1.hpp"
     "core/mappers/nrom.cpp"
     "core/mappers/nrom.hpp"
     "core/apu.cpp"
