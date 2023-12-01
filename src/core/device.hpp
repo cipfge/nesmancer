@@ -30,6 +30,7 @@ public:
 
     bool init();
     void reset();
+    void power_off();
     void run();
     bool load_rom_file(const std::string& file_path);
     void set_button_state(Button btn, bool pressed);

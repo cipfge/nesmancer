@@ -136,6 +136,10 @@ NFD_API const char* NFD_GetError(void);
 /* clear the error */
 NFD_API void NFD_ClearError(void);
 
+#ifdef _WIN32
+NFD_API void NFD_SetWindowOwner(void* owner);
+#endif // _WIN32
+
 /* path set operations */
 #ifdef _WIN32
 typedef unsigned long nfdpathsetsize_t;

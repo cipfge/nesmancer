@@ -34,6 +34,12 @@ inline void FreePath(nfdnchar_t* outPath) noexcept {
     ::NFD_FreePathN(outPath);
 }
 
+#ifdef _WIN32
+inline void SetWindowOwner(void* owner) {
+    ::NFD_SetWindowOwner(owner);
+}
+#endif // _WIN32
+
 inline nfdresult_t OpenDialog(nfdnchar_t*& outPath,
                               const nfdnfilteritem_t* filterList = nullptr,
                               nfdfiltersize_t filterCount = 0,

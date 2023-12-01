@@ -35,8 +35,15 @@ namespace {
 /* current error */
 const char* g_errorstr = nullptr;
 
+// Dialog window owner
+HWND g_winowner = nullptr;
+
 void NFDi_SetError(const char* msg) {
     g_errorstr = msg;
+}
+
+void NFDi_SetWindowOwner(HWND owner) {
+    g_winowner = owner;
 }
 
 template <typename T = void>
@@ -294,6 +301,10 @@ void NFD_ClearError(void) {
     NFDi_SetError(nullptr);
 }
 
+void NFD_SetWindowOwner(void* owner) {
+    NFDi_SetWindowOwner((HWND)owner);
+}
+
 /* public */
 
 namespace {
@@ -372,7 +383,7 @@ nfdresult_t NFD_OpenDialogN(nfdnchar_t** outPath,
     }
 
     // Show the dialog.
-    result = fileOpenDialog->Show(nullptr);
+    result = fileOpenDialog->Show(g_winowner);
     if (SUCCEEDED(result)) {
         // Get the file name
         ::IShellItem* psiResult;
@@ -443,7 +454,7 @@ nfdresult_t NFD_OpenDialogMultipleN(const nfdpathset_t** outPaths,
     }
 
     // Show the dialog.
-    result = fileOpenDialog->Show(nullptr);
+    result = fileOpenDialog->Show(g_winowner);
     if (SUCCEEDED(result)) {
         ::IShellItemArray* shellItems;
         result = fileOpenDialog->GetResults(&shellItems);
@@ -512,7 +523,7 @@ nfdresult_t NFD_SaveDialogN(nfdnchar_t** outPath,
     }
 
     // Show the dialog.
-    result = fileSaveDialog->Show(nullptr);
+    result = fileSaveDialog->Show(g_winowner);
     if (SUCCEEDED(result)) {
         // Get the file name
         ::IShellItem* psiResult;
@@ -567,7 +578,7 @@ nfdresult_t NFD_PickFolderN(nfdnchar_t** outPath, const nfdnchar_t* defaultPath)
     }
 
     // Show the dialog to the user
-    const HRESULT result = fileOpenDialog->Show(nullptr);
+    const HRESULT result = fileOpenDialog->Show(g_winowner);
     if (result == HRESULT_FROM_WIN32(ERROR_CANCELLED)) {
         return NFD_CANCEL;
     } else if (!SUCCEEDED(result)) {

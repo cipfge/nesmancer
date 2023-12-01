@@ -30,7 +30,7 @@ private:
     std::vector<uint8_t> m_prg_ram;
     std::vector<uint8_t> m_prg_rom;
     std::vector<uint8_t> m_chr_rom;
-    uint8_t m_vram[2048];
+    uint8_t m_vram[2048] = { 0 };
 
     uint8_t m_mapper_id = 0;
     uint8_t m_prg_banks = 0;

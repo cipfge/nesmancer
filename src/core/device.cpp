@@ -34,9 +34,21 @@ bool Device::init()
 
 void Device::reset()
 {
+    if (!m_cartridge ||
+        !m_cartridge->is_loaded())
+        return;
+
     m_apu->reset();
     m_ppu->reset();
     m_cpu->reset();
+}
+
+void Device::power_off()
+{
+    if (!m_cartridge)
+        return;
+
+    m_cartridge->reset();
 }
 
 void Device::run()

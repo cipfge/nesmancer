@@ -1,9 +1,14 @@
 #include "application.hpp"
+#include "platform.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
 #include "logger.hpp"
 #include <nfd.hpp>
+
+#ifdef EMU_PLATFORM_WINDOWS
+#include <SDL_syswm.h>
+#endif // Windows
 
 Application::~Application()
 {
@@ -208,6 +213,7 @@ void Application::process_keyboard_event(const SDL_KeyboardEvent& event)
     if (event.repeat)
         return;
 
+    // Hotkeys
     if (event.type == SDL_KEYDOWN)
     {
         if (event.keysym.sym == SDLK_o &&
@@ -217,14 +223,21 @@ void Application::process_keyboard_event(const SDL_KeyboardEvent& event)
             return;
         }
 
-        if (event.keysym.sym == SDLK_p &&
-            event.keysym.mod & KMOD_CTRL)
+        if (event.keysym.sym == SDLK_ESCAPE)
         {
             m_nes.toggle_pause();
             return;
         }
+
+        if (event.keysym.sym == SDLK_r &&
+            event.keysym.mod & KMOD_CTRL)
+        {
+            m_nes.reset();
+            return;
+        }
     }
 
+    // Gamepad keyboard hooks
     switch (event.keysym.scancode)
     {
     case SDL_SCANCODE_C:
@@ -381,8 +394,15 @@ void Application::render_menubar()
         if (ImGui::BeginMenu("System"))
         {
             const std::string menu_title = m_nes.is_paused() ? "Resume" : "Pause";
-            if (ImGui::MenuItem(menu_title.c_str(), "Ctr+P"))
+            if (ImGui::MenuItem(menu_title.c_str(), "Esc"))
                 m_nes.toggle_pause();
+
+            if (ImGui::MenuItem("Reset", "Ctr+R"))
+                m_nes.reset();
+
+            ImGui::Separator();
+            if (ImGui::MenuItem("Power Off..."))
+                m_nes.power_off();
 
             ImGui::EndMenu();
         }
@@ -458,6 +478,14 @@ void Application::open_nes_file()
     nfdfilteritem_t filter[1] = {
         {"NES File", "nes"}
     };
+
+#ifdef EMU_PLATFORM_WINDOWS
+    // Set window owner
+    SDL_SysWMinfo win_info;
+    SDL_VERSION(&win_info.version);
+    SDL_GetWindowWMInfo(m_window, &win_info);
+    NFD::SetWindowOwner(win_info.info.win.window);
+#endif // Windows
 
     nfdresult_t result = NFD::OpenDialog(nes_file, filter, 1);
     if (result == NFD_OKAY)
