@@ -5,6 +5,7 @@
 #include "cartridge.hpp"
 #include "controller.hpp"
 #include "memory.hpp"
+#include "input_manager.hpp"
 #include "logger.hpp"
 
 Device::Device()
@@ -30,6 +31,11 @@ Device::~Device()
 bool Device::init()
 {
     return m_apu->init_audio_device();
+}
+
+void Device::set_input_manager(InputManager* input_manager)
+{
+    m_controller->set_input_manager(input_manager);
 }
 
 void Device::reset()
@@ -84,12 +90,6 @@ bool Device::load_rom_file(const std::string& file_path)
 
     reset();
     return true;
-}
-
-void Device::set_button_state(Button btn, bool pressed)
-{
-    uint8_t state = (m_controller->state(0) & ~btn) | (pressed ? btn : 0);
-    m_controller->set_state(0, state);
 }
 
 bool Device::is_running() const

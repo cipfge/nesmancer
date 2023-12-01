@@ -28,6 +28,8 @@ set(EMU_SOURCE_FILES
     "platform/platform.hpp"
     "application.cpp"
     "application.hpp"
+    "input_manager.cpp"
+    "input_manager.hpp"
     "main.cpp")
 
 set(IMGUI_SOURCE_FILES

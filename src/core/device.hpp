@@ -9,18 +9,7 @@ class PPU;
 class Cartridge;
 class Controller;
 class Memory;
-
-enum Button
-{
-    BUTTON_RIGHT = (1 << 0),
-    BUTTON_LEFT = (1 << 1),
-    BUTTON_DOWN = (1 << 2),
-    BUTTON_UP = (1 << 3),
-    BUTTON_START = (1 << 4),
-    BUTTON_SELECT = (1 << 5),
-    BUTTON_B = (1 << 6),
-    BUTTON_A = (1 << 7),
-};
+class InputManager;
 
 class Device
 {
@@ -29,11 +18,11 @@ public:
     ~Device();
 
     bool init();
+    void set_input_manager(InputManager* input_manager);
     void reset();
     void power_off();
     void run();
     bool load_rom_file(const std::string& file_path);
-    void set_button_state(Button btn, bool pressed);
     bool is_running() const;
     bool is_paused() const { return m_paused; }
     void toggle_pause();

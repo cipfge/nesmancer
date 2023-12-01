@@ -10,13 +10,17 @@
 #include <SDL_syswm.h>
 #endif // Windows
 
+Application::Application()
+{
+    m_nes.set_input_manager(&m_input_manager);
+}
+
 Application::~Application()
 {
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 
-    SDL_GameControllerClose(m_controller);
     SDL_DestroyTexture(m_frame_texture);
     SDL_DestroyRenderer(m_renderer);
     SDL_DestroyWindow(m_window);
@@ -123,47 +127,9 @@ bool Application::init()
     m_window_height = m_window_height + (int)ImGui::GetFrameHeight();
     SDL_SetWindowSize(m_window, m_window_width, m_window_height);
 
-    search_controller();
+    m_input_manager.search_controllers();
+
     return true;
-}
-
-void Application::search_controller()
-{
-    for (int id = 0; id < SDL_NumJoysticks(); id++)
-    {
-        if (SDL_IsGameController(id))
-        {
-            m_controller = SDL_GameControllerOpen(id);
-            if (m_controller)
-            {
-                LOG_DEBUG("%s connected", SDL_GameControllerName(m_controller));
-                return;
-            }
-        }
-    }
-}
-
-void Application::controller_connected(SDL_JoystickID id)
-{
-    if (!m_controller)
-    {
-        m_controller = SDL_GameControllerOpen(id);
-        if (!m_controller)
-        {
-            LOG_WARNING("SDL_GameControllerOpen error: %s", SDL_GetError());
-        }
-    }
-}
-
-void Application::controller_disconnected(SDL_JoystickID id)
-{
-    if (m_controller &&
-        SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_controller)) == id)
-    {
-        LOG_DEBUG("%s disconnected", SDL_GameControllerName(m_controller));
-        SDL_GameControllerClose(m_controller);
-        search_controller();
-    }
 }
 
 void Application::process_events()
@@ -181,152 +147,47 @@ void Application::process_events()
             break;
 
         case SDL_KEYDOWN:
-        case SDL_KEYUP:
-            process_keyboard_event(event.key);
-            break;
-
-        case SDL_CONTROLLERDEVICEADDED:
-            controller_connected(event.cdevice.which);
-            break;
-
-        case SDL_CONTROLLERDEVICEREMOVED:
-            controller_disconnected(event.cdevice.which);
-            break;
-
-        case SDL_CONTROLLERBUTTONDOWN:
-        case SDL_CONTROLLERBUTTONUP:
-            process_controller_event(event.cbutton);
+            on_keyboard_event(event.key);
             break;
 
         case SDL_WINDOWEVENT:
-            process_window_event(event);
+            on_window_event(event);
             break;
 
         default:
+            m_input_manager.process_input_event(event);
             break;
         }
     }
 }
 
-void Application::process_keyboard_event(const SDL_KeyboardEvent& event)
+void Application::on_keyboard_event(const SDL_KeyboardEvent& event)
 {
     if (event.repeat)
         return;
 
-    // Hotkeys
-    if (event.type == SDL_KEYDOWN)
+    if (event.keysym.sym == SDLK_o &&
+        event.keysym.mod & KMOD_CTRL)
     {
-        if (event.keysym.sym == SDLK_o &&
-            event.keysym.mod & KMOD_CTRL)
-        {
-            open_nes_file();
-            return;
-        }
-
-        if (event.keysym.sym == SDLK_ESCAPE)
-        {
-            m_nes.toggle_pause();
-            return;
-        }
-
-        if (event.keysym.sym == SDLK_r &&
-            event.keysym.mod & KMOD_CTRL)
-        {
-            m_nes.reset();
-            return;
-        }
+        open_nes_file();
+        return;
     }
 
-    // Gamepad keyboard hooks
-    switch (event.keysym.scancode)
+    if (event.keysym.sym == SDLK_ESCAPE)
     {
-    case SDL_SCANCODE_C:
-        m_nes.set_button_state(BUTTON_A, event.type == SDL_KEYDOWN);
-        break;
+        m_nes.toggle_pause();
+        return;
+    }
 
-    case SDL_SCANCODE_X:
-        m_nes.set_button_state(BUTTON_B, event.type == SDL_KEYDOWN);
-        break;
-
-    case SDL_SCANCODE_S:
-        m_nes.set_button_state(BUTTON_SELECT, event.type == SDL_KEYDOWN);
-        break;
-
-    case SDL_SCANCODE_D:
-        m_nes.set_button_state(BUTTON_START, event.type == SDL_KEYDOWN);
-        break;
-
-    case SDL_SCANCODE_UP:
-        m_nes.set_button_state(BUTTON_UP, event.type == SDL_KEYDOWN);
-        break;
-
-    case SDL_SCANCODE_DOWN:
-        m_nes.set_button_state(BUTTON_DOWN, event.type == SDL_KEYDOWN);
-        break;
-
-    case SDL_SCANCODE_LEFT:
-        m_nes.set_button_state(BUTTON_LEFT, event.type == SDL_KEYDOWN);
-        break;
-
-    case SDL_SCANCODE_RIGHT:
-        m_nes.set_button_state(BUTTON_RIGHT, event.type == SDL_KEYDOWN);
-        break;
-
-    default:
-        break;
+    if (event.keysym.sym == SDLK_r &&
+        event.keysym.mod & KMOD_CTRL)
+    {
+        m_nes.reset();
+        return;
     }
 }
 
-void Application::process_controller_event(const SDL_ControllerButtonEvent& event)
-{
-    switch (event.button)
-    {
-    case SDL_CONTROLLER_BUTTON_A:
-        m_nes.set_button_state(BUTTON_A,
-                               event.type == SDL_CONTROLLERBUTTONDOWN);
-        break;
-
-    case SDL_CONTROLLER_BUTTON_B:
-        m_nes.set_button_state(BUTTON_B,
-                               event.type == SDL_CONTROLLERBUTTONDOWN);
-        break;
-
-    case SDL_CONTROLLER_BUTTON_START:
-        m_nes.set_button_state(BUTTON_START,
-                               event.type == SDL_CONTROLLERBUTTONDOWN);
-        break;
-
-    case SDL_CONTROLLER_BUTTON_Y:
-        m_nes.set_button_state(BUTTON_SELECT,
-                               event.type == SDL_CONTROLLERBUTTONDOWN);
-        break;
-
-    case SDL_CONTROLLER_BUTTON_DPAD_UP:
-        m_nes.set_button_state(BUTTON_UP,
-                               event.type == SDL_CONTROLLERBUTTONDOWN);
-        break;
-
-    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-        m_nes.set_button_state(BUTTON_DOWN,
-                               event.type == SDL_CONTROLLERBUTTONDOWN);
-        break;
-
-    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-        m_nes.set_button_state(BUTTON_LEFT,
-                               event.type == SDL_CONTROLLERBUTTONDOWN);
-        break;
-
-    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-        m_nes.set_button_state(BUTTON_RIGHT,
-                               event.type == SDL_CONTROLLERBUTTONDOWN);
-        break;
-
-    default:
-        break;
-    }
-}
-
-void Application::process_window_event(const SDL_Event& event)
+void Application::on_window_event(const SDL_Event& event)
 {
     if (event.window.event == SDL_WINDOWEVENT_RESIZED)
     {
@@ -481,7 +342,7 @@ void Application::open_nes_file()
 
 #ifdef EMU_PLATFORM_WINDOWS
     // Set window owner
-    SDL_SysWMinfo win_info;
+    SDL_SysWMinfo win_info {};
     SDL_VERSION(&win_info.version);
     SDL_GetWindowWMInfo(m_window, &win_info);
     NFD::SetWindowOwner(win_info.info.win.window);

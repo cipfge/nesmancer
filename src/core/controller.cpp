@@ -1,22 +1,42 @@
 #include "controller.hpp"
+#include "input_manager.hpp"
+#include "logger.hpp"
 
-Controller::Controller()
+void Controller::set_input_manager(InputManager* input_manager)
 {
-}
-
-Controller::~Controller()
-{
+    m_input_manager = input_manager;
 }
 
 uint8_t Controller::read(uint8_t index)
 {
-    uint8_t value = (m_registers[index] >> 7) & 1;
-    m_registers[index] <<= 1;
+    if (index >= EMU_CONTROLLER_COUNT)
+    {
+        LOG_WARNING("Invalid controller index %u", index);
+        return 0;
+    }
+
+    if (m_strobe)
+        return 0x40 | (m_input_manager->get_buttons_state(index) & 0x1);
+
+    uint8_t value = 0x40 | (m_registers[index] & 0x1);
+    m_registers[index] = 0x80 | (m_registers[index] >> 1);
+
     return value;
 }
 
 void Controller::write(uint8_t index, uint8_t data)
 {
-    if (data == 0)
-        m_registers[index] = m_state[index];
+    if (index >= EMU_CONTROLLER_COUNT)
+    {
+        LOG_WARNING("Invalid controller index %u", index);
+        return;
+    }
+
+    if (m_strobe && !data)
+    {
+        for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
+            m_registers[i] = m_input_manager->get_buttons_state(i);
+    }
+
+    m_strobe = (data != 0);
 }
