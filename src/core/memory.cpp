@@ -13,6 +13,7 @@ Memory::Memory(APU* apu,
     , m_cartrige(cartridge)
     , m_controller(controller)
 {
+    memset(m_internal_ram, 0, sizeof(m_internal_ram));
 }
 
 Memory::~Memory()
@@ -59,11 +60,7 @@ void Memory::write(uint16_t address, uint8_t data)
             break;
 
         case 0x4016:
-            m_controller->write(0, data);
-            break;
-
-        case 0x4017:
-            m_controller->write(1, data);
+            m_controller->write(data);
             break;
 
         default:

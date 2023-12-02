@@ -24,19 +24,13 @@ uint8_t Controller::read(uint8_t index)
     return value;
 }
 
-void Controller::write(uint8_t index, uint8_t data)
+void Controller::write(uint8_t data)
 {
-    if (index >= EMU_CONTROLLER_COUNT)
-    {
-        LOG_WARNING("Invalid controller index %u", index);
-        return;
-    }
-
-    if (m_strobe && !data)
+    if (m_strobe && !(data & 0x1))
     {
         for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
             m_registers[i] = m_input_manager->get_buttons_state(i);
     }
 
-    m_strobe = (data != 0);
+    m_strobe = (data & 0x1);
 }
