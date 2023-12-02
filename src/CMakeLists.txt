@@ -51,7 +51,7 @@ set(IMGUI_SOURCE_FILES
 
 if (WIN32)
     set(EMU_APPLICATION_TYPE "WIN32")
-    list(APPEND EMU_SOURCE_FILES "platform/windows/nesmancer.rc")
+    list(APPEND EMU_SOURCE_FILES "platform/windows/resources.rc")
 elseif(APPLE)
     set(EMU_APPLICATION_TYPE "MACOSX_BUNDLE")
 else()
