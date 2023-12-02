@@ -6,6 +6,10 @@
 #include <sstream>
 #include <iostream>
 
+#ifndef EMU_DEBUG_ENABLED
+#include <SDL.h>
+#endif // Release mode
+
 #ifdef EMU_PLATFORM_WINDOWS
 #include <Windows.h>
 #include <debugapi.h>
