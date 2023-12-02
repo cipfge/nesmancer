@@ -2,6 +2,15 @@
 #include "controller.hpp"
 #include "logger.hpp"
 
+InputManager::~InputManager()
+{
+    for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
+    {
+        if (m_controllers[i])
+            SDL_GameControllerClose(m_controllers[i]);
+    }
+}
+
 void InputManager::process_input_event(SDL_Event& event)
 {
     switch (event.type)
@@ -51,7 +60,7 @@ uint8_t InputManager::get_buttons_state(uint8_t index)
     {
         uint8_t const* keyboard_state = SDL_GetKeyboardState(0);
 
-        // TODO: Keyboard bindings for controller 1
+        // TODO: Keyboard bindings for both controllers
         value |= (keyboard_state[SDL_SCANCODE_A]) << 0;
         value |= (keyboard_state[SDL_SCANCODE_S]) << 1;
         value |= (keyboard_state[SDL_SCANCODE_SPACE]) << 2;
@@ -91,7 +100,7 @@ void InputManager::search_controllers()
         SDL_GameController* controller = SDL_GameControllerOpen(id);
         if (controller)
         {
-            LOG_DEBUG("%s connected", SDL_GameControllerName(controller));
+            LOG_DEBUG("Controller %s connected", SDL_GameControllerName(controller));
             assign_controller(controller);
         }
     }
@@ -120,7 +129,7 @@ void InputManager::on_controller_disconnected(SDL_JoystickID id)
         if (m_controllers[i] &&
             SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_controllers[i])) == id)
         {
-            LOG_DEBUG("%s disconnected", SDL_GameControllerName(m_controllers[i]));
+            LOG_DEBUG("Controller %s index %u disconnected", SDL_GameControllerName(m_controllers[i]), i);
             SDL_GameControllerClose(m_controllers[i]);
             m_controllers[i] = nullptr;
             search_controllers();
@@ -152,7 +161,7 @@ void InputManager::assign_controller(SDL_GameController* controller)
             continue;
 
         m_controllers[i] = controller;
-        LOG_DEBUG("Assigned controller %s to index %u", SDL_GameControllerName(m_controllers[i]), i);
+        LOG_DEBUG("Controller %s assigned to index %u", SDL_GameControllerName(m_controllers[i]), i);
 
         return;
     }

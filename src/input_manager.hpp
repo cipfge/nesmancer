@@ -8,7 +8,7 @@ class InputManager
 {
 public:
     InputManager() = default;
-    ~InputManager() {}
+    ~InputManager();
 
     void process_input_event(SDL_Event& event);
     uint8_t get_buttons_state(uint8_t index);
