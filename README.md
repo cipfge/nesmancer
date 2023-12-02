@@ -1,7 +1,7 @@
-# NES Emulator
-Work in progress.
+# Nesmancer
+Work in progress NES emulator.
 
-![screenshot_nestest](docs/screenshot_nestest.png)
+![screenshot](docs/screenshot.png)
 
 ## Build instructions
 ### Linux
