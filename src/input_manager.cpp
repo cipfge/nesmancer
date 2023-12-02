@@ -34,17 +34,24 @@ uint8_t InputManager::get_buttons_state(uint8_t index)
     {
         value |= (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A)) << 0;
         value |= (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_B)) << 1;
-        value |= (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_GUIDE)) << 2;
+        value |= (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_Y)) << 2;
         value |= (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START)) << 3;
         value |= (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_UP)) << 4;
         value |= (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_DOWN)) << 5;
         value |= (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT)) << 6;
         value |= (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT)) << 7;
+
+        static constexpr auto AxisThreshold = 8000;
+        value |= (SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTY) < -AxisThreshold) << 4;
+        value |= (SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTY) > AxisThreshold) << 5;
+        value |= (SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -AxisThreshold) << 6;
+        value |= (SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > AxisThreshold) << 7;
     }
     else
     {
         uint8_t const* keyboard_state = SDL_GetKeyboardState(0);
 
+        // TODO: Keyboard bindings for controller 1
         value |= (keyboard_state[SDL_SCANCODE_A]) << 0;
         value |= (keyboard_state[SDL_SCANCODE_S]) << 1;
         value |= (keyboard_state[SDL_SCANCODE_SPACE]) << 2;
@@ -74,7 +81,8 @@ void InputManager::search_controllers()
 {
     for (int id = 0; id < SDL_NumJoysticks(); id++)
     {
-        if (!SDL_IsGameController(id))
+        if (!SDL_IsGameController(id) ||
+            is_controller_assigned(id))
             continue;
 
         if (controller_count() >= EMU_CONTROLLER_COUNT)
@@ -91,7 +99,8 @@ void InputManager::search_controllers()
 
 void InputManager::on_controller_connected(SDL_JoystickID id)
 {
-    if (controller_count() >= EMU_CONTROLLER_COUNT)
+    if (is_controller_assigned(id) ||
+        controller_count() >= EMU_CONTROLLER_COUNT)
         return;
 
     SDL_GameController* controller = SDL_GameControllerOpen(id);
@@ -121,6 +130,20 @@ void InputManager::on_controller_disconnected(SDL_JoystickID id)
     }
 }
 
+bool InputManager::is_controller_assigned(SDL_JoystickID id)
+{
+    for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
+    {
+        if (m_controllers[i] &&
+            SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_controllers[i])) == id)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void InputManager::assign_controller(SDL_GameController* controller)
 {
     for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
@@ -133,11 +156,4 @@ void InputManager::assign_controller(SDL_GameController* controller)
 
         return;
     }
-}
-
-void InputManager::disconnect_controller(SDL_GameController* controller)
-{
-    LOG_DEBUG("Controller 0 %s disconnected", SDL_GameControllerName(controller));
-    SDL_GameControllerClose(controller);
-    controller = nullptr;
 }

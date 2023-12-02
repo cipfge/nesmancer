@@ -20,6 +20,6 @@ private:
 
     void on_controller_connected(SDL_JoystickID id);
     void on_controller_disconnected(SDL_JoystickID id);
+    bool is_controller_assigned(SDL_JoystickID id);
     void assign_controller(SDL_GameController* controller);
-    void disconnect_controller(SDL_GameController* controller);
 };
