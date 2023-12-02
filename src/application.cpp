@@ -276,6 +276,27 @@ void Application::render_menubar()
             ImGui::EndMenu();
         }
 
+        ImGui::Separator();
+        if (m_nes.is_running())
+        {
+            if (m_nes.is_paused())
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 255, 255));
+                ImGui::Text("Paused");
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+                ImGui::Text("Running...");
+            }
+        }
+        else
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));
+            ImGui::Text("IDLE");
+        }
+        ImGui::PopStyleColor();
+
         ImGui::EndMainMenuBar();
     }
 }

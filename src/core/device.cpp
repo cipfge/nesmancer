@@ -44,6 +44,9 @@ void Device::reset()
         !m_cartridge->is_loaded())
         return;
 
+    if (m_paused)
+        m_paused = false;
+
     m_apu->reset();
     m_ppu->reset();
     m_cpu->reset();
