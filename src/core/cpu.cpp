@@ -261,7 +261,7 @@ CPU::Instruction CPU::m_instruction_table[256] = {
     { &CPU::read_absolute_x,       &CPU::op_isc, "ISC", CPU::AM_ABSOLUTE_INDEXED_X, 7 }  // 0xFF
 };
 
-CPU::CPU(Memory* memory)
+CPU::CPU(Memory& memory)
     : m_memory(memory)
 {
 }
@@ -345,18 +345,18 @@ inline void CPU::status_set_zn(uint8_t value)
 
 inline uint8_t CPU::read(uint16_t address)
 {
-    return m_memory->read(address);
+    return m_memory.read(address);
 }
 
 inline uint16_t CPU::read_word(uint16_t address)
 {
-    return (m_memory->read(address) |
-            (m_memory->read(address + 1) << 8));
+    return (m_memory.read(address) |
+            (m_memory.read(address + 1) << 8));
 }
 
 inline void CPU::write(uint16_t address, uint8_t data)
 {
-    m_memory->write(address, data);
+    m_memory.write(address, data);
 }
 
 inline void CPU::stack_push(uint8_t data)

@@ -51,7 +51,7 @@ public:
     static constexpr uint16_t IRQ_Vector = 0xFFFE;
 
 public:
-    CPU(Memory* memory);
+    CPU(Memory& memory);
     ~CPU();
 
     void reset();
@@ -84,7 +84,7 @@ private:
 
     static Instruction m_instruction_table[256];
 
-    Memory* m_memory = nullptr;
+    Memory& m_memory;
     Registers m_registers;
     uint8_t m_opcode = 0;
     AddressingMode m_addressing_mode = AM_IMPLIED;

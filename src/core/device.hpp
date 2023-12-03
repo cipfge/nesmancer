@@ -1,24 +1,23 @@
 #pragma once
 
+#include "cpu.hpp"
+#include "apu.hpp"
+#include "ppu.hpp"
+#include "cartridge.hpp"
+#include "controller.hpp"
+#include "memory.hpp"
 #include <cstdint>
 #include <string>
 
-class CPU;
-class APU;
-class PPU;
-class Cartridge;
-class Controller;
-class Memory;
 class InputManager;
 
 class Device
 {
 public:
-    Device();
+    Device(InputManager& input_manager);
     ~Device();
 
     bool init();
-    void set_input_manager(InputManager* input_manager);
     void reset();
     void power_off();
     void run();
@@ -26,14 +25,14 @@ public:
     bool is_running() const;
     bool is_paused() const { return m_paused; }
     void toggle_pause();
-    uint32_t* screen();
+    uint32_t* get_screen_buffer();
 
 private:
-    CPU* m_cpu = nullptr;
-    APU* m_apu = nullptr;
-    PPU* m_ppu = nullptr;
-    Cartridge* m_cartridge = nullptr;
-    Controller* m_controller = nullptr;
-    Memory* m_memory = nullptr;
+    Cartridge m_cartridge;
+    CPU m_cpu;
+    APU m_apu;
+    PPU m_ppu;
+    Controller m_controller;
+    Memory m_memory;
     bool m_paused = false;
 };

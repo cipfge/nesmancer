@@ -21,7 +21,7 @@ public:
     };
 
 public:
-    PPU(Cartridge* cartridge);
+    PPU(Cartridge& cartridge);
     ~PPU();
 
     void reset();
@@ -134,7 +134,7 @@ private:
 
     static uint32_t m_palette[64];
 
-    Cartridge* m_cartridge = nullptr;
+    Cartridge& m_cartridge;
     Control m_control;
     Mask m_mask;
     Status m_status;

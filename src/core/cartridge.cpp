@@ -48,7 +48,6 @@ bool Cartridge::load_from_file(const std::string& file_path)
     uint8_t prg_bank_count = nes_header[4];
     uint8_t chr_bank_count = nes_header[5];
     uint16_t prg_ram_size = (nes_header[8] > 0 ? nes_header[8] * Mapper::SIZE_8KB : Mapper::SIZE_8KB);
-    uint16_t prg_rom_size = prg_bank_count * Mapper::SIZE_16KB;
     uint16_t chr_rom_size = chr_bank_count * Mapper::SIZE_8KB;
     MirroringMode mirroring_mode = nes_header[6] & 0x1 ? MIRROR_VERTICAL : MIRROR_HORIZONTAL;
     bool trainer = nes_header[6] & 0x4;
@@ -77,8 +76,7 @@ bool Cartridge::load_from_file(const std::string& file_path)
         rom_file.seekg(512, std::ios::cur);
 
     m_prg_ram.resize(prg_ram_size);
-
-    m_prg_rom.resize(prg_rom_size);
+    m_prg_rom.resize(prg_bank_count * Mapper::SIZE_16KB);
     if (!rom_file.read(reinterpret_cast<char*>(m_prg_rom.data()), m_prg_rom.size()))
     {
         LOG_ERROR("Error while reading PRG data from %s", file_path.c_str());

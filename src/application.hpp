@@ -17,15 +17,15 @@ public:
     void set_window_title(const std::string& title);
 
 private:
-    Device m_nes;
     InputManager m_input_manager;
+    Device m_nes;
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_frame_texture = nullptr;
 
     std::string m_window_title = EMU_VERSION_NAME;
-    int m_window_width = EMU_SCREEN_WIDTH * 2;
-    int m_window_height = EMU_SCREEN_HEIGHT * 2;
+    int m_window_width = EMU_SCREEN_WIDTH * 4;
+    int m_window_height = EMU_SCREEN_HEIGHT * 4;
     bool m_running = false;
     bool m_exit = false;
     bool m_show_popup = false;

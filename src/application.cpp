@@ -11,8 +11,8 @@
 #endif // Windows
 
 Application::Application()
+    : m_nes(m_input_manager)
 {
-    m_nes.set_input_manager(&m_input_manager);
 }
 
 Application::~Application()
@@ -218,7 +218,7 @@ void Application::render()
 
     if (m_nes.is_running())
     {
-        SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.screen(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.get_screen_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
 
         SDL_Rect window_rect = {
             0,

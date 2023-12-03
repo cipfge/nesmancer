@@ -22,9 +22,10 @@ uint32_t PPU::m_palette[64] = {
     0x00FCFC, 0xF8D8F8, 0x000000, 0x000000
 };
 
-PPU::PPU(Cartridge* cartridge)
+PPU::PPU(Cartridge& cartridge)
     : m_cartridge(cartridge)
 {
+    reset();
 }
 
 PPU::~PPU()
@@ -111,7 +112,7 @@ void PPU::tick()
     }
 
     if (is_rendering() && (m_scanline < 241 && m_cycle == 260))
-        m_cartridge->scanline();
+        m_cartridge.scanline();
 
     m_cycle++;
     if (m_cycle > 340)
@@ -225,7 +226,7 @@ uint8_t PPU::video_bus_read(uint16_t address)
 {
     uint8_t data = 0;
     if (address < 0x3F00)
-        data = m_cartridge->ppu_read(address);
+        data = m_cartridge.ppu_read(address);
     else
     {
         uint16_t palette_address = (address - 0x3F00) & 0x1F;
@@ -240,7 +241,7 @@ uint8_t PPU::video_bus_read(uint16_t address)
 void PPU::video_bus_write(uint16_t address, uint8_t data)
 {
     if (address < 0x3F00)
-        m_cartridge->ppu_write(address, data);
+        m_cartridge.ppu_write(address, data);
     else
     {
         uint16_t palette_address = (address - 0x3F00) & 0x1F;
