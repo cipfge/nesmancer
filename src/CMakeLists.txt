@@ -8,6 +8,8 @@ set(EMU_SOURCE_FILES
     "core/mappers/mmc1.hpp"
     "core/mappers/nrom.cpp"
     "core/mappers/nrom.hpp"
+    "core/mappers/uxrom.cpp"
+    "core/mappers/uxrom.hpp"
     "core/apu.cpp"
     "core/apu.hpp"
     "core/cartridge.cpp"

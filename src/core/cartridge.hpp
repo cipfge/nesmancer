@@ -31,20 +31,8 @@ private:
     std::vector<uint8_t> m_prg_rom;
     std::vector<uint8_t> m_chr_rom;
     uint8_t m_vram[2048] = { 0 };
-
-    uint8_t m_mapper_id = 0;
-    uint8_t m_prg_banks = 0;
-    uint8_t m_chr_banks = 0;
-    uint32_t m_prg_ram_size = 0;
-    uint32_t m_prg_rom_size = 0;
-    uint32_t m_chr_rom_size = 0;
-    MirroringMode m_mirroring_mode = MIRROR_HORIZONTAL;
-
     std::shared_ptr<Mapper> m_mapper = nullptr;
 
-    bool m_has_trainer = false;
     bool m_use_chr_ram = false;
     bool m_loaded = false;
-
-    void parse_nes_header(const uint8_t* header);
 };

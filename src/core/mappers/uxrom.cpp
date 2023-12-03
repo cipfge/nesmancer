@@ -1,29 +1,30 @@
-#include "nrom.hpp"
-#include "global.hpp"
+#include "uxrom.hpp"
 
-NROM::NROM(uint8_t prg_bank_count,
-           uint8_t chr_bank_count,
-           MirroringMode mirroring_mode)
+UxROM::UxROM(uint8_t prg_bank_count,
+             uint8_t chr_bank_count,
+             MirroringMode mirroring_mode)
     : Mapper(0, prg_bank_count, chr_bank_count, mirroring_mode)
 {
 }
 
-NROM::~NROM()
+UxROM::~UxROM()
 {
 }
 
-uint32_t NROM::read(uint16_t address)
+uint32_t UxROM::read(uint16_t address)
 {
     return map_address(address);
 }
 
-uint32_t NROM::write(uint16_t address, uint8_t data)
+uint32_t UxROM::write(uint16_t address, uint8_t data)
 {
-    EMU_UNUSED(data);
+    if (address >= 0x8000)
+        m_prg_bank = data;
+
     return map_address(address);
 }
 
-uint32_t NROM::map_address(uint16_t address)
+uint32_t UxROM::map_address(uint16_t address)
 {
     if (address < 0x2000)
         return address;
@@ -45,7 +46,7 @@ uint32_t NROM::map_address(uint16_t address)
     else if (address < 0x8000)
         return address - 0x6000;
     else if (address < 0xC000)
-        return address - 0x8000;
+        return (address - 0x8000) + (m_prg_bank * SIZE_16KB);
     else
-        return m_prg_bank_count == 1 ? address - 0xC000 : address - 0x8000;
+        return (address - 0xC000) + ((m_prg_bank_count - 1) * SIZE_16KB);
 }

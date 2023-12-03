@@ -5,8 +5,17 @@
 class MMC1 : public Mapper
 {
 public:
-    MMC1(uint8_t prg_banks,
-         uint8_t chr_banks,
+    enum NametableMirrorMode
+    {
+        NT_ONE_SCREEN_LO = 0,
+        NT_ONE_SCREEN_HI,
+        NT_VERTICAL,
+        NT_HORIZONTAL
+    };
+
+public:
+    MMC1(uint8_t prg_bank_count,
+         uint8_t chr_bank_count,
          MirroringMode mirroring_mode);
 
     virtual ~MMC1();
@@ -16,6 +25,7 @@ public:
     virtual bool irq() override { return false; }
     virtual void irq_clear() override {}
     virtual void scanline() override {}
+    virtual std::string name() const override { return "MMC1"; }
 
 private:
     uint8_t m_chr_bank0 = 0;

@@ -1,10 +1,10 @@
 #include "mmc1.hpp"
 #include "logger.hpp"
 
-MMC1::MMC1(uint8_t prg_banks,
-           uint8_t chr_banks,
+MMC1::MMC1(uint8_t prg_bank_count,
+           uint8_t chr_bank_count,
            MirroringMode mirroring_mode)
-    : Mapper(1, prg_banks, chr_banks, mirroring_mode)
+    : Mapper(1, prg_bank_count, chr_bank_count, mirroring_mode)
 {
 }
 
@@ -21,7 +21,7 @@ uint32_t MMC1::write(uint16_t address, uint8_t data)
 {
     if (address >= 0x8000)
     {
-        if ((data >> 7) & 1)
+        if ((data >> 7) & 0x1)
         {
             m_shift_register = 0;
             m_shift_count = 0;
@@ -43,10 +43,10 @@ uint32_t MMC1::write(uint16_t address, uint8_t data)
                     m_chr_bank1 = m_shift_register;
                 else
                     m_prg_bank = m_shift_register;
-            }
 
-            m_shift_register = 0;
-            m_shift_count = 0;
+                m_shift_register = 0;
+                m_shift_count = 0;
+            }
         }
     }
 
@@ -76,12 +76,18 @@ uint32_t MMC1::map_address(uint16_t address)
 
         switch (mirror_mode)
         {
-        case 0: return mapped_address & 0x03FF;
-        case 1: return (mapped_address & 0x03FF) + 0x0400;
-        case 2: return mapped_address & 0x07FF;
-        case 3: return mapped_address < 0x0800 ? mapped_address & 0x03FF : ((mapped_address - 0x0800) & 0x03FF) + 0x0400;
+        case NT_ONE_SCREEN_LO: return mapped_address & 0x03FF;
+        case NT_ONE_SCREEN_HI: return (mapped_address & 0x03FF) + 0x0400;
+        case NT_VERTICAL: return mapped_address & 0x07FF;
+        case NT_HORIZONTAL:
+        {
+            if (mapped_address < 0x0800)
+                return mapped_address & 0x03FF;
+            else
+                return ((mapped_address - 0x0800) & 0x03FF) + 0x0400;
+        }
         default:
-            LOG_WARNING("Unknown mirror mode %u", mirror_mode);
+            LOG_ERROR("Invalid nametable mirror mode %u", mirror_mode);
             return 0;
         }
     }
@@ -99,14 +105,11 @@ uint32_t MMC1::map_address(uint16_t address)
         switch (bank_mode)
         {
         case 0:
-        case 1:
-            return (address - 0x8000) + (static_cast<uint8_t>(m_prg_bank & 0x0F) * SIZE_32KB);
-        case 2:
-            return address - 0x8000;
-        case 3:
-            return (address - 0x8000) + (static_cast<uint8_t>(m_prg_bank & 0x0F) * SIZE_16KB);
+        case 1: return (address - 0x8000) + ((m_prg_bank & 0x0F) * SIZE_32KB);
+        case 2: return address - 0x8000;
+        case 3: return (address - 0x8000) + ((m_prg_bank & 0x0F) * SIZE_16KB);
         default:
-            LOG_WARNING("Unknown PRG bank mode %u", bank_mode);
+            LOG_ERROR("Invalid PRG bank mode %u", bank_mode);
             return 0;
         }
     }
@@ -116,18 +119,12 @@ uint32_t MMC1::map_address(uint16_t address)
         switch (bank_mode)
         {
         case 0:
-        case 1:
-            return (address - 0x8000) + (static_cast<uint8_t>(m_prg_bank & 0x0F) * SIZE_32KB);
-        case 2:
-            return (address - 0xC000) + (static_cast<uint8_t>(m_prg_bank & 0x0F) * SIZE_16KB);
-        case 3:
-            return (address - 0xC000) + ((m_prg_banks - 1) * SIZE_16KB);
+        case 1: return (address - 0x8000) + ((m_prg_bank & 0x0F) * SIZE_32KB);
+        case 2: return (address - 0xC000) + ((m_prg_bank & 0x0F) * SIZE_16KB);
+        case 3: return (address - 0xC000) + ((m_prg_bank_count - 1) * SIZE_16KB);
         default:
-            LOG_WARNING("Unknown PRG bank mode %u", bank_mode);
+            LOG_ERROR("Invalid PRG bank mode %u", bank_mode);
             return 0;
         }
     }
-
-    LOG_WARNING("Invalid address %u", address);
-    return 0;
 }
