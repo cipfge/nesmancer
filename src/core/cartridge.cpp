@@ -6,18 +6,91 @@
 #include <fstream>
 #include <cstring>
 
-Cartridge::~Cartridge()
+bool NesFileHeader::is_valid() const
 {
+    if (strncmp(signature, "NES\x1A", sizeof(signature)) == 0)
+        return true;
+
+    return false;
+}
+
+NesRomVersion NesFileHeader::get_version() const
+{
+    const uint8_t version_mask = 0x0C;
+
+    if ((bytes[1] & version_mask) == 0x08)
+        return NesRomVersion::Nes2;
+    else if ((bytes[1] & version_mask) == 0x00)
+        return NesRomVersion::iNes;
+
+    return NesRomVersion::Unsupported;
+}
+
+bool NesFileHeader::has_trainer() const
+{
+    const uint8_t tainer_mask = 0x04;
+    return (bytes[0] & tainer_mask) == tainer_mask;
+}
+
+uint16_t NesFileHeader::get_mapper_id() const
+{
+    switch (get_version())
+    {
+    case NesRomVersion::iNes:
+        return (bytes[1] & 0xF0) | (bytes[0] >> 4);
+    case NesRomVersion::Nes2:
+        return ((bytes[2] & 0x0F) << 8) | (bytes[1] & 0xF0) | (bytes[0] >> 4);
+
+    default:
+        return 0xFFFF;
+    }
+}
+
+MirroringMode NesFileHeader::get_mirroring_mode() const
+{
+    if (bytes[0] & 0x08)
+        return MirroringMode::FourScreens;
+    else
+    {
+        if (bytes[0] & 0x01)
+            return MirroringMode::Vertical;
+        else
+            return MirroringMode::Horizontal;
+    }
+}
+
+uint32_t NesFileHeader::get_prg_size() const
+{
+    switch (get_version())
+    {
+    case NesRomVersion::iNes:
+        return prg_banks * 0x4000;
+    case NesRomVersion::Nes2:
+        return (((bytes[2] & 0x07) << 8) | prg_banks) * 0x4000;
+    default:
+        return 0;
+    }
+}
+
+uint32_t NesFileHeader::get_chr_size() const
+{
+    switch (get_version())
+    {
+    case NesRomVersion::iNes:
+        return chr_banks * 0x2000;
+    case NesRomVersion::Nes2:
+        return (((bytes[2] & 0x38) << 8) | chr_banks) * 0x2000;
+    default:
+        return 0;
+    }
 }
 
 void Cartridge::reset()
 {
     m_prg_ram.clear();
     m_prg_rom.clear();
+    m_chr_ram.clear();
     m_chr_rom.clear();
-
-    memset(m_vram, 0xFF, sizeof(m_vram));
-
     m_mapper.reset();
     m_use_chr_ram = false;
     m_loaded = false;
@@ -28,81 +101,93 @@ bool Cartridge::load_from_file(const std::string& file_path)
     std::ifstream rom_file(file_path, std::ifstream::binary);
     if (!rom_file.is_open())
     {
-        LOG_ERROR("Failed to open rom file %s", file_path.c_str());
+        LOG_ERROR("Failed to open NES file %s", file_path.c_str());
         return false;
     }
 
-    uint8_t nes_header[16] = {0};
-    if (!rom_file.read(reinterpret_cast<char*>(&nes_header), sizeof(nes_header)))
-        return false;
-
-    if (strncmp((char *)nes_header, "NES\x1A", 4) != 0)
+    NesFileHeader header{};
+    if (!rom_file.read(reinterpret_cast<char*>(&header), sizeof(header)))
     {
-        LOG_ERROR("Invalid signature for file %s", file_path.c_str());
+        LOG_ERROR("Failed to read NES header from %s", file_path.c_str());
+        return false;
+    }
+
+    if (!header.is_valid())
+    {
+        LOG_ERROR("Invalid NES header signature %s", header.signature);
+        return false;
+    }
+
+    if (header.get_version() == NesRomVersion::Unsupported)
+    {
+        LOG_ERROR("Unsupported NES rom version!");
         return false;
     }
 
     reset();
 
-    uint16_t mapper_id = (nes_header[6] >> 4) | (nes_header[7] & 0xF0);
-    uint8_t prg_bank_count = nes_header[4];
-    uint8_t chr_bank_count = nes_header[5];
-    uint16_t prg_ram_size = (nes_header[8] > 0 ? nes_header[8] * Mapper::SIZE_8KB : Mapper::SIZE_8KB);
-    uint16_t chr_rom_size = chr_bank_count * Mapper::SIZE_8KB;
-    MirroringMode mirroring_mode = nes_header[6] & 0x1 ? MIRROR_VERTICAL : MIRROR_HORIZONTAL;
-    bool trainer = nes_header[6] & 0x4;
-
-    switch (mapper_id)
+    switch (header.get_mapper_id())
     {
-    case 0:
-        m_mapper = std::make_shared<NROM>(prg_bank_count, chr_bank_count, mirroring_mode);
+    case MAPPER_NROM:
+        m_mapper = std::make_shared<NROM>(header.prg_banks,
+                                          header.chr_banks,
+                                          header.get_mirroring_mode());
         break;
 
-    case 1:
-        m_mapper = std::make_shared<MMC1>(prg_bank_count, chr_bank_count, mirroring_mode);
+    case MAPPER_MCC1:
+        m_mapper = std::make_shared<MMC1>(header.prg_banks,
+                                          header.chr_banks,
+                                          header.get_mirroring_mode());
         break;
 
-    case 2:
-        m_mapper = std::make_shared<UxROM>(prg_bank_count, chr_bank_count, mirroring_mode);
+    case MAPPER_UxROM:
+        m_mapper = std::make_shared<UxROM>(header.prg_banks,
+                                           header.chr_banks,
+                                           header.get_mirroring_mode());
         break;
 
     default:
-        LOG_ERROR("Unsupported mapper id %u", mapper_id);
+        LOG_ERROR("Unsupported mapper id %u", header.get_mapper_id());
         return false;
     }
 
-    // Skip trainer information
-    if (trainer)
-        rom_file.seekg(512, std::ios::cur);
+    if (header.has_trainer())
+    {
+        LOG_INFO("Skip trainer information, not supported.");
+        rom_file.seekg(TrainerSize, std::ios::cur);
+    }
 
-    m_prg_ram.resize(prg_ram_size);
-    m_prg_rom.resize(prg_bank_count * Mapper::SIZE_16KB);
+    uint32_t prg_size = header.get_prg_size();
+    if (prg_size == 0)
+    {
+        LOG_ERROR("PRG ROM size is 0");
+        return false;
+    }
+
+    m_prg_ram.resize(0x4000);
+    m_prg_rom.resize(prg_size);
     if (!rom_file.read(reinterpret_cast<char*>(m_prg_rom.data()), m_prg_rom.size()))
     {
         LOG_ERROR("Error while reading PRG data from %s", file_path.c_str());
         return false;
     }
 
-    if (chr_rom_size == 0)
+    uint32_t chr_size = header.get_chr_size();
+    if (chr_size == 0)
     {
         m_use_chr_ram = true;
-        m_chr_rom.resize(prg_ram_size);
+        m_chr_ram.resize(0x4000);
     }
     else
     {
-        m_chr_rom.resize(chr_rom_size);
+        m_use_chr_ram = false;
+        m_chr_rom.resize(chr_size);
         if (!rom_file.read(reinterpret_cast<char*>(m_chr_rom.data()), m_chr_rom.size()))
         {
             LOG_ERROR("Error while reading CHR data from %s", file_path.c_str());
             return false;
         }
     }
-
-    LOG_DEBUG("Cartridge: Mapper: %u, PRG banks: %u, CHR banks: %u,"
-              " PRG RAM: %u KB, PRG ROM: %u KB, CHR ROM: %u KB, Mirror mode: %s",
-              m_mapper->id(), m_mapper->prg_banks(), m_mapper->chr_banks(),
-              m_prg_ram.size(), m_prg_rom.size(), m_chr_rom.size(),
-              m_mapper->mirroring_mode() == MIRROR_VERTICAL ? "Vertical" : "Horizontal");
 
     m_loaded = true;
 
@@ -134,7 +219,13 @@ uint8_t Cartridge::ppu_read(uint16_t address)
     uint32_t mapped_address = m_mapper->read(address);
 
     if (address < 0x2000)
-        return m_chr_rom[mapped_address];
+    {
+        if (m_use_chr_ram)
+            return m_chr_ram[mapped_address];
+        else
+            return m_chr_rom[mapped_address];
+    }
+
     return m_vram[mapped_address];
 }
 
@@ -142,8 +233,11 @@ void Cartridge::ppu_write(uint16_t address, uint8_t data)
 {
     uint32_t mapped_address = m_mapper->write(address, data);
 
-    if (address < 0x2000 && m_use_chr_ram)
-        m_chr_rom[mapped_address] = data;
+    if (address < 0x2000)
+    {
+        if (m_use_chr_ram)
+            m_chr_ram[mapped_address] = data;
+    }
     else
         m_vram[mapped_address] = data;
 }

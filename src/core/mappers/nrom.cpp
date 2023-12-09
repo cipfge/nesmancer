@@ -23,14 +23,14 @@ uint32_t NROM::write(uint16_t address, uint8_t data)
     return map_address(address);
 }
 
-uint32_t NROM::map_address(uint16_t address)
+uint32_t NROM::map_address(uint16_t address) const
 {
     if (address < 0x2000)
         return address;
     else if (address < 0x3F00)
     {
         uint32_t mapped_address = address & 0x0FFF;
-        if (m_mirroring_mode == MIRROR_VERTICAL)
+        if (m_mirroring_mode == MirroringMode::Vertical)
             return mapped_address & 0x07FF;
         else
         {

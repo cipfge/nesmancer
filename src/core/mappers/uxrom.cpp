@@ -24,14 +24,14 @@ uint32_t UxROM::write(uint16_t address, uint8_t data)
     return map_address(address);
 }
 
-uint32_t UxROM::map_address(uint16_t address)
+uint32_t UxROM::map_address(uint16_t address) const
 {
     if (address < 0x2000)
         return address;
     else if (address < 0x3F00)
     {
         uint32_t mapped_address = address & 0x0FFF;
-        if (m_mirroring_mode == MIRROR_VERTICAL)
+        if (m_mirroring_mode == MirroringMode::Vertical)
             return mapped_address & 0x07FF;
         else
         {
@@ -46,7 +46,7 @@ uint32_t UxROM::map_address(uint16_t address)
     else if (address < 0x8000)
         return address - 0x6000;
     else if (address < 0xC000)
-        return (address - 0x8000) + (m_prg_bank * SIZE_16KB);
+        return (address - 0x8000) + (m_prg_bank * Size_16KB);
     else
-        return (address - 0xC000) + ((m_prg_bank_count - 1) * SIZE_16KB);
+        return (address - 0xC000) + ((m_prg_bank_count - 1) * Size_16KB);
 }

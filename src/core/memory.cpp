@@ -13,7 +13,7 @@ Memory::Memory(APU& apu,
     , m_cartrige(cartridge)
     , m_controller(controller)
 {
-    memset(m_internal_ram, 0, sizeof(m_internal_ram));
+    m_ram.fill(0x00);
 }
 
 Memory::~Memory()
@@ -23,7 +23,7 @@ Memory::~Memory()
 uint8_t Memory::read(uint16_t address)
 {
     if (address < 0x2000)
-        return m_internal_ram[address & 0x7FF];
+        return m_ram[address & 0x7FF];
     else if (address < 0x4000)
         return m_ppu.read(address);
     else if (address < 0x4016)
@@ -48,7 +48,7 @@ uint8_t Memory::read(uint16_t address)
 void Memory::write(uint16_t address, uint8_t data)
 {
     if (address < 0x2000)
-        m_internal_ram[address & 0x7FF] = data;
+        m_ram[address & 0x7FF] = data;
     else if (address < 0x4000)
         m_ppu.write(address, data);
     else if (address < 0x4020)

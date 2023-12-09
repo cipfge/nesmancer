@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 
 class APU;
 class PPU;
@@ -20,7 +21,7 @@ public:
     void write(uint16_t address, uint8_t data);
 
 private:
-    uint8_t m_internal_ram[2048];
+    std::array<uint8_t, 2048> m_ram;
     APU& m_apu;
     PPU& m_ppu;
     Cartridge& m_cartrige;

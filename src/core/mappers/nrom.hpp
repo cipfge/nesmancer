@@ -19,5 +19,5 @@ public:
     virtual std::string name() const override { return "NROM"; }
 
 private:
-    uint32_t map_address(uint16_t address);
+    uint32_t map_address(uint16_t address) const;
 };

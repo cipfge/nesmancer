@@ -3,10 +3,20 @@
 #include <cstdint>
 #include <string>
 
-enum MirroringMode
+enum class MirroringMode
 {
-    MIRROR_HORIZONTAL,
-    MIRROR_VERTICAL
+    Horizontal,
+    Vertical,
+    FourScreens
+};
+
+enum MapperId
+{
+    MAPPER_NROM,
+    MAPPER_MCC1,
+    MAPPER_UxROM
+
+    // TODO: Support more mappers
 };
 
 class Mapper
@@ -31,16 +41,16 @@ public:
     virtual void scanline() = 0;
     virtual std::string name() const = 0;
 
-    static constexpr uint32_t SIZE_1KB = 1024;
-    static constexpr uint32_t SIZE_4KB = 4096;
-    static constexpr uint32_t SIZE_8KB = 8192;
-    static constexpr uint32_t SIZE_16KB = 16384;
-    static constexpr uint32_t SIZE_32KB = 32768;
+    static constexpr uint32_t Size_1KB = 0x400;
+    static constexpr uint32_t Size_4KB = 0x1000;
+    static constexpr uint32_t Size_8KB = 0x2000;
+    static constexpr uint32_t Size_16KB = 0x4000;
+    static constexpr uint32_t Size_32KB = 0x8000;
 
 protected:
     uint16_t m_id = 0;
     uint8_t m_prg_bank_count = 0;
     uint8_t m_chr_bank_count = 0;
-    MirroringMode m_mirroring_mode = MIRROR_HORIZONTAL;
+    MirroringMode m_mirroring_mode = MirroringMode::Horizontal;
 };
 

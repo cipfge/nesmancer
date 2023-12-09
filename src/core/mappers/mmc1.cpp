@@ -53,20 +53,20 @@ uint32_t MMC1::write(uint16_t address, uint8_t data)
     return map_address(address);
 }
 
-uint32_t MMC1::map_address(uint16_t address)
+uint32_t MMC1::map_address(uint16_t address) const
 {
     if (address < 0x2000)
     {
         if ((m_control_register >> 4) & 0x1)
         {
             if (address < 0x1000)
-                return address + m_chr_bank0 * SIZE_4KB;
+                return address + m_chr_bank0 * Size_4KB;
             else
-                return (address - 0x1000) + m_chr_bank1 * SIZE_4KB;
+                return (address - 0x1000) + m_chr_bank1 * Size_4KB;
         }
         else
         {
-            return address + m_chr_bank0 * SIZE_8KB;
+            return address + m_chr_bank0 * Size_8KB;
         }
     }
     else if (address < 0x3F00)
@@ -105,9 +105,9 @@ uint32_t MMC1::map_address(uint16_t address)
         switch (bank_mode)
         {
         case 0:
-        case 1: return (address - 0x8000) + ((m_prg_bank & 0x0F) * SIZE_32KB);
+        case 1: return (address - 0x8000) + ((m_prg_bank & 0x0F) * Size_32KB);
         case 2: return address - 0x8000;
-        case 3: return (address - 0x8000) + ((m_prg_bank & 0x0F) * SIZE_16KB);
+        case 3: return (address - 0x8000) + ((m_prg_bank & 0x0F) * Size_16KB);
         default:
             LOG_ERROR("Invalid PRG bank mode %u", bank_mode);
             return 0;
@@ -119,9 +119,9 @@ uint32_t MMC1::map_address(uint16_t address)
         switch (bank_mode)
         {
         case 0:
-        case 1: return (address - 0x8000) + ((m_prg_bank & 0x0F) * SIZE_32KB);
-        case 2: return (address - 0xC000) + ((m_prg_bank & 0x0F) * SIZE_16KB);
-        case 3: return (address - 0xC000) + ((m_prg_bank_count - 1) * SIZE_16KB);
+        case 1: return (address - 0x8000) + ((m_prg_bank & 0x0F) * Size_32KB);
+        case 2: return (address - 0xC000) + ((m_prg_bank & 0x0F) * Size_16KB);
+        case 3: return (address - 0xC000) + ((m_prg_bank_count - 1) * Size_16KB);
         default:
             LOG_ERROR("Invalid PRG bank mode %u", bank_mode);
             return 0;

@@ -21,5 +21,5 @@ public:
 private:
     uint8_t m_prg_bank = 0;
 
-    uint32_t map_address(uint16_t address);
+    uint32_t map_address(uint16_t address) const;
 };

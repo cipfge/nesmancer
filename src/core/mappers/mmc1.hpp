@@ -35,5 +35,5 @@ private:
     uint8_t m_shift_count = 0;
     uint8_t m_control_register = 0;
 
-    uint32_t map_address(uint16_t address);
+    uint32_t map_address(uint16_t address) const;
 };
