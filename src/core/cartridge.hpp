@@ -53,11 +53,11 @@ public:
     static constexpr uint16_t TrainerSize = 512;
 
 private:
-    std::vector<uint8_t> m_prg_ram;
+    std::array<uint8_t, 0x4000> m_prg_ram;
     std::vector<uint8_t> m_prg_rom;
-    std::vector<uint8_t> m_chr_ram;
+    std::array<uint8_t, 0x4000> m_chr_ram;
     std::vector<uint8_t> m_chr_rom;
-    std::array<uint8_t, 2048> m_vram;
+    std::array<uint8_t, 0x800> m_vram;
     std::shared_ptr<Mapper> m_mapper = nullptr;
 
     bool m_use_chr_ram = false;

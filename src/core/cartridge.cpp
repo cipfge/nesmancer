@@ -2,6 +2,7 @@
 #include "nrom.hpp"
 #include "mmc1.hpp"
 #include "uxrom.hpp"
+#include "cnrom.hpp"
 #include "logger.hpp"
 #include <fstream>
 #include <cstring>
@@ -87,9 +88,9 @@ uint32_t NesFileHeader::get_chr_size() const
 
 void Cartridge::reset()
 {
-    m_prg_ram.clear();
+    m_prg_ram.fill(0x00);
     m_prg_rom.clear();
-    m_chr_ram.clear();
+    m_chr_ram.fill(0x00);
     m_chr_rom.clear();
     m_mapper.reset();
     m_use_chr_ram = false;
@@ -140,8 +141,14 @@ bool Cartridge::load_from_file(const std::string& file_path)
                                           header.get_mirroring_mode());
         break;
 
-    case MAPPER_UxROM:
+    case MAPPER_UXROM:
         m_mapper = std::make_shared<UxROM>(header.prg_banks,
+                                           header.chr_banks,
+                                           header.get_mirroring_mode());
+        break;
+
+    case MAPPER_CNROM:
+        m_mapper = std::make_shared<CNROM>(header.prg_banks,
                                            header.chr_banks,
                                            header.get_mirroring_mode());
         break;
@@ -164,7 +171,6 @@ bool Cartridge::load_from_file(const std::string& file_path)
         return false;
     }
 
-    m_prg_ram.resize(0x4000);
     m_prg_rom.resize(prg_size);
     if (!rom_file.read(reinterpret_cast<char*>(m_prg_rom.data()), m_prg_rom.size()))
     {
@@ -176,7 +182,6 @@ bool Cartridge::load_from_file(const std::string& file_path)
     if (chr_size == 0)
     {
         m_use_chr_ram = true;
-        m_chr_ram.resize(0x4000);
     }
     else
     {

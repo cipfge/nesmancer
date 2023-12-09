@@ -21,7 +21,7 @@ public:
     void write(uint16_t address, uint8_t data);
 
 private:
-    std::array<uint8_t, 2048> m_ram;
+    std::array<uint8_t, 0x800> m_ram;
     APU& m_apu;
     PPU& m_ppu;
     Cartridge& m_cartrige;

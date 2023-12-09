@@ -12,9 +12,10 @@ enum class MirroringMode
 
 enum MapperId
 {
-    MAPPER_NROM,
+    MAPPER_NROM = 0,
     MAPPER_MCC1,
-    MAPPER_UxROM
+    MAPPER_UXROM,
+    MAPPER_CNROM
 
     // TODO: Support more mappers
 };

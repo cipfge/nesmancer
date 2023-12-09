@@ -4,7 +4,7 @@
 MMC1::MMC1(uint8_t prg_bank_count,
            uint8_t chr_bank_count,
            MirroringMode mirroring_mode)
-    : Mapper(1, prg_bank_count, chr_bank_count, mirroring_mode)
+    : Mapper(MAPPER_MCC1, prg_bank_count, chr_bank_count, mirroring_mode)
 {
 }
 
