@@ -1,6 +1,7 @@
 #include "cartridge.hpp"
 #include "nrom.hpp"
 #include "mmc1.hpp"
+#include "mmc3.hpp"
 #include "uxrom.hpp"
 #include "cnrom.hpp"
 #include "logger.hpp"
@@ -29,8 +30,8 @@ NesRomVersion NesFileHeader::get_version() const
 
 bool NesFileHeader::has_trainer() const
 {
-    const uint8_t tainer_mask = 0x04;
-    return (bytes[0] & tainer_mask) == tainer_mask;
+    const uint8_t trainer_mask = 0x04;
+    return (bytes[0] & trainer_mask) == trainer_mask;
 }
 
 uint16_t NesFileHeader::get_mapper_id() const
@@ -151,6 +152,12 @@ bool Cartridge::load_from_file(const std::string& file_path)
         m_mapper = std::make_shared<CNROM>(header.prg_banks,
                                            header.chr_banks,
                                            header.get_mirroring_mode());
+        break;
+
+    case MAPPER_MMC3:
+        m_mapper = std::make_shared<MMC3>(header.prg_banks,
+                                          header.chr_banks,
+                                          header.get_mirroring_mode());
         break;
 
     default:

@@ -15,8 +15,8 @@ enum MapperId
     MAPPER_NROM = 0,
     MAPPER_MCC1,
     MAPPER_UXROM,
-    MAPPER_CNROM
-
+    MAPPER_CNROM,
+    MAPPER_MMC3
     // TODO: Support more mappers
 };
 

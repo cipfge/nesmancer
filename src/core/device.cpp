@@ -54,12 +54,16 @@ void Device::run()
             m_ppu.nmi_clear();
         }
 
+        if (m_cpu.cycles() == 0 && m_cartridge.irq())
+        {
+            m_cpu.irq();
+            m_cartridge.irq_clear();
+        }
+
         m_cpu.tick();
 
-        // PPU is 3 times faster
-        m_ppu.tick();
-        m_ppu.tick();
-        m_ppu.tick();
+        for (uint8_t i = 0; i < 3; i++)
+            m_ppu.tick();
     }
 }
 
