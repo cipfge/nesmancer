@@ -24,8 +24,8 @@ private:
     SDL_Texture* m_frame_texture = nullptr;
 
     std::string m_window_title = EMU_VERSION_NAME;
-    int m_window_width = EMU_SCREEN_WIDTH * 4;
-    int m_window_height = EMU_SCREEN_HEIGHT * 4;
+    int m_window_width = EMU_SCREEN_WIDTH * EMU_SCREEN_SCALE;
+    int m_window_height = EMU_SCREEN_HEIGHT * EMU_SCREEN_SCALE;
     bool m_running = false;
     bool m_exit = false;
     bool m_show_popup = false;

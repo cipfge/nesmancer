@@ -91,9 +91,9 @@ private:
     uint16_t m_address = 0;
     uint8_t m_cycles = 0;
 
-    void status_set_flag(StatusFlag flag, bool value);
-    bool status_check_flag(StatusFlag flag);
-    void status_set_zn(uint8_t value);
+    void set_status_flag(StatusFlag flag, bool value);
+    void set_status_zn_flags(uint8_t value);
+    bool check_status_flag(StatusFlag flag) const;
 
     uint8_t read(uint16_t address);
     uint16_t read_word(uint16_t address);

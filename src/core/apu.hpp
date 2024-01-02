@@ -17,7 +17,7 @@ public:
     void write(uint16_t address, uint8_t data);
 
 private:
-    SDL_AudioSpec m_spec_desired;
-    SDL_AudioSpec m_spec_obtained;
-    SDL_AudioDeviceID m_audio_device;
+    SDL_AudioSpec m_spec_desired {};
+    SDL_AudioSpec m_spec_obtained {};
+    SDL_AudioDeviceID m_audio_device = 0;
 };
