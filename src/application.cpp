@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+#include "utils.hpp"
 #include "logger.hpp"
 #include <nfd.hpp>
 
@@ -263,7 +264,10 @@ void Application::render_menubar()
 
             ImGui::Separator();
             if (ImGui::MenuItem("Power Off..."))
+            {
                 m_nes.power_off();
+                set_window_title(EMU_VERSION_NAME);
+            }
 
             ImGui::EndMenu();
         }
@@ -277,6 +281,8 @@ void Application::render_menubar()
         }
 
         ImGui::Separator();
+        ImGui::Text("Status:");
+
         if (m_nes.is_running())
         {
             if (m_nes.is_paused())
@@ -355,7 +361,7 @@ void Application::render_about_dialog()
 void Application::open_nes_file()
 {
     NFD::Guard guard;
-    NFD::UniquePath nes_file;
+    NFD::UniquePath nes_file_path;
 
     nfdfilteritem_t filter[1] = {
         {"NES File", "nes"}
@@ -369,9 +375,17 @@ void Application::open_nes_file()
     NFD::SetWindowOwner(win_info.info.win.window);
 #endif // Windows
 
-    nfdresult_t result = NFD::OpenDialog(nes_file, filter, 1);
+    nfdresult_t result = NFD::OpenDialog(nes_file_path, filter, 1);
     if (result == NFD_OKAY)
-        m_nes.load_rom_file(nes_file.get());
+    {
+        std::string file_path(nes_file_path.get());
+        if (m_nes.load_rom_file(file_path))
+        {
+            const std::string title = std::string(EMU_VERSION_NAME) + " - " +
+                                      filename_remove_extension(path_get_filename(file_path));
+            set_window_title(title);
+        }
+    }
 }
 
 void Application::set_dark_theme()
