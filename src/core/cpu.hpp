@@ -8,7 +8,7 @@ class Memory;
 class CPU
 {
 public:
-    enum StatusFlag
+    enum StatusFlag : uint8_t
     {
         STATUS_C = (1 << 0),
         STATUS_Z = (1 << 1),
@@ -46,6 +46,8 @@ public:
         AM_INDIRECT_INDEXED
     };
 
+    static constexpr uint8_t INT_Cycles = 7;
+
     static constexpr uint16_t NMI_Vector = 0xFFFA;
     static constexpr uint16_t RST_Vector = 0xFFFC;
     static constexpr uint16_t IRQ_Vector = 0xFFFE;
@@ -81,9 +83,11 @@ private:
     uint16_t m_address = 0;
     uint8_t m_cycles = 0;
 
-    void set_status_flag(StatusFlag flag, bool value);
-    void set_status_zn_flags(uint8_t value);
-    bool check_status_flag(StatusFlag flag) const;
+    void interrupt(uint16_t vector);
+
+    void status_set_flag(StatusFlag flag, bool value);
+    void status_set_zn_flags(uint8_t value);
+    bool status_check_flag(StatusFlag flag) const;
 
     uint8_t read(uint16_t address);
     uint16_t read_word(uint16_t address);
@@ -93,6 +97,7 @@ private:
     void stack_push_word(uint16_t data);
     uint8_t stack_pop();
     uint16_t stack_pop_word();
+    void stack_pop_status();
 
     // Addressing modes
     bool read_implied();

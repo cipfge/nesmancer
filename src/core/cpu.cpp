@@ -3,7 +3,7 @@
 #include "logger.hpp"
 
 CPU::Instruction CPU::m_instruction_table[256] = {
-    { &CPU::read_implied,          &CPU::op_brk, "BRK", CPU::AM_IMPLIED,            7 }, // 0x00
+    { &CPU::read_immediate,        &CPU::op_brk, "BRK", CPU::AM_IMMEDIATE,          7 }, // 0x00
     { &CPU::read_indexed_indirect, &CPU::op_ora, "ORA", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x01
     { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x02
     { &CPU::read_indexed_indirect, &CPU::op_slo, "SLO", CPU::AM_INDEXED_INDIRECT,   8 }, // 0x03
@@ -280,30 +280,19 @@ void CPU::reset()
     m_registers.PC = read_word(RST_Vector);
     m_opcode = 0;
     m_address = 0;
-    m_cycles = 7;
+    m_cycles = INT_Cycles;
 }
 
 void CPU::irq()
 {
-    if (check_status_flag(STATUS_I))
+    if (status_check_flag(STATUS_I))
         return;
-
-    stack_push_word(m_registers.PC);
-    stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
-    set_status_flag(STATUS_B, false);
-    set_status_flag(STATUS_I, true);
-    m_registers.PC = read_word(IRQ_Vector);
-    m_cycles = 7;
+    interrupt(IRQ_Vector);
 }
 
 void CPU::nmi()
 {
-    stack_push_word(m_registers.PC);
-    stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
-    set_status_flag(STATUS_B, false);
-    set_status_flag(STATUS_I, true);
-    m_registers.PC = read_word(NMI_Vector);
-    m_cycles = 7;
+    interrupt(NMI_Vector);
 }
 
 void CPU::tick()
@@ -324,18 +313,27 @@ void CPU::tick()
     m_cycles--;
 }
 
-inline void CPU::set_status_flag(StatusFlag flag, bool value)
+void CPU::interrupt(uint16_t vector)
+{
+    stack_push_word(m_registers.PC);
+    stack_push(m_registers.P | STATUS_U);
+    status_set_flag(STATUS_I, true);
+    m_registers.PC = read_word(vector);
+    m_cycles = INT_Cycles;
+}
+
+inline void CPU::status_set_flag(StatusFlag flag, bool value)
 {
     m_registers.P = value ? m_registers.P | flag : m_registers.P & (~flag);
 }
 
-inline void CPU::set_status_zn_flags(uint8_t value)
+inline void CPU::status_set_zn_flags(uint8_t value)
 {
-    set_status_flag(STATUS_Z, value == 0);
-    set_status_flag(STATUS_N, value >> 7);
+    status_set_flag(STATUS_Z, value == 0);
+    status_set_flag(STATUS_N, value >> 7);
 }
 
-inline bool CPU::check_status_flag(StatusFlag flag) const
+inline bool CPU::status_check_flag(StatusFlag flag) const
 {
     return (m_registers.P & flag) != 0;
 }
@@ -380,6 +378,11 @@ inline uint16_t CPU::stack_pop_word()
     uint16_t high = static_cast<uint16_t>(stack_pop());
 
     return (high << 8) | low;
+}
+
+inline void CPU::stack_pop_status()
+{
+    m_registers.P = stack_pop() & 0xCF;
 }
 
 bool CPU::read_implied()
@@ -497,7 +500,7 @@ inline void CPU::branch()
 
 bool CPU::op_bcs()
 {
-    if (!check_status_flag(STATUS_C))
+    if (!status_check_flag(STATUS_C))
         return false;
 
     branch();
@@ -506,7 +509,7 @@ bool CPU::op_bcs()
 
 bool CPU::op_bcc()
 {
-    if (check_status_flag(STATUS_C))
+    if (status_check_flag(STATUS_C))
         return false;
 
     branch();
@@ -515,7 +518,7 @@ bool CPU::op_bcc()
 
 bool CPU::op_beq()
 {
-    if (!check_status_flag(STATUS_Z))
+    if (!status_check_flag(STATUS_Z))
         return false;
 
     branch();
@@ -524,7 +527,7 @@ bool CPU::op_beq()
 
 bool CPU::op_bne()
 {
-    if (check_status_flag(STATUS_Z))
+    if (status_check_flag(STATUS_Z))
         return false;
 
     branch();
@@ -533,7 +536,7 @@ bool CPU::op_bne()
 
 bool CPU::op_bmi()
 {
-    if (!check_status_flag(STATUS_N))
+    if (!status_check_flag(STATUS_N))
         return false;
 
     branch();
@@ -542,7 +545,7 @@ bool CPU::op_bmi()
 
 bool CPU::op_bpl()
 {
-    if (check_status_flag(STATUS_N))
+    if (status_check_flag(STATUS_N))
         return false;
 
     branch();
@@ -551,7 +554,7 @@ bool CPU::op_bpl()
 
 bool CPU::op_bvs()
 {
-    if (!check_status_flag(STATUS_V))
+    if (!status_check_flag(STATUS_V))
         return false;
 
     branch();
@@ -560,7 +563,7 @@ bool CPU::op_bvs()
 
 bool CPU::op_bvc()
 {
-    if (check_status_flag(STATUS_V))
+    if (status_check_flag(STATUS_V))
         return false;
 
     branch();
@@ -575,21 +578,21 @@ bool CPU::op_pha()
 
 bool CPU::op_php()
 {
-    stack_push(m_registers.P | STATUS_U | STATUS_B);
+    stack_push(m_registers.P | STATUS_B | STATUS_U);
     return false;
 }
 
 bool CPU::op_pla()
 {
     m_registers.A = stack_pop();
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
 
 bool CPU::op_plp()
 {
-    m_registers.P = (stack_pop() | STATUS_U) & ~STATUS_B;
+    stack_pop_status();
     return false;
 }
 
@@ -597,7 +600,7 @@ bool CPU::op_inc()
 {
     uint8_t value = read(m_address) + 1;
     write(m_address, value);
-    set_status_zn_flags(value);
+    status_set_zn_flags(value);
 
     return false;
 }
@@ -605,7 +608,7 @@ bool CPU::op_inc()
 bool CPU::op_inx()
 {
     m_registers.X++;
-    set_status_zn_flags(m_registers.X);
+    status_set_zn_flags(m_registers.X);
 
     return false;
 }
@@ -613,7 +616,7 @@ bool CPU::op_inx()
 bool CPU::op_iny()
 {
     m_registers.Y++;
-    set_status_zn_flags(m_registers.Y);
+    status_set_zn_flags(m_registers.Y);
 
     return false;
 }
@@ -622,7 +625,7 @@ bool CPU::op_dec()
 {
     uint8_t value = read(m_address) - 1;
     write(m_address, value);
-    set_status_zn_flags(value);
+    status_set_zn_flags(value);
 
     return false;
 }
@@ -630,7 +633,7 @@ bool CPU::op_dec()
 bool CPU::op_dex()
 {
     m_registers.X--;
-    set_status_zn_flags(m_registers.X);
+    status_set_zn_flags(m_registers.X);
 
     return false;
 }
@@ -638,7 +641,7 @@ bool CPU::op_dex()
 bool CPU::op_dey()
 {
     m_registers.Y--;
-    set_status_zn_flags(m_registers.Y);
+    status_set_zn_flags(m_registers.Y);
 
     return false;
 }
@@ -647,13 +650,13 @@ bool CPU::op_adc()
 {
     uint8_t operand = read(m_address);
     bool sign = (m_registers.A >> 7) == (operand >> 7);
-    uint16_t value = m_registers.A + operand + (check_status_flag(STATUS_C) ? 1 : 0);
+    uint16_t value = m_registers.A + operand + (status_check_flag(STATUS_C) ? 1 : 0);
     m_registers.A = value & 0xFF;
     bool overflow = sign && (m_registers.A >> 7) != (operand >> 7);
 
-    set_status_flag(STATUS_C, (value & 0x100) >> 8);
-    set_status_flag(STATUS_V, overflow);
-    set_status_zn_flags(m_registers.A);
+    status_set_flag(STATUS_C, (value & 0x100) >> 8);
+    status_set_flag(STATUS_V, overflow);
+    status_set_zn_flags(m_registers.A);
 
     return true;
 }
@@ -662,63 +665,63 @@ bool CPU::op_sbc()
 {
     uint8_t operand = read(m_address) ^ 0xFF;
     bool sign = (m_registers.A & 0x80) == (operand & 0x80);
-    uint16_t value = m_registers.A + operand + (check_status_flag(STATUS_C) ? 1 : 0);
+    uint16_t value = m_registers.A + operand + (status_check_flag(STATUS_C) ? 1 : 0);
     m_registers.A = value & 0xFF;
     bool overflow = sign && (m_registers.A & 0x80) != (operand & 0x80);
 
-    set_status_flag(STATUS_C, (value & 0x100) >> 8);
-    set_status_flag(STATUS_V, overflow);
-    set_status_zn_flags(m_registers.A);
+    status_set_flag(STATUS_C, (value & 0x100) >> 8);
+    status_set_flag(STATUS_V, overflow);
+    status_set_zn_flags(m_registers.A);
 
     return true;
 }
 
 bool CPU::op_clc()
 {
-    set_status_flag(STATUS_C, false);
+    status_set_flag(STATUS_C, false);
     return false;
 }
 
 bool CPU::op_cld()
 {
-    set_status_flag(STATUS_D, false);
+    status_set_flag(STATUS_D, false);
     return false;
 }
 
 bool CPU::op_cli()
 {
-    set_status_flag(STATUS_I, false);
+    status_set_flag(STATUS_I, false);
     return false;
 }
 
 bool CPU::op_clv()
 {
-    set_status_flag(STATUS_V, false);
+    status_set_flag(STATUS_V, false);
     return false;
 }
 
 bool CPU::op_sec()
 {
-    set_status_flag(STATUS_C, true);
+    status_set_flag(STATUS_C, true);
     return false;
 }
 
 bool CPU::op_sed()
 {
-    set_status_flag(STATUS_D, true);
+    status_set_flag(STATUS_D, true);
     return false;
 }
 
 bool CPU::op_sei()
 {
-    set_status_flag(STATUS_I, true);
+    status_set_flag(STATUS_I, true);
     return false;
 }
 
 bool CPU::op_lda()
 {
     m_registers.A = read(m_address);
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return true;
 }
@@ -726,7 +729,7 @@ bool CPU::op_lda()
 bool CPU::op_ldx()
 {
     m_registers.X = read(m_address);
-    set_status_zn_flags(m_registers.X);
+    status_set_zn_flags(m_registers.X);
 
     return true;
 }
@@ -734,7 +737,7 @@ bool CPU::op_ldx()
 bool CPU::op_ldy()
 {
     m_registers.Y = read(m_address);
-    set_status_zn_flags(m_registers.Y);
+    status_set_zn_flags(m_registers.Y);
 
     return true;
 }
@@ -760,7 +763,7 @@ bool CPU::op_sty()
 bool CPU::op_tax()
 {
     m_registers.X = m_registers.A;
-    set_status_zn_flags(m_registers.X);
+    status_set_zn_flags(m_registers.X);
 
     return false;
 }
@@ -768,7 +771,7 @@ bool CPU::op_tax()
 bool CPU::op_tay()
 {
     m_registers.Y = m_registers.A;
-    set_status_zn_flags(m_registers.Y);
+    status_set_zn_flags(m_registers.Y);
 
     return false;
 }
@@ -776,7 +779,7 @@ bool CPU::op_tay()
 bool CPU::op_tsx()
 {
     m_registers.X = m_registers.SP;
-    set_status_zn_flags(m_registers.X);
+    status_set_zn_flags(m_registers.X);
 
     return false;
 }
@@ -784,7 +787,7 @@ bool CPU::op_tsx()
 bool CPU::op_txa()
 {
     m_registers.A = m_registers.X;
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -798,7 +801,7 @@ bool CPU::op_txs()
 bool CPU::op_tya()
 {
     m_registers.A = m_registers.Y;
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -825,9 +828,9 @@ bool CPU::op_jsr()
 
 bool CPU::op_brk()
 {
-    stack_push_word(m_registers.PC + 2);
-    stack_push(m_registers.P | STATUS_U | STATUS_B);
-    set_status_flag(STATUS_I, true);
+    stack_push_word(m_registers.PC + 1);
+    stack_push(m_registers.P | STATUS_B | STATUS_U);
+    status_set_flag(STATUS_I, true);
     m_registers.PC = read_word(IRQ_Vector);
 
     return false;
@@ -835,7 +838,7 @@ bool CPU::op_brk()
 
 bool CPU::op_rti()
 {
-    m_registers.P = stack_pop() & ~STATUS_U & ~STATUS_B;
+    stack_pop_status();
     m_registers.PC = stack_pop_word();
 
     return false;
@@ -845,8 +848,8 @@ bool CPU::op_cmp()
 {
     uint8_t operand = read(m_address);
     uint8_t value = m_registers.A - operand;
-    set_status_flag(STATUS_C, m_registers.A >= operand);
-    set_status_zn_flags(value);
+    status_set_flag(STATUS_C, m_registers.A >= operand);
+    status_set_zn_flags(value);
 
     return true;
 }
@@ -855,8 +858,8 @@ bool CPU::op_cpx()
 {
     uint8_t operand = read(m_address);
     uint8_t value = m_registers.X - operand;
-    set_status_flag(STATUS_C, m_registers.X >= operand);
-    set_status_zn_flags(value);
+    status_set_flag(STATUS_C, m_registers.X >= operand);
+    status_set_zn_flags(value);
 
     return false;
 }
@@ -865,8 +868,8 @@ bool CPU::op_cpy()
 {
     uint8_t operand = read(m_address);
     uint8_t value = m_registers.Y - operand;
-    set_status_flag(STATUS_C, m_registers.Y >= operand);
-    set_status_zn_flags(value);
+    status_set_flag(STATUS_C, m_registers.Y >= operand);
+    status_set_zn_flags(value);
 
     return false;
 }
@@ -874,7 +877,7 @@ bool CPU::op_cpy()
 bool CPU::op_and()
 {
     m_registers.A &= read(m_address);
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return true;
 }
@@ -882,7 +885,7 @@ bool CPU::op_and()
 bool CPU::op_eor()
 {
     m_registers.A ^= read(m_address);
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return true;
 }
@@ -890,7 +893,7 @@ bool CPU::op_eor()
 bool CPU::op_ora()
 {
     m_registers.A |= read(m_address);
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return true;
 }
@@ -899,17 +902,17 @@ bool CPU::op_asl()
 {
     if (m_addressing_mode == AM_IMPLIED)
     {
-        set_status_flag(STATUS_C, m_registers.A >> 7);
+        status_set_flag(STATUS_C, m_registers.A >> 7);
         m_registers.A <<= 1;
-        set_status_zn_flags(m_registers.A);
+        status_set_zn_flags(m_registers.A);
     }
     else
     {
         uint8_t operand = read(m_address);
         uint8_t value = operand << 1;
         write(m_address, value);
-        set_status_flag(STATUS_C, operand >> 7);
-        set_status_zn_flags(value);
+        status_set_flag(STATUS_C, operand >> 7);
+        status_set_zn_flags(value);
     }
 
     return false;
@@ -919,17 +922,17 @@ bool CPU::op_lsr()
 {
     if (m_addressing_mode == AM_IMPLIED)
     {
-        set_status_flag(STATUS_C, m_registers.A & 1);
+        status_set_flag(STATUS_C, m_registers.A & 1);
         m_registers.A >>= 1;
-        set_status_zn_flags(m_registers.A);
+        status_set_zn_flags(m_registers.A);
     }
     else
     {
         uint8_t operand = read(m_address);
         uint8_t value = operand >> 1;
         write(m_address, value);
-        set_status_flag(STATUS_C, operand & 1);
-        set_status_zn_flags(value);
+        status_set_flag(STATUS_C, operand & 1);
+        status_set_zn_flags(value);
     }
 
     return false;
@@ -937,20 +940,20 @@ bool CPU::op_lsr()
 
 bool CPU::op_rol()
 {
-    uint8_t carry = check_status_flag(STATUS_C);
+    uint8_t carry = status_check_flag(STATUS_C);
     if (m_addressing_mode == AM_IMPLIED)
     {
-        set_status_flag(STATUS_C, m_registers.A >> 7);
+        status_set_flag(STATUS_C, m_registers.A >> 7);
         m_registers.A = (m_registers.A << 1) | carry;
-        set_status_zn_flags(m_registers.A);
+        status_set_zn_flags(m_registers.A);
     }
     else
     {
         uint8_t operand = read(m_address);
         uint8_t value = (operand << 1) | carry;
         write(m_address, value);
-        set_status_flag(STATUS_C, operand >> 7);
-        set_status_zn_flags(value);
+        status_set_flag(STATUS_C, operand >> 7);
+        status_set_zn_flags(value);
     }
 
     return false;
@@ -958,20 +961,20 @@ bool CPU::op_rol()
 
 bool CPU::op_ror()
 {
-    uint8_t carry = check_status_flag(STATUS_C);
+    uint8_t carry = status_check_flag(STATUS_C);
     if (m_addressing_mode == AM_IMPLIED)
     {
-        set_status_flag(STATUS_C, m_registers.A & 1);
+        status_set_flag(STATUS_C, m_registers.A & 1);
         m_registers.A = (carry << 7) | (m_registers.A >> 1);
-        set_status_zn_flags(m_registers.A);
+        status_set_zn_flags(m_registers.A);
     }
     else
     {
         uint8_t operand = read(m_address);
         uint8_t value = (carry << 7) | (operand >> 1);
         write(m_address, value);
-        set_status_flag(STATUS_C, operand & 1);
-        set_status_zn_flags(value);
+        status_set_flag(STATUS_C, operand & 1);
+        status_set_zn_flags(value);
     }
 
     return false;
@@ -979,9 +982,20 @@ bool CPU::op_ror()
 
 bool CPU::op_bit()
 {
-    uint8_t operand = read(m_address);
-    m_registers.P = (m_registers.P & ~0xC0) | (operand & 0xC0);
-    set_status_flag(STATUS_Z, !(m_registers.A & operand));
+    uint8_t value = read(m_address);
+
+    status_set_flag(STATUS_Z, false);
+    status_set_flag(STATUS_V, false);
+    status_set_flag(STATUS_N, false);
+
+    if ((m_registers.A & value) == 0)
+        status_set_flag(STATUS_Z, true);
+
+    if (value & 0x40)
+        status_set_flag(STATUS_V, true);
+
+    if (value & 0x80)
+        status_set_flag(STATUS_N, true);
 
     return false;
 }
@@ -990,7 +1004,7 @@ bool CPU::op_lax()
 {
     m_registers.A = read(m_address);
     m_registers.X = m_registers.A;
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return true;
 }
@@ -1005,10 +1019,10 @@ bool CPU::op_axs()
 {
     uint8_t value = read(m_address);
     m_registers.X &= m_registers.A;
-    set_status_flag(STATUS_C, m_registers.X >= value);
+    status_set_flag(STATUS_C, m_registers.X >= value);
 
     m_registers.X -= value;
-    set_status_zn_flags(m_registers.X);
+    status_set_zn_flags(m_registers.X);
 
     return false;
 }
@@ -1018,8 +1032,8 @@ bool CPU::op_dcp()
     uint8_t operand = read(m_address) - 1;
     write(m_address, operand);
     uint8_t value = m_registers.A - operand;
-    set_status_flag(STATUS_C, m_registers.A >= operand);
-    set_status_zn_flags(value);
+    status_set_flag(STATUS_C, m_registers.A >= operand);
+    status_set_zn_flags(value);
 
     return false;
 }
@@ -1031,13 +1045,13 @@ bool CPU::op_isc()
 
     inc ^= 0xFF;
     bool sign = (m_registers.A & 0x80) == (inc & 0x80);
-    uint16_t value = m_registers.A + inc + check_status_flag(STATUS_C);
+    uint16_t value = m_registers.A + inc + status_check_flag(STATUS_C);
     m_registers.A = value & 0xFF;
     bool overflow = sign && (m_registers.A & 0x80) != (inc & 0x80);
 
-    set_status_flag(STATUS_C, (value & 0x100) >> 8);
-    set_status_flag(STATUS_V, overflow);
-    set_status_zn_flags(m_registers.A);
+    status_set_flag(STATUS_C, (value & 0x100) >> 8);
+    status_set_flag(STATUS_V, overflow);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -1046,10 +1060,10 @@ bool CPU::op_slo()
 {
     uint8_t operand = read(m_address);
     uint8_t value = operand << 1;
-    set_status_flag(STATUS_C, operand >> 7);
+    status_set_flag(STATUS_C, operand >> 7);
     write(m_address, value);
     m_registers.A |= value;
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -1057,11 +1071,11 @@ bool CPU::op_slo()
 bool CPU::op_rla()
 {
     uint8_t operand = read(m_address);
-    uint8_t value = (operand << 1) | (check_status_flag(STATUS_C) ? 1 : 0);
-    set_status_flag(STATUS_C, operand >> 7);
+    uint8_t value = (operand << 1) | (status_check_flag(STATUS_C) ? 1 : 0);
+    status_set_flag(STATUS_C, operand >> 7);
     write(m_address, value);
     m_registers.A &= value;
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -1070,10 +1084,10 @@ bool CPU::op_sre()
 {
     uint8_t operand = read(m_address);
     uint8_t value = operand >> 1;
-    set_status_flag(STATUS_C, operand & 1);
+    status_set_flag(STATUS_C, operand & 1);
     write(m_address, value);
     m_registers.A ^= value;
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -1081,18 +1095,18 @@ bool CPU::op_sre()
 bool CPU::op_rra()
 {
     uint8_t operand = read(m_address);
-    uint8_t value = ((check_status_flag(STATUS_C) ? 1 : 0) << 7) | (operand >> 1);
-    set_status_flag(STATUS_C, operand & 1);
+    uint8_t value = ((status_check_flag(STATUS_C) ? 1 : 0) << 7) | (operand >> 1);
+    status_set_flag(STATUS_C, operand & 1);
     write(m_address, value);
 
     bool sign = (m_registers.A >> 7) == (value >> 7);
-    uint16_t result = m_registers.A + value + (check_status_flag(STATUS_C) ? 1 : 0);
+    uint16_t result = m_registers.A + value + (status_check_flag(STATUS_C) ? 1 : 0);
     m_registers.A = result & 0xFF;
     bool overflow = sign && (m_registers.A >> 7) != (value >> 7);
 
-    set_status_flag(STATUS_C, (result & 0x100) >> 8);
-    set_status_flag(STATUS_V, overflow);
-    set_status_zn_flags(m_registers.A);
+    status_set_flag(STATUS_C, (result & 0x100) >> 8);
+    status_set_flag(STATUS_V, overflow);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -1100,8 +1114,8 @@ bool CPU::op_rra()
 bool CPU::op_anc()
 {
     m_registers.A &= read(m_address);
-    set_status_flag(STATUS_C, m_registers.A >> 7);
-    set_status_zn_flags(m_registers.A);
+    status_set_flag(STATUS_C, m_registers.A >> 7);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -1109,9 +1123,9 @@ bool CPU::op_anc()
 bool CPU::op_alr()
 {
     m_registers.A &= read(m_address);
-    set_status_flag(STATUS_C, m_registers.A & 1);
+    status_set_flag(STATUS_C, m_registers.A & 1);
     m_registers.A >>= 1;
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -1119,14 +1133,14 @@ bool CPU::op_alr()
 bool CPU::op_arr()
 {
     m_registers.A &= read(m_address);
-    m_registers.A = ((check_status_flag(STATUS_C) ? 1 : 0) << 7) | (m_registers.A >> 1);
+    m_registers.A = ((status_check_flag(STATUS_C) ? 1 : 0) << 7) | (m_registers.A >> 1);
 
     bool bit6 = (m_registers.A >> 6) & 1;
     bool bit5 = (m_registers.A >> 5) & 1;
 
-    set_status_flag(STATUS_C, bit6);
-    set_status_flag(STATUS_V, bit5 ^ bit6);
-    set_status_zn_flags(m_registers.A);
+    status_set_flag(STATUS_C, bit6);
+    status_set_flag(STATUS_V, bit5 ^ bit6);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -1135,7 +1149,7 @@ bool CPU::op_xaa()
 {
     m_registers.A = m_registers.X;
     m_registers.A &= read(m_address);
-    set_status_zn_flags(m_registers.A);
+    status_set_zn_flags(m_registers.A);
 
     return false;
 }
@@ -1146,7 +1160,7 @@ bool CPU::op_las()
     m_registers.A = value;
     m_registers.X = value;
     m_registers.SP = value;
-    set_status_zn_flags(value);
+    status_set_zn_flags(value);
 
     return true;
 }
