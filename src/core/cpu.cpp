@@ -3,7 +3,7 @@
 #include "logger.hpp"
 
 CPU::Instruction CPU::m_instruction_table[256] = {
-    { &CPU::read_immediate,        &CPU::op_brk, "BRK", CPU::AM_IMMEDIATE,          7 }, // 0x00
+    { &CPU::read_implied,          &CPU::op_brk, "BRK", CPU::AM_IMPLIED,            7 }, // 0x00
     { &CPU::read_indexed_indirect, &CPU::op_ora, "ORA", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x01
     { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x02
     { &CPU::read_indexed_indirect, &CPU::op_slo, "SLO", CPU::AM_INDEXED_INDIRECT,   8 }, // 0x03
@@ -288,25 +288,21 @@ void CPU::irq()
     if (check_status_flag(STATUS_I))
         return;
 
-    Word address;
-    address.value = m_registers.PC;
-    stack_push(address.byte_high);
-    stack_push(address.byte_low);
+    stack_push_word(m_registers.PC);
     stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
-    m_registers.PC = read_word(IRQ_Vector);
+    set_status_flag(STATUS_B, false);
     set_status_flag(STATUS_I, true);
+    m_registers.PC = read_word(IRQ_Vector);
     m_cycles = 7;
 }
 
 void CPU::nmi()
 {
-    Word address;
-    address.value = m_registers.PC;
-    stack_push(address.byte_high);
-    stack_push(address.byte_low);
+    stack_push_word(m_registers.PC);
     stack_push((m_registers.P | STATUS_U) & ~STATUS_B);
-    m_registers.PC = read_word(NMI_Vector);
+    set_status_flag(STATUS_B, false);
     set_status_flag(STATUS_I, true);
+    m_registers.PC = read_word(NMI_Vector);
     m_cycles = 7;
 }
 
@@ -366,10 +362,24 @@ inline void CPU::stack_push(uint8_t data)
     m_registers.SP--;
 }
 
+inline void CPU::stack_push_word(uint16_t data)
+{
+    stack_push(data >> 8);
+    stack_push(data & 0x00FF);
+}
+
 inline uint8_t CPU::stack_pop()
 {
     m_registers.SP++;
     return read(0x100 | m_registers.SP);
+}
+
+inline uint16_t CPU::stack_pop_word()
+{
+    uint16_t low = static_cast<uint16_t>(stack_pop());
+    uint16_t high = static_cast<uint16_t>(stack_pop());
+
+    return (high << 8) | low;
 }
 
 bool CPU::read_implied()
@@ -385,22 +395,20 @@ bool CPU::read_immediate()
 
 bool CPU::read_absolute()
 {
-    Word address;
-    address.byte_low = read(m_registers.PC++);
-    address.byte_high = read(m_registers.PC++);
-    m_address = address.value;
+    m_address = read_word(m_registers.PC);
+    m_registers.PC += 2;
 
     return false;
 }
 
 bool CPU::read_absolute_x()
 {
-    Word address;
-    address.byte_low = read(m_registers.PC++);
-    address.byte_high = read(m_registers.PC++);
-    m_address = address.value + m_registers.X;
+    read_absolute();
 
-    if ((address.value & 0xFF00) != (m_address & 0xFF00))
+    const uint16_t base = (m_address & 0xFF00);
+    m_address += m_registers.X;
+
+    if (base != (m_address & 0xFF00))
         return true;
 
     return false;
@@ -408,12 +416,12 @@ bool CPU::read_absolute_x()
 
 bool CPU::read_absolute_y()
 {
-    Word address;
-    address.byte_low = read(m_registers.PC++);
-    address.byte_high = read(m_registers.PC++);
-    m_address = address.value + m_registers.Y;
+    read_absolute();
 
-    if ((address.value & 0xFF00) != (m_address & 0xFF00))
+    const uint16_t base = (m_address & 0xFF00);
+    m_address += m_registers.Y;
+
+    if (base != (m_address & 0xFF00))
         return true;
 
     return false;
@@ -432,67 +440,50 @@ bool CPU::read_relative()
 
 bool CPU::read_zeropage()
 {
-    m_address = read(m_registers.PC++);
-    m_address &= 0xFF;
-
+    m_address = read(m_registers.PC++) & 0x00FF;
     return false;
 }
 
 bool CPU::read_zeropage_x()
 {
-    m_address = read(m_registers.PC++) + m_registers.X;
-    m_address &= 0xFF;
-
+    m_address = (read(m_registers.PC++) + m_registers.X) & 0x00FF;
     return false;
 }
 
 bool CPU::read_zeropage_y()
 {
-    m_address = read(m_registers.PC++) + m_registers.Y;
-    m_address &= 0xFF;
-
+    m_address = (read(m_registers.PC++) + m_registers.Y) & 0x00FF;
     return false;
 }
 
 bool CPU::read_indirect()
 {
-    Word pointer;
-    pointer.byte_low = read(m_registers.PC++);
-    pointer.byte_high = read(m_registers.PC++);
-
-    // 6502 page boundary hardware bug
-    uint16_t byte_high = pointer.byte_low == 0xFF ? pointer.value & 0xFF00 : pointer.value + 1;
-
-    Word address;
-    address.byte_low = read(pointer.value);
-    address.byte_high = read(byte_high);
-    m_address = address.value;
+    uint16_t low = read_word(m_registers.PC);
+    uint16_t high = (low & 0xFF00) | ((low + 1) & 0x00FF);
+    m_registers.PC += 2;
+    m_address = static_cast<uint16_t>(read(low)) | static_cast<uint16_t>(read(high)) << 8;
 
     return false;
 }
 
 bool CPU::read_indexed_indirect()
 {
-    uint8_t zpg = m_registers.X + read(m_registers.PC++);
-
-    Word address;
-    address.byte_low = read(zpg++);
-    address.byte_high = read(zpg);
-    m_address = address.value;
+    uint16_t low = static_cast<uint16_t>(read(m_registers.PC++) + m_registers.X) & 0x00FF;
+    uint16_t high = static_cast<uint16_t>(low + 1) & 0x00FF;
+    m_address = static_cast<uint16_t>(read(low)) | static_cast<uint16_t>(read(high)) << 8;
 
     return false;
 }
 
 bool CPU::read_indirect_indexed()
 {
-    uint8_t zpg = read(m_registers.PC++);
+    uint16_t low = static_cast<uint16_t>(read(m_registers.PC++));
+    uint16_t high = static_cast<uint16_t>(low + 1) & 0x00FF;
+    uint16_t address = static_cast<uint16_t>(read(low)) | static_cast<uint16_t>(read(high)) << 8;
+    uint16_t base = address & 0xFF00;
+    m_address = address + m_registers.Y;
 
-    Word address;
-    address.byte_low = read(zpg++);
-    address.byte_high = read(zpg);
-    m_address = address.value + m_registers.Y;
-
-    if ((address.value & 0xFF00) != (m_address & 0xFF00))
+    if (base != (m_address & 0xFF00))
         return true;
 
     return false;
@@ -820,20 +811,13 @@ bool CPU::op_jmp()
 
 bool CPU::op_rts()
 {
-    Word address;
-    address.byte_low = stack_pop();
-    address.byte_high = stack_pop();
-    m_registers.PC = address.value + 1;
-
+    m_registers.PC = stack_pop_word() + 1;
     return false;
 }
 
 bool CPU::op_jsr()
 {
-    Word address;
-    address.value = m_registers.PC - 1;
-    stack_push(address.byte_high);
-    stack_push(address.byte_low);
+    stack_push_word(m_registers.PC - 1);
     m_registers.PC = m_address;
 
     return false;
@@ -841,25 +825,18 @@ bool CPU::op_jsr()
 
 bool CPU::op_brk()
 {
-    Word address;
-    address.value = m_registers.PC + 1;
-    stack_push(address.byte_high);
-    stack_push(address.byte_low);
+    stack_push_word(m_registers.PC + 2);
     stack_push(m_registers.P | STATUS_U | STATUS_B);
-    m_registers.PC = read_word(IRQ_Vector);
     set_status_flag(STATUS_I, true);
+    m_registers.PC = read_word(IRQ_Vector);
 
     return false;
 }
 
 bool CPU::op_rti()
 {
-    m_registers.P = (stack_pop() | STATUS_U) & ~STATUS_B;
-
-    Word address;
-    address.byte_low = stack_pop();
-    address.byte_high = stack_pop();
-    m_registers.PC = address.value;
+    m_registers.P = stack_pop() & ~STATUS_U & ~STATUS_B;
+    m_registers.PC = stack_pop_word();
 
     return false;
 }
@@ -1176,18 +1153,15 @@ bool CPU::op_las()
 
 bool CPU::op_ahx()
 {
-    Word address;
-    address.value = m_address + 1;
-    write(m_address, m_registers.A & m_registers.X & address.byte_high);
-
+    uint8_t high = static_cast<uint8_t>(m_address & 0xFF00);
+    write(m_address, m_registers.A & m_registers.X & (high + 1));
     return false;
 }
 
 bool CPU::op_tas()
 {
-    Word address;
-    address.value = m_address + 1;
-    write(m_address, m_registers.A & m_registers.X & address.byte_high);
+    uint8_t high = static_cast<uint8_t>(m_address & 0xFF00);
+    write(m_address, m_registers.A & m_registers.X & (high + 1));
     m_registers.SP = m_registers.X & m_registers.A;
 
     return false;
@@ -1195,18 +1169,16 @@ bool CPU::op_tas()
 
 bool CPU::op_shy()
 {
-    Word address;
-    address.value = m_address;
-    write(m_address, m_registers.Y & (address.byte_high + 1));
+    uint8_t high = static_cast<uint8_t>(m_address & 0xFF00);
+    write(m_address, m_registers.Y & (high + 1));
 
     return false;
 }
 
 bool CPU::op_shx()
 {
-    Word address;
-    address.value = m_address;
-    write(m_address, m_registers.X & (address.byte_high + 1));
+    uint8_t high = static_cast<uint8_t>(m_address & 0xFF00);
+    write(m_address, m_registers.X & (high + 1));
 
     return false;
 }

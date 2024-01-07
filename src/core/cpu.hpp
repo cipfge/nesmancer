@@ -63,16 +63,6 @@ public:
     uint8_t cycles() const { return m_cycles; }
 
 private:
-    union Word
-    {
-        struct
-        {
-            uint8_t byte_low;
-            uint8_t byte_high;
-        };
-        uint16_t value = 0;
-    };
-
     struct Instruction
     {
         bool (CPU::*read_address)(void) = nullptr;
@@ -100,7 +90,9 @@ private:
     void write(uint16_t address, uint8_t data);
 
     void stack_push(uint8_t data);
+    void stack_push_word(uint16_t data);
     uint8_t stack_pop();
+    uint16_t stack_pop_word();
 
     // Addressing modes
     bool read_implied();
