@@ -1153,32 +1153,36 @@ bool CPU::op_las()
 
 bool CPU::op_ahx()
 {
-    uint8_t high = static_cast<uint8_t>(m_address & 0xFF00);
-    write(m_address, m_registers.A & m_registers.X & (high + 1));
+    write(m_address, ((m_address >> 8) + 1) & m_registers.A & m_registers.X);
     return false;
 }
 
 bool CPU::op_tas()
 {
-    uint8_t high = static_cast<uint8_t>(m_address & 0xFF00);
-    write(m_address, m_registers.A & m_registers.X & (high + 1));
     m_registers.SP = m_registers.X & m_registers.A;
+    write(m_address, m_registers.SP & ((m_address >> 8) + 1));
 
     return false;
 }
 
 bool CPU::op_shy()
 {
-    uint8_t high = static_cast<uint8_t>(m_address & 0xFF00);
-    write(m_address, m_registers.Y & (high + 1));
+    uint8_t low = m_address & 0x00FF;
+    uint8_t high = m_address >> 8;
+    uint8_t data = m_registers.Y & (high + 1);
+
+    write(((m_registers.Y & (high + 1)) << 8) | low, data);
 
     return false;
 }
 
 bool CPU::op_shx()
 {
-    uint8_t high = static_cast<uint8_t>(m_address & 0xFF00);
-    write(m_address, m_registers.X & (high + 1));
+    uint8_t low = m_address & 0x00FF;
+    uint8_t high = m_address >> 8;
+    uint8_t data = m_registers.X & (high + 1);
+
+    write(((m_registers.X & (high + 1)) << 8) | low, data);
 
     return false;
 }
