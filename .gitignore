@@ -1,16 +1,20 @@
 # Directories
 .kdev4/
 .vs/
-.vscode/
 build/
 thirdparty/SDL2*/
 
 # Files
 *.kdev4
 *.exe
+*.dll
 *.lib
 *.user
 *.DS_Store
+*.zip
+*.nes
+*.o
+*.pdb
 
 # Generated files
 src/version.hpp
