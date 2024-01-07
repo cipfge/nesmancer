@@ -16,8 +16,10 @@ enum MapperId
     MAPPER_MCC1,
     MAPPER_UXROM,
     MAPPER_CNROM,
-    MAPPER_MMC3
-    // TODO: Support more mappers
+    MAPPER_MMC3,
+    MAPPER_6,
+    MAPPER_MMC5,
+    MAPPER_AXROM
 };
 
 class Mapper

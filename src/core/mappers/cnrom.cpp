@@ -1,8 +1,8 @@
 #include "cnrom.hpp"
 
 CNROM::CNROM(uint8_t prg_bank_count,
-    uint8_t chr_bank_count,
-    MirroringMode mirroring_mode)
+             uint8_t chr_bank_count,
+             MirroringMode mirroring_mode)
     : Mapper(MAPPER_CNROM, prg_bank_count, chr_bank_count, mirroring_mode)
 {
 }

@@ -4,6 +4,7 @@
 #include "mmc3.hpp"
 #include "uxrom.hpp"
 #include "cnrom.hpp"
+#include "axrom.hpp"
 #include "logger.hpp"
 #include <fstream>
 #include <cstring>
@@ -158,6 +159,12 @@ bool Cartridge::load_from_file(const std::string& file_path)
         m_mapper = std::make_shared<MMC3>(header.prg_banks,
                                           header.chr_banks,
                                           header.get_mirroring_mode());
+        break;
+
+    case MAPPER_AXROM:
+        m_mapper = std::make_shared<AxROM>(header.prg_banks,
+                                           header.chr_banks,
+                                           header.get_mirroring_mode());
         break;
 
     default:

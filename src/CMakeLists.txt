@@ -14,6 +14,8 @@ set(EMU_SOURCE_FILES
     "core/mappers/uxrom.hpp"
     "core/mappers/cnrom.cpp"
     "core/mappers/cnrom.hpp"
+    "core/mappers/axrom.cpp"
+    "core/mappers/axrom.hpp"
     "core/apu.cpp"
     "core/apu.hpp"
     "core/cartridge.cpp"

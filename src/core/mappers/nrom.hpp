@@ -11,12 +11,12 @@ public:
 
     virtual ~NROM();
 
-    virtual uint32_t read(uint16_t address) override;
-    virtual uint32_t write(uint16_t address, uint8_t data) override;
-    virtual bool irq() override { return false; }
-    virtual void irq_clear() override {}
-    virtual void scanline() override {}
-    virtual std::string name() const override { return "NROM"; }
+    uint32_t read(uint16_t address) override;
+    uint32_t write(uint16_t address, uint8_t data) override;
+    bool irq() override { return false; }
+    void irq_clear() override {}
+    void scanline() override {}
+    std::string name() const override { return "NROM"; }
 
 private:
     uint32_t map_address(uint16_t address) const;
