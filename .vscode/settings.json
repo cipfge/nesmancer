@@ -1,5 +1,5 @@
 {
-    "cmake.configureArgs": [
-        "-DCMAKE_PREFIX_PATH=${workspaceFolder}/thirdparty"
-    ]
+    "cmake.environment": {
+        "SDL2_DIR": "${workspaceFolder}/thirdparty"
+    }
 }
