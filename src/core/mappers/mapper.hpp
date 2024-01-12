@@ -1,14 +1,8 @@
 #pragma once
 
+#include "types.hpp"
 #include <cstdint>
 #include <string>
-
-enum class MirroringMode
-{
-    Horizontal,
-    Vertical,
-    FourScreens
-};
 
 enum MapperId
 {
