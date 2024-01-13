@@ -74,6 +74,11 @@ uint32_t NesFile::program_rom_size() const
     }
 }
 
+uint32_t NesFile::program_ram_size() const
+{
+    return m_header.bytes[2] ? m_header.bytes[2] * 0x2000 : 0x2000;
+}
+
 uint32_t NesFile::character_rom_size() const
 {
     switch (version())

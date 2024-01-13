@@ -2,21 +2,16 @@
 #include "nes_file.hpp"
 #include "nrom.hpp"
 #include "mmc1.hpp"
-#include "mmc3.hpp"
 #include "uxrom.hpp"
 #include "cnrom.hpp"
-#include "axrom.hpp"
 #include "logger.hpp"
 #include <fstream>
 
 void Cartridge::reset()
 {
-    m_prg_ram.fill(0x00);
-    m_prg_rom.clear();
-    m_chr_ram.fill(0x00);
-    m_chr_rom.clear();
-    m_mapper.reset();
-    m_use_chr_ram = false;
+    m_program_rom.clear();
+    m_character_rom.clear();
+    m_use_character_ram = false;
     m_loaded = false;
 }
 
@@ -52,28 +47,20 @@ bool Cartridge::load_from_file(const std::string& file_path)
 
     switch (nes_file.mapper_id())
     {
-    case MAPPER_NROM:
-        m_mapper = std::make_shared<NROM>(nes_file.program_bank_count(),
-                                          nes_file.character_bank_count(),
-                                          nes_file.mirroring_mode());
+    case 0:
+        m_mapper = std::make_unique<NROM>(nes_file);
         break;
 
-    case MAPPER_MCC1:
-        m_mapper = std::make_shared<MMC1>(nes_file.program_bank_count(),
-                                          nes_file.character_bank_count(),
-                                          nes_file.mirroring_mode());
+    case 1:
+        m_mapper = std::make_unique<MMC1>(nes_file);
         break;
 
-    case MAPPER_UXROM:
-        m_mapper = std::make_shared<UxROM>(nes_file.program_bank_count(),
-                                           nes_file.character_bank_count(),
-                                           nes_file.mirroring_mode());
+    case 2:
+        m_mapper = std::make_unique<UxROM>(nes_file);
         break;
 
-    case MAPPER_CNROM:
-        m_mapper = std::make_shared<CNROM>(nes_file.program_bank_count(),
-                                           nes_file.character_bank_count(),
-                                           nes_file.mirroring_mode());
+    case 3:
+        m_mapper = std::make_unique<CNROM>(nes_file);
         break;
 
     default:
@@ -93,8 +80,8 @@ bool Cartridge::load_from_file(const std::string& file_path)
         return false;
     }
 
-    m_prg_rom.resize(nes_file.program_rom_size());
-    if (!stream.read(reinterpret_cast<char*>(m_prg_rom.data()), m_prg_rom.size()))
+    m_program_rom.resize(nes_file.program_rom_size());
+    if (!stream.read(reinterpret_cast<char*>(m_program_rom.data()), m_program_rom.size()))
     {
         LOG_ERROR("Error while reading PRG data from %s", file_path.c_str());
         return false;
@@ -102,13 +89,12 @@ bool Cartridge::load_from_file(const std::string& file_path)
 
     if (nes_file.character_rom_size() == 0)
     {
-        m_use_chr_ram = true;
+        m_use_character_ram = true;
     }
     else
     {
-        m_use_chr_ram = false;
-        m_chr_rom.resize(nes_file.character_rom_size());
-        if (!stream.read(reinterpret_cast<char*>(m_chr_rom.data()), m_chr_rom.size()))
+        m_character_rom.resize(nes_file.character_rom_size());
+        if (!stream.read(reinterpret_cast<char*>(m_character_rom.data()), m_character_rom.size()))
         {
             LOG_ERROR("Error while reading CHR data from %s", file_path.c_str());
             return false;
@@ -125,9 +111,9 @@ uint8_t Cartridge::cpu_read(uint16_t address)
     uint32_t mapped_address = m_mapper->read(address);
 
     if (address >= 0x6000 && address < 0x8000)
-        return m_prg_ram[mapped_address];
+        return m_program_ram[mapped_address];
     else if (address >= 0x8000)
-        return m_prg_rom[mapped_address];
+        return m_program_rom[mapped_address];
 
     return 0;
 }
@@ -137,7 +123,7 @@ void Cartridge::cpu_write(uint16_t address, uint8_t data)
     uint32_t mapped_address = m_mapper->write(address, data);
 
     if (address >= 0x6000 && address < 0x8000)
-        m_prg_ram[mapped_address] = data;
+        m_program_ram[mapped_address] = data;
 }
 
 uint8_t Cartridge::ppu_read(uint16_t address)
@@ -146,13 +132,13 @@ uint8_t Cartridge::ppu_read(uint16_t address)
 
     if (address < 0x2000)
     {
-        if (m_use_chr_ram)
-            return m_chr_ram[mapped_address];
+        if (m_use_character_ram)
+            return m_character_ram[mapped_address];
         else
-            return m_chr_rom[mapped_address];
+            return m_character_rom[mapped_address];
     }
 
-    return m_vram[mapped_address];
+    return m_video_ram[mapped_address];
 }
 
 void Cartridge::ppu_write(uint16_t address, uint8_t data)
@@ -161,11 +147,11 @@ void Cartridge::ppu_write(uint16_t address, uint8_t data)
 
     if (address < 0x2000)
     {
-        if (m_use_chr_ram)
-            m_chr_ram[mapped_address] = data;
+        if (m_use_character_ram)
+            m_character_ram[mapped_address] = data;
     }
     else
-        m_vram[mapped_address] = data;
+        m_video_ram[mapped_address] = data;
 }
 
 bool Cartridge::irq()
@@ -177,14 +163,12 @@ bool Cartridge::irq()
 
 void Cartridge::irq_clear()
 {
-    if (!m_loaded)
-        return;
-    m_mapper->irq_clear();
+    if (m_mapper)
+        m_mapper->irq_clear();
 }
 
 void Cartridge::scanline()
 {
-    if (!m_loaded)
-        return;
-    m_mapper->scanline();
+    if (m_mapper)
+        m_mapper->scanline();
 }

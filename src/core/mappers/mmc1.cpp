@@ -1,17 +1,6 @@
 #include "mmc1.hpp"
 #include "logger.hpp"
 
-MMC1::MMC1(uint8_t prg_bank_count,
-           uint8_t chr_bank_count,
-           MirroringMode mirroring_mode)
-    : Mapper(MAPPER_MCC1, prg_bank_count, chr_bank_count, mirroring_mode)
-{
-}
-
-MMC1::~MMC1()
-{
-}
-
 uint32_t MMC1::read(uint16_t address)
 {
     return map_address(address);
@@ -38,11 +27,11 @@ uint32_t MMC1::write(uint16_t address, uint8_t data)
                 if (address < 0xA000)
                     m_control_register = m_shift_register;
                 else if (address < 0xC000)
-                    m_chr_bank0 = m_shift_register;
+                    m_character_bank0 = m_shift_register;
                 else if (address < 0xE000)
-                    m_chr_bank1 = m_shift_register;
+                    m_character_bank1 = m_shift_register;
                 else
-                    m_prg_bank = m_shift_register;
+                    m_program_bank = m_shift_register;
 
                 m_shift_register = 0;
                 m_shift_count = 0;
@@ -60,13 +49,13 @@ uint32_t MMC1::map_address(uint16_t address) const
         if ((m_control_register >> 4) & 0x1)
         {
             if (address < 0x1000)
-                return address + m_chr_bank0 * Size_4KB;
+                return address + m_character_bank0 * 0x1000;
             else
-                return (address - 0x1000) + m_chr_bank1 * Size_4KB;
+                return (address - 0x1000) + m_character_bank1 * 0x1000;
         }
         else
         {
-            return address + m_chr_bank0 * Size_8KB;
+            return address + m_character_bank0 * 0x2000;
         }
     }
     else if (address < 0x3F00)
@@ -105,9 +94,9 @@ uint32_t MMC1::map_address(uint16_t address) const
         switch (bank_mode)
         {
         case 0:
-        case 1: return (address - 0x8000) + ((m_prg_bank & 0x0F) * Size_32KB);
+        case 1: return (address - 0x8000) + ((m_program_bank & 0x0F) * 0x8000);
         case 2: return address - 0x8000;
-        case 3: return (address - 0x8000) + ((m_prg_bank & 0x0F) * Size_16KB);
+        case 3: return (address - 0x8000) + ((m_program_bank & 0x0F) * 0x4000);
         default:
             LOG_ERROR("Invalid PRG bank mode %u", bank_mode);
             return 0;
@@ -119,9 +108,9 @@ uint32_t MMC1::map_address(uint16_t address) const
         switch (bank_mode)
         {
         case 0:
-        case 1: return (address - 0x8000) + ((m_prg_bank & 0x0F) * Size_32KB);
-        case 2: return (address - 0xC000) + ((m_prg_bank & 0x0F) * Size_16KB);
-        case 3: return (address - 0xC000) + ((m_prg_bank_count - 1) * Size_16KB);
+        case 1: return (address - 0x8000) + ((m_program_bank & 0x0F) * 0x8000);
+        case 2: return (address - 0xC000) + ((m_program_bank & 0x0F) * 0x4000);
+        case 3: return (address - 0xC000) + ((m_program_bank_count - 1) * 0x4000);
         default:
             LOG_ERROR("Invalid PRG bank mode %u", bank_mode);
             return 0;

@@ -2,20 +2,15 @@ find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
 find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
 
 set(EMU_SOURCE_FILES
-    "core/mappers/mapper.cpp"
     "core/mappers/mapper.hpp"
     "core/mappers/mmc1.cpp"
     "core/mappers/mmc1.hpp"
-    "core/mappers/mmc3.cpp"
-    "core/mappers/mmc3.hpp"
     "core/mappers/nrom.cpp"
     "core/mappers/nrom.hpp"
     "core/mappers/uxrom.cpp"
     "core/mappers/uxrom.hpp"
     "core/mappers/cnrom.cpp"
     "core/mappers/cnrom.hpp"
-    "core/mappers/axrom.cpp"
-    "core/mappers/axrom.hpp"
     "core/apu.cpp"
     "core/apu.hpp"
     "core/cartridge.cpp"

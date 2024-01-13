@@ -1,16 +1,5 @@
 #include "uxrom.hpp"
 
-UxROM::UxROM(uint8_t prg_bank_count,
-             uint8_t chr_bank_count,
-             MirroringMode mirroring_mode)
-    : Mapper(MAPPER_UXROM, prg_bank_count, chr_bank_count, mirroring_mode)
-{
-}
-
-UxROM::~UxROM()
-{
-}
-
 uint32_t UxROM::read(uint16_t address)
 {
     return map_address(address);
@@ -19,7 +8,7 @@ uint32_t UxROM::read(uint16_t address)
 uint32_t UxROM::write(uint16_t address, uint8_t data)
 {
     if (address >= 0x8000)
-        m_prg_bank = data;
+        m_program_bank = data;
 
     return map_address(address);
 }
@@ -46,7 +35,7 @@ uint32_t UxROM::map_address(uint16_t address) const
     else if (address < 0x8000)
         return address - 0x6000;
     else if (address < 0xC000)
-        return (address - 0x8000) + (m_prg_bank * Size_16KB);
+        return (address - 0x8000) + (m_program_bank * 0x4000);
     else
-        return (address - 0xC000) + ((m_prg_bank_count - 1) * Size_16KB);
+        return (address - 0xC000) + ((m_program_bank_count - 1) * 0x4000);
 }

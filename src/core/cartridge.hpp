@@ -15,6 +15,7 @@ public:
 
     void reset();
     bool load_from_file(const std::string& file_path);
+    bool loaded() const { return m_loaded; }
 
     uint8_t cpu_read(uint16_t address);
     void cpu_write(uint16_t address, uint8_t data);
@@ -25,16 +26,16 @@ public:
     void irq_clear();
     void scanline();
 
-    bool is_loaded() const { return m_loaded; }
-
 private:
-    std::array<uint8_t, 0x4000> m_prg_ram;
-    std::vector<uint8_t> m_prg_rom;
-    std::array<uint8_t, 0x4000> m_chr_ram;
-    std::vector<uint8_t> m_chr_rom;
-    std::array<uint8_t, 0x800> m_vram;
-    std::shared_ptr<Mapper> m_mapper = nullptr;
+    std::unique_ptr<Mapper> m_mapper = nullptr;
 
-    bool m_use_chr_ram = false;
+    bool m_use_character_ram = false;
     bool m_loaded = false;
+
+    std::array<uint8_t, 0x4000> m_program_ram;
+    std::array<uint8_t, 0x4000> m_character_ram;
+    std::array<uint8_t, 0x800> m_video_ram;
+
+    std::vector<uint8_t> m_program_rom;
+    std::vector<uint8_t> m_character_rom;
 };

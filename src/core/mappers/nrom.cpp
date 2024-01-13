@@ -1,17 +1,6 @@
 #include "nrom.hpp"
 #include "global.hpp"
 
-NROM::NROM(uint8_t prg_bank_count,
-           uint8_t chr_bank_count,
-           MirroringMode mirroring_mode)
-    : Mapper(MAPPER_NROM, prg_bank_count, chr_bank_count, mirroring_mode)
-{
-}
-
-NROM::~NROM()
-{
-}
-
 uint32_t NROM::read(uint16_t address)
 {
     return map_address(address);
@@ -47,5 +36,5 @@ uint32_t NROM::map_address(uint16_t address) const
     else if (address < 0xC000)
         return address - 0x8000;
     else
-        return m_prg_bank_count == 1 ? address - 0xC000 : address - 0x8000;
+        return m_program_bank_count == 1 ? address - 0xC000 : address - 0x8000;
 }

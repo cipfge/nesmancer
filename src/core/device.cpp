@@ -21,7 +21,7 @@ bool Device::init()
 
 void Device::reset()
 {
-    if (!m_cartridge.is_loaded())
+    if (!m_cartridge.loaded())
         return;
 
     if (m_paused)
@@ -39,7 +39,7 @@ void Device::power_off()
 
 void Device::run()
 {
-    if (!m_cartridge.is_loaded())
+    if (!m_cartridge.loaded())
         return;
 
     if (m_paused)
@@ -79,12 +79,12 @@ bool Device::load_rom_file(const std::string& file_path)
 
 bool Device::is_running() const
 {
-    return m_cartridge.is_loaded();
+    return m_cartridge.loaded();
 }
 
 void Device::toggle_pause()
 {
-    if (m_cartridge.is_loaded())
+    if (m_cartridge.loaded())
         m_paused = !m_paused;
 }
 
