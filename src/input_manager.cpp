@@ -91,7 +91,7 @@ void InputManager::search_controllers()
     for (int id = 0; id < SDL_NumJoysticks(); id++)
     {
         if (!SDL_IsGameController(id) ||
-            is_controller_assigned(id))
+            controller_assigned(id))
             continue;
 
         if (controller_count() >= EMU_CONTROLLER_COUNT)
@@ -108,7 +108,7 @@ void InputManager::search_controllers()
 
 void InputManager::on_controller_connected(SDL_JoystickID id)
 {
-    if (is_controller_assigned(id) ||
+    if (controller_assigned(id) ||
         controller_count() >= EMU_CONTROLLER_COUNT)
         return;
 
@@ -139,7 +139,7 @@ void InputManager::on_controller_disconnected(SDL_JoystickID id)
     }
 }
 
-bool InputManager::is_controller_assigned(SDL_JoystickID id)
+bool InputManager::controller_assigned(SDL_JoystickID id)
 {
     for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
     {

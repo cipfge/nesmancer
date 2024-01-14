@@ -10,7 +10,12 @@
 class Cartridge
 {
 public:
-    Cartridge() = default;
+    Cartridge():
+        m_program_ram(),
+        m_character_ram(),
+        m_video_ram()
+    {}
+
     ~Cartridge() = default;
 
     void reset();

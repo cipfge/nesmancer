@@ -11,11 +11,6 @@
 #include <SDL_syswm.h>
 #endif // Windows
 
-Application::Application()
-{
-    m_nes = std::make_unique<Emulator>(m_input_manager);
-}
-
 Application::~Application()
 {
     ImGui_ImplSDLRenderer2_Shutdown();
@@ -260,10 +255,10 @@ void Application::render_menubar()
                 m_nes->toggle_pause();
 
             if (ImGui::MenuItem("Reset", "Ctr+R", false, m_nes->running()))
-                m_nes.reset();
+                m_nes->reset();
 
             ImGui::Separator();
-            if (ImGui::MenuItem("Power Off...", nullptr, false, m_nes->running()))
+            if (ImGui::MenuItem("Power Off", nullptr, false, m_nes->running()))
             {
                 m_nes->power_off();
                 set_window_title(EMU_VERSION_NAME);

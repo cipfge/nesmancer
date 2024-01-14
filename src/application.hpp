@@ -11,7 +11,10 @@
 class Application
 {
 public:
-    Application();
+    Application():
+        m_nes(std::make_unique<Emulator>(m_input_manager))
+    {}
+
     ~Application();
 
     int run(int argc, char* argv[]);
