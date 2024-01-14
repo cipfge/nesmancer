@@ -12,8 +12,8 @@
 #endif // Windows
 
 Application::Application()
-    : m_nes(m_input_manager)
 {
+    m_nes = std::make_unique<Emulator>(m_input_manager);
 }
 
 Application::~Application()
@@ -34,10 +34,10 @@ int Application::run(int argc, char* argv[])
     if (!m_running)
         return -1;
 
-    if (!m_nes.init())
+    if (!m_nes->init())
         return -1;
 
-    if (argc > 1 && !m_nes.load_rom_file(argv[1]))
+    if (argc > 1 && !m_nes->load_rom_file(argv[1]))
         return -1;
 
     // NTSC ~ 60 FPS?
@@ -52,7 +52,7 @@ int Application::run(int argc, char* argv[])
 
         process_events();
         if (!m_show_popup)
-            m_nes.run();
+            m_nes->run();
         render();
 
         frame_time = SDL_GetTicks() - frame_start;
@@ -176,7 +176,7 @@ void Application::on_keyboard_event(const SDL_KeyboardEvent& event)
 
     if (event.keysym.sym == SDLK_ESCAPE)
     {
-        m_nes.toggle_pause();
+        m_nes->toggle_pause();
         return;
     }
 
@@ -217,9 +217,9 @@ void Application::render()
 
     ImGui::EndFrame();
 
-    if (m_nes.running())
+    if (m_nes->running())
     {
-        SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.screen_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(m_frame_texture, nullptr, m_nes->screen_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
 
         SDL_Rect window_rect = {
             0,
@@ -255,17 +255,17 @@ void Application::render_menubar()
 
         if (ImGui::BeginMenu("System"))
         {
-            const std::string menu_title = m_nes.paused() ? "Resume" : "Pause";
-            if (ImGui::MenuItem(menu_title.c_str(), "Esc", false, m_nes.running()))
-                m_nes.toggle_pause();
+            const std::string menu_title = m_nes->paused() ? "Resume" : "Pause";
+            if (ImGui::MenuItem(menu_title.c_str(), "Esc", false, m_nes->running()))
+                m_nes->toggle_pause();
 
-            if (ImGui::MenuItem("Reset", "Ctr+R", false, m_nes.running()))
+            if (ImGui::MenuItem("Reset", "Ctr+R", false, m_nes->running()))
                 m_nes.reset();
 
             ImGui::Separator();
-            if (ImGui::MenuItem("Power Off...", nullptr, false, m_nes.running()))
+            if (ImGui::MenuItem("Power Off...", nullptr, false, m_nes->running()))
             {
-                m_nes.power_off();
+                m_nes->power_off();
                 set_window_title(EMU_VERSION_NAME);
             }
 
@@ -283,9 +283,9 @@ void Application::render_menubar()
         ImGui::Separator();
         ImGui::Text("Status:");
 
-        if (m_nes.running())
+        if (m_nes->running())
         {
-            if (m_nes.paused())
+            if (m_nes->paused())
             {
                 ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 255, 255));
                 ImGui::Text("Paused");
@@ -379,7 +379,7 @@ void Application::open_nes_file()
     if (result == NFD_OKAY)
     {
         std::string file_path(nes_file_path.get());
-        if (m_nes.load_rom_file(file_path))
+        if (m_nes->load_rom_file(file_path))
         {
             const std::string title = std::string(EMU_VERSION_NAME) + " - " +
                                       filename_remove_extension(path_get_filename(file_path));

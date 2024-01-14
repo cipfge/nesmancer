@@ -5,23 +5,23 @@
 #include "ppu.hpp"
 #include "cartridge.hpp"
 #include "controller.hpp"
-#include "memory.hpp"
+#include "system_bus.hpp"
 #include <cstdint>
 #include <string>
 
 class InputManager;
 
-class Device
+class Emulator
 {
 public:
-    Device(InputManager& input_manager):
+    Emulator(InputManager& input_manager):
         m_ppu(m_cartridge),
         m_controller(input_manager),
-        m_memory(m_apu, m_ppu, m_cartridge, m_controller),
-        m_cpu(m_memory)
+        m_system_bus(m_apu, m_ppu, m_cartridge, m_controller),
+        m_cpu(m_system_bus)
     {}
 
-    ~Device() = default;
+    ~Emulator() = default;
 
     bool init();
     void reset();
@@ -39,6 +39,6 @@ private:
     APU m_apu;
     PPU m_ppu;
     Controller m_controller;
-    Memory m_memory;
+    SystemBus m_system_bus;
     bool m_paused = false;
 };

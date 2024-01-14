@@ -1,5 +1,5 @@
 #include "cpu.hpp"
-#include "memory.hpp"
+#include "system_bus.hpp"
 #include "logger.hpp"
 
 CPU::Instruction CPU::m_instruction_table[256] = {
@@ -331,18 +331,18 @@ inline bool CPU::status_check_flag(StatusFlag flag) const
 
 inline uint8_t CPU::read(uint16_t address)
 {
-    return m_memory.read(address);
+    return m_system_bus.read(address);
 }
 
 inline uint16_t CPU::read_word(uint16_t address)
 {
-    return (m_memory.read(address) |
-            (m_memory.read(address + 1) << 8));
+    return (m_system_bus.read(address) |
+            (m_system_bus.read(address + 1) << 8));
 }
 
 inline void CPU::write(uint16_t address, uint8_t data)
 {
-    m_memory.write(address, data);
+    m_system_bus.write(address, data);
 }
 
 inline void CPU::stack_push(uint8_t data)

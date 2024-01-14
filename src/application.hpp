@@ -1,10 +1,11 @@
 #pragma once
 
 #include "global.hpp"
-#include "device.hpp"
+#include "emulator.hpp"
 #include "input_manager.hpp"
 #include "version.hpp"
 #include <string>
+#include <memory>
 #include <SDL.h>
 
 class Application
@@ -18,7 +19,7 @@ public:
 
 private:
     InputManager m_input_manager;
-    Device m_nes;
+    std::unique_ptr<Emulator> m_nes;
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_frame_texture = nullptr;

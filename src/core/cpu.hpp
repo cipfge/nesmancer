@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 
-class Memory;
+class SystemBus;
 
 class CPU
 {
@@ -53,8 +53,8 @@ public:
     static constexpr uint16_t IRQ_Vector = 0xFFFE;
 
 public:
-    CPU(Memory& memory):
-        m_memory(memory)
+    CPU(SystemBus& system_bus):
+        m_system_bus(system_bus)
     {}
 
     ~CPU() = default;
@@ -79,7 +79,7 @@ private:
 
     static Instruction m_instruction_table[256];
 
-    Memory& m_memory;
+    SystemBus& m_system_bus;
     Registers m_registers;
     uint8_t m_opcode = 0;
     AddressingMode m_addressing_mode = AM_IMPLIED;

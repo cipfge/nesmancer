@@ -1,13 +1,13 @@
-#include "device.hpp"
+#include "emulator.hpp"
 #include "input_manager.hpp"
 #include "logger.hpp"
 
-bool Device::init()
+bool Emulator::init()
 {
     return m_apu.init_audio_device();
 }
 
-void Device::reset()
+void Emulator::reset()
 {
     if (!m_cartridge.loaded())
         return;
@@ -20,12 +20,12 @@ void Device::reset()
     m_cpu.reset();
 }
 
-void Device::power_off()
+void Emulator::power_off()
 {
     m_cartridge.reset();
 }
 
-void Device::run()
+void Emulator::run()
 {
     if (!m_cartridge.loaded())
         return;
@@ -55,7 +55,7 @@ void Device::run()
     }
 }
 
-bool Device::load_rom_file(const std::string& file_path)
+bool Emulator::load_rom_file(const std::string& file_path)
 {
     if (!m_cartridge.load_from_file(file_path))
         return false;
@@ -65,7 +65,7 @@ bool Device::load_rom_file(const std::string& file_path)
     return true;
 }
 
-void Device::toggle_pause()
+void Emulator::toggle_pause()
 {
     if (m_cartridge.loaded())
         m_paused = !m_paused;

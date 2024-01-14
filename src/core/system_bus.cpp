@@ -1,10 +1,10 @@
-#include "memory.hpp"
+#include "system_bus.hpp"
 #include "ppu.hpp"
 #include "apu.hpp"
 #include "cartridge.hpp"
 #include "controller.hpp"
 
-uint8_t Memory::read(uint16_t address)
+uint8_t SystemBus::read(uint16_t address)
 {
     if (address < 0x2000)
         return m_ram[address & 0x7FF];
@@ -29,7 +29,7 @@ uint8_t Memory::read(uint16_t address)
     return 0;
 }
 
-void Memory::write(uint16_t address, uint8_t data)
+void SystemBus::write(uint16_t address, uint8_t data)
 {
     if (address < 0x2000)
         m_ram[address & 0x7FF] = data;
@@ -56,7 +56,7 @@ void Memory::write(uint16_t address, uint8_t data)
         m_cartrige.cpu_write(address, data);
 }
 
-inline void Memory::oam_dma(uint8_t data)
+inline void SystemBus::oam_dma(uint8_t data)
 {
     for (uint16_t i = 0; i < 256; i++)
         write(0x2004, read(0x100 * data + i));
