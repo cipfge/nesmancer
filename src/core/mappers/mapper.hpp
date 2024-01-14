@@ -18,8 +18,8 @@ public:
     virtual ~Mapper() {};
 
     uint16_t id() const { return m_id; }
-    uint8_t prg_banks() const { return m_program_bank_count; }
-    uint8_t chr_banks() const { return m_character_bank_count; }
+    uint8_t program_bank_count() const { return m_program_bank_count; }
+    uint8_t character_bank_count() const { return m_character_bank_count; }
     MirroringMode mirroring_mode() const { return m_mirroring_mode; }
 
     virtual std::string name() const = 0;

@@ -217,9 +217,9 @@ void Application::render()
 
     ImGui::EndFrame();
 
-    if (m_nes.is_running())
+    if (m_nes.running())
     {
-        SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.get_screen_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(m_frame_texture, nullptr, m_nes.screen_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
 
         SDL_Rect window_rect = {
             0,
@@ -255,15 +255,15 @@ void Application::render_menubar()
 
         if (ImGui::BeginMenu("System"))
         {
-            const std::string menu_title = m_nes.is_paused() ? "Resume" : "Pause";
-            if (ImGui::MenuItem(menu_title.c_str(), "Esc"))
+            const std::string menu_title = m_nes.paused() ? "Resume" : "Pause";
+            if (ImGui::MenuItem(menu_title.c_str(), "Esc", false, m_nes.running()))
                 m_nes.toggle_pause();
 
-            if (ImGui::MenuItem("Reset", "Ctr+R"))
+            if (ImGui::MenuItem("Reset", "Ctr+R", false, m_nes.running()))
                 m_nes.reset();
 
             ImGui::Separator();
-            if (ImGui::MenuItem("Power Off..."))
+            if (ImGui::MenuItem("Power Off...", nullptr, false, m_nes.running()))
             {
                 m_nes.power_off();
                 set_window_title(EMU_VERSION_NAME);
@@ -283,9 +283,9 @@ void Application::render_menubar()
         ImGui::Separator();
         ImGui::Text("Status:");
 
-        if (m_nes.is_running())
+        if (m_nes.running())
         {
-            if (m_nes.is_paused())
+            if (m_nes.paused())
             {
                 ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 255, 255));
                 ImGui::Text("Paused");

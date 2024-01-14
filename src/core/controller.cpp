@@ -2,11 +2,6 @@
 #include "input_manager.hpp"
 #include "logger.hpp"
 
-Controller::Controller(InputManager& input_manager)
-    : m_input_manager(input_manager)
-{
-}
-
 uint8_t Controller::read(uint8_t index)
 {
     if (index >= EMU_CONTROLLER_COUNT)

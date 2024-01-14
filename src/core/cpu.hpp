@@ -53,8 +53,11 @@ public:
     static constexpr uint16_t IRQ_Vector = 0xFFFE;
 
 public:
-    CPU(Memory& memory);
-    ~CPU();
+    CPU(Memory& memory):
+        m_memory(memory)
+    {}
+
+    ~CPU() = default;
 
     void reset();
     void irq();

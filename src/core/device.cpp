@@ -2,18 +2,6 @@
 #include "input_manager.hpp"
 #include "logger.hpp"
 
-Device::Device(InputManager& input_manager)
-    : m_ppu(m_cartridge)
-    , m_controller(input_manager)
-    , m_memory(m_apu, m_ppu, m_cartridge, m_controller)
-    , m_cpu(m_memory)
-{
-}
-
-Device::~Device()
-{
-}
-
 bool Device::init()
 {
     return m_apu.init_audio_device();
@@ -77,18 +65,8 @@ bool Device::load_rom_file(const std::string& file_path)
     return true;
 }
 
-bool Device::is_running() const
-{
-    return m_cartridge.loaded();
-}
-
 void Device::toggle_pause()
 {
     if (m_cartridge.loaded())
         m_paused = !m_paused;
-}
-
-uint32_t* Device::get_screen_buffer()
-{
-    return m_ppu.frame_buffer();
 }

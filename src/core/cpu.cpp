@@ -261,15 +261,6 @@ CPU::Instruction CPU::m_instruction_table[256] = {
     { &CPU::read_absolute_x,       &CPU::op_isc, "ISC", CPU::AM_ABSOLUTE_INDEXED_X, 7 }  // 0xFF
 };
 
-CPU::CPU(Memory& memory)
-    : m_memory(memory)
-{
-}
-
-CPU::~CPU()
-{
-}
-
 void CPU::reset()
 {
     m_registers.A = 0;

@@ -36,7 +36,8 @@ set(EMU_SOURCE_FILES
     "application.hpp"
     "input_manager.cpp"
     "input_manager.hpp"
-    "main.cpp")
+    "main.cpp"
+    "utils.hpp")
 
 set(IMGUI_SOURCE_FILES
     "imgui/imconfig.h"

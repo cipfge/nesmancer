@@ -8,8 +8,11 @@ class InputManager;
 class Controller
 {
 public:
-    Controller(InputManager& input_manager);
-    ~Controller() {}
+    Controller(InputManager& input_manager):
+        m_input_manager(input_manager)
+    {}
+
+    ~Controller() = default;
 
     uint8_t read(uint8_t index);
     void write(uint8_t data);

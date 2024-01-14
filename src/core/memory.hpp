@@ -11,11 +11,14 @@ class Controller;
 class Memory
 {
 public:
-    Memory(APU& apu,
-           PPU& ppu,
-           Cartridge& cartridge,
-           Controller& controller);
-    ~Memory();
+    Memory(APU& apu, PPU& ppu, Cartridge& cartridge, Controller& controller):
+        m_apu(apu),
+        m_ppu(ppu),
+        m_cartrige(cartridge),
+        m_controller(controller)
+    {}
+
+    ~Memory() = default;
 
     uint8_t read(uint16_t address);
     void write(uint16_t address, uint8_t data);

@@ -4,22 +4,6 @@
 #include "cartridge.hpp"
 #include "controller.hpp"
 
-Memory::Memory(APU& apu,
-               PPU& ppu,
-               Cartridge& cartridge,
-               Controller& controller)
-    : m_apu(apu)
-    , m_ppu(ppu)
-    , m_cartrige(cartridge)
-    , m_controller(controller)
-{
-    m_ram.fill(0x00);
-}
-
-Memory::~Memory()
-{
-}
-
 uint8_t Memory::read(uint16_t address)
 {
     if (address < 0x2000)

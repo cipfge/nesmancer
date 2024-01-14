@@ -14,18 +14,24 @@ class InputManager;
 class Device
 {
 public:
-    Device(InputManager& input_manager);
-    ~Device();
+    Device(InputManager& input_manager):
+        m_ppu(m_cartridge),
+        m_controller(input_manager),
+        m_memory(m_apu, m_ppu, m_cartridge, m_controller),
+        m_cpu(m_memory)
+    {}
+
+    ~Device() = default;
 
     bool init();
     void reset();
     void power_off();
     void run();
     bool load_rom_file(const std::string& file_path);
-    bool is_running() const;
-    bool is_paused() const { return m_paused; }
+    bool running() const { return m_cartridge.loaded(); }
+    bool paused() const { return m_paused; }
     void toggle_pause();
-    uint32_t* get_screen_buffer();
+    uint32_t* screen_buffer() { return m_ppu.frame_buffer(); }
 
 private:
     Cartridge m_cartridge;
