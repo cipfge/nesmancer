@@ -1,4 +1,6 @@
 # Nesmancer
+![GitHub Actions](https://github.com/cipfge/nesmancer/actions/workflows/build.yml/badge.svg)
+
 Nintendo Entertainment System emulator.
 
 This is a work in progress hobby cross-platform C++ project tested on Windows and Linux, the emulator is not cycle accurate.
