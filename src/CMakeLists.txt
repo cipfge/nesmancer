@@ -86,7 +86,7 @@ target_include_directories(nesmancer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/platform")
 
 set_target_properties(nesmancer PROPERTIES
-    CXX_STANDARD 17
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 

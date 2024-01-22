@@ -97,8 +97,8 @@ bool Application::init()
     m_frame_texture = SDL_CreateTexture(m_renderer,
                                         SDL_PIXELFORMAT_RGB888,
                                         SDL_TEXTUREACCESS_STREAMING,
-                                        EMU_SCREEN_WIDTH,
-                                        EMU_SCREEN_HEIGHT);
+                                        PPU::ScreenWidth,
+                                        PPU::ScreenHeigh);
     if (!m_frame_texture)
     {
         LOG_FATAL("SDL_CreateTexture error: %s", SDL_GetError());
@@ -119,9 +119,7 @@ bool Application::init()
     set_dark_theme();
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
-    // Add menubar height
-    m_window_height = m_window_height + (int)ImGui::GetFrameHeight();
-    SDL_SetWindowSize(m_window, m_window_width, m_window_height);
+    reset_window_size();
 
     m_input_manager.search_controllers();
 
@@ -214,7 +212,7 @@ void Application::render()
 
     if (m_nes->running())
     {
-        SDL_UpdateTexture(m_frame_texture, nullptr, m_nes->screen_buffer(), EMU_SCREEN_WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(m_frame_texture, nullptr, m_nes->screen_buffer(), PPU::ScreenWidth * sizeof(uint32_t));
 
         SDL_Rect window_rect = {
             0,
@@ -351,6 +349,15 @@ void Application::render_about_dialog()
 
         ImGui::EndPopup();
     }
+}
+
+void Application::reset_window_size()
+{
+    m_window_width = PPU::ScreenWidth * m_screen_scale;
+    m_window_height = PPU::ScreenHeigh * m_screen_scale
+                    + (int)ImGui::GetFrameHeight(); // Add menubar height
+
+    SDL_SetWindowSize(m_window, m_window_width, m_window_height);
 }
 
 void Application::open_nes_file()

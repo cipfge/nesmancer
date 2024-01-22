@@ -19,6 +19,7 @@ public:
 
     int run(int argc, char* argv[]);
     void set_window_title(const std::string& title);
+    SDL_Window* window() const { return m_window; }
 
 private:
     InputManager m_input_manager;
@@ -28,8 +29,9 @@ private:
     SDL_Texture* m_frame_texture = nullptr;
 
     std::string m_window_title = EMU_VERSION_NAME;
-    int m_window_width = EMU_SCREEN_WIDTH * EMU_SCREEN_SCALE;
-    int m_window_height = EMU_SCREEN_HEIGHT * EMU_SCREEN_SCALE;
+    int m_window_width = PPU::ScreenWidth;
+    int m_window_height = PPU::ScreenHeigh;
+    int m_screen_scale = 2;
     bool m_running = false;
     bool m_exit = false;
     bool m_show_popup = false;
@@ -44,6 +46,7 @@ private:
     void render_exit_dialog();
     void render_about_dialog();
 
+    void reset_window_size();
     void open_nes_file();
     void set_dark_theme();
 };

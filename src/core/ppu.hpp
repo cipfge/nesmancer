@@ -24,6 +24,9 @@ public:
     PPU(Cartridge& cartridge);
     ~PPU();
 
+    static constexpr uint16_t ScreenWidth = 256;
+    static constexpr uint16_t ScreenHeigh = 240;
+
     void reset();
     void tick();
 
@@ -158,7 +161,7 @@ private:
     bool m_sprite_zero_hit_possible = false;
     SpriteShifter m_sprite_shifter;
 
-    uint32_t m_frame_buffer[EMU_SCREEN_WIDTH * EMU_SCREEN_HEIGHT];
+    uint32_t m_frame_buffer[ScreenWidth * ScreenHeigh];
     bool m_frame_rendered = false;
     bool m_frame_odd = false;
 

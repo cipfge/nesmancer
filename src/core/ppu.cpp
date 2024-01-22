@@ -580,5 +580,5 @@ void PPU::render_pixel()
     }
 
     uint32_t color = read_color_from_palette(pixel, palette);
-    m_frame_buffer[m_scanline * EMU_SCREEN_WIDTH + m_cycle] = color;
+    m_frame_buffer[m_scanline * ScreenWidth + m_cycle] = color;
 }
