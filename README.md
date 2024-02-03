@@ -38,15 +38,15 @@ To open a ROM file use the **File->Open (Ctr+O)** menu or pass the ROM file as t
 To pause or resume the emulatation use the **System->Pause (Esc)** menu.
 
 ## Controller configuration
-Currently only Player 1 is mapped to the keyboard
+Controller and keyboard mapping:
 
- Button     | Keyboard        | XBox Controller  |
- -----------|-----------------|------------------|
- A          | A key           | X                |
- B          | S key           | B                |
- Start      | Enter           | Menu             |
- Select     | Space           | Y                |
- Up         | Up arrow Key    | D-Pad/Left stick |
- Down       | Down arrow key  | D-Pad/Left stick |
- Left       | Left arrow key  | D-Pad/Left stick |
- Right      | Right arrow key | D-Pad/Left stick |
+ Button     | Keyboard 1      | Keyboard 2      | XBox Controller  |
+ -----------|-----------------|-----------------|------------------|
+ A          | H key           | Numpad 2        | X                |
+ B          | J key           | Numpad 3        | B                |
+ Start      | U key           | Numpad 6        | Menu             |
+ Select     | Y key           | Numpad 5        | Y                |
+ Up         | W key           | Up key          | D-Pad/Left stick |
+ Down       | S key           | Down key        | D-Pad/Left stick |
+ Left       | A key           | Left key        | D-Pad/Left stick |
+ Right      | D key           | Right key       | D-Pad/Left stick |
