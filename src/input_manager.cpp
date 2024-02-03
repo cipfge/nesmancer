@@ -60,15 +60,14 @@ uint8_t InputManager::get_buttons_state(uint8_t index)
     {
         uint8_t const* keyboard_state = SDL_GetKeyboardState(0);
 
-        // TODO: Keyboard bindings for both controllers
-        value |= (keyboard_state[SDL_SCANCODE_A]) << 0;
-        value |= (keyboard_state[SDL_SCANCODE_S]) << 1;
-        value |= (keyboard_state[SDL_SCANCODE_SPACE]) << 2;
-        value |= (keyboard_state[SDL_SCANCODE_RETURN]) << 3;
-        value |= (keyboard_state[SDL_SCANCODE_UP]) << 4;
-        value |= (keyboard_state[SDL_SCANCODE_DOWN]) << 5;
-        value |= (keyboard_state[SDL_SCANCODE_LEFT]) << 6;
-        value |= (keyboard_state[SDL_SCANCODE_RIGHT]) << 7;
+        value |= (keyboard_state[m_key_config.key_a[index]]) << 0;
+        value |= (keyboard_state[m_key_config.key_b[index]]) << 1;
+        value |= (keyboard_state[m_key_config.key_select[index]]) << 2;
+        value |= (keyboard_state[m_key_config.key_start[index]]) << 3;
+        value |= (keyboard_state[m_key_config.key_up[index]]) << 4;
+        value |= (keyboard_state[m_key_config.key_down[index]]) << 5;
+        value |= (keyboard_state[m_key_config.key_left[index]]) << 6;
+        value |= (keyboard_state[m_key_config.key_right[index]]) << 7;
     }
 
     return value;
