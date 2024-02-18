@@ -208,6 +208,8 @@ void Application::render()
         ImGui::OpenPopup("About");
     render_about_dialog();
 
+    m_cpu_widget.render();
+
     ImGui::EndFrame();
 
     if (m_nes->running())
@@ -261,6 +263,14 @@ void Application::render_menubar()
                 m_nes->power_off();
                 set_window_title(EMU_VERSION_NAME);
             }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("View"))
+        {
+            if (ImGui::MenuItem("CPU", nullptr, m_cpu_widget.visible()))
+                m_cpu_widget.set_visible(!m_cpu_widget.visible());
 
             ImGui::EndMenu();
         }

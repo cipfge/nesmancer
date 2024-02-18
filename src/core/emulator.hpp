@@ -31,6 +31,8 @@ public:
     bool running() const { return m_cartridge.loaded(); }
     bool paused() const { return m_paused; }
     void toggle_pause();
+
+    const CPU& cpu() { return m_cpu; }
     uint32_t* screen_buffer() { return m_ppu.frame_buffer(); }
 
 private:

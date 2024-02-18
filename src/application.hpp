@@ -3,6 +3,7 @@
 #include "global.hpp"
 #include "emulator.hpp"
 #include "input_manager.hpp"
+#include "cpu_widget.hpp"
 #include "version.hpp"
 #include <string>
 #include <memory>
@@ -11,8 +12,9 @@
 class Application
 {
 public:
-    Application():
-        m_nes(std::make_unique<Emulator>(m_input_manager))
+    Application() :
+        m_nes(std::make_unique<Emulator>(m_input_manager)),
+        m_cpu_widget(m_nes->cpu())
     {}
 
     ~Application();
@@ -27,6 +29,7 @@ private:
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_frame_texture = nullptr;
+    CpuWidget m_cpu_widget;
 
     std::string m_window_title = EMU_VERSION_NAME;
     int m_window_width = PPU::ScreenWidth;
