@@ -33,6 +33,7 @@ public:
     void toggle_pause();
 
     const CPU& cpu() { return m_cpu; }
+    const PPU& ppu() { return m_ppu; }
     uint32_t* screen_buffer() { return m_ppu.frame_buffer(); }
 
 private:

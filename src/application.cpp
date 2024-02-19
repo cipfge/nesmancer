@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+#include "cpu_widget.hpp"
 #include "utils.hpp"
 #include "logger.hpp"
 #include <nfd.hpp>
@@ -209,6 +210,7 @@ void Application::render()
     render_about_dialog();
 
     m_cpu_widget.render();
+    m_ppu_widget.render();
 
     ImGui::EndFrame();
 
@@ -271,6 +273,8 @@ void Application::render_menubar()
         {
             if (ImGui::MenuItem("CPU", nullptr, m_cpu_widget.visible()))
                 m_cpu_widget.set_visible(!m_cpu_widget.visible());
+            if (ImGui::MenuItem("PPU", nullptr, m_ppu_widget.visible()))
+                m_ppu_widget.set_visible(!m_ppu_widget.visible());
 
             ImGui::EndMenu();
         }

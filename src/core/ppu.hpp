@@ -41,6 +41,11 @@ public:
     bool nmi() const { return (m_control.nmi_enabled && m_nmi); }
     void nmi_clear() { m_nmi = false; }
 
+    uint8_t control() const { return m_control.value; }
+    uint8_t mask() const { return m_mask.value; }
+    uint8_t status() const { return m_status.value; }
+    const uint8_t* oam() const { return m_oam; }
+
 private:
     union Control
     {

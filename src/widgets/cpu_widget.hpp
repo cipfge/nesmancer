@@ -1,17 +1,21 @@
 #pragma once
 
+#include "widget.hpp"
+
 class CPU;
 
-class CpuWidget
+class CpuWidget : public Widget
 {
 public:
-    CpuWidget(const CPU& cpu): m_cpu(cpu) {}
-    void render();
+    CpuWidget(const CPU& cpu):
+        Widget(WidgetType::CpuWindow),
+        m_cpu(cpu)
+    {}
 
-    bool visible() { return m_visible; }
-    void set_visible(bool visible) { m_visible = visible; }
+    virtual ~CpuWidget() {}
+
+    void render() override;
 
 private:
     const CPU& m_cpu;
-    bool m_visible = false;
 };
