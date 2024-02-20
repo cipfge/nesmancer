@@ -67,6 +67,11 @@ public:
     const Registers& registers() const { return m_registers; }
     uint8_t cycles() const { return m_cycles; }
 
+    bool check_status_flag(StatusFlag flag) const
+    {
+        return (m_registers.P & flag) != 0;
+    }
+
 private:
     struct Instruction
     {
@@ -88,9 +93,12 @@ private:
 
     void interrupt(uint16_t vector);
 
-    void status_set_flag(StatusFlag flag, bool value);
-    void status_set_zn_flags(uint8_t value);
-    bool status_check_flag(StatusFlag flag) const;
+    void set_status_flag(StatusFlag flag, bool value)
+    {
+        m_registers.P = value ? m_registers.P | flag : m_registers.P & (~flag);
+    }
+
+    void set_status_zn_flags(uint8_t value);
 
     uint8_t read(uint16_t address);
     uint16_t read_word(uint16_t address);
