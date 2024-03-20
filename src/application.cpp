@@ -180,6 +180,13 @@ void Application::on_keyboard_event(const SDL_KeyboardEvent& event)
         m_nes.reset();
         return;
     }
+
+    if (event.keysym.sym == SDLK_f &&
+        event.keysym.mod & KMOD_CTRL)
+    {
+        toggle_fullscreen();
+        return;
+    }
 }
 
 void Application::on_window_event(const SDL_Event& event)
@@ -276,6 +283,10 @@ void Application::render_menubar()
             if (ImGui::MenuItem("PPU", nullptr, m_ppu_widget.visible()))
                 m_ppu_widget.set_visible(!m_ppu_widget.visible());
 
+            ImGui::Separator();
+            if (ImGui::MenuItem("Full screen", "Ctr+F", m_fullscreen))
+                toggle_fullscreen();
+
             ImGui::EndMenu();
         }
 
@@ -363,6 +374,12 @@ void Application::render_about_dialog()
 
         ImGui::EndPopup();
     }
+}
+
+void Application::toggle_fullscreen()
+{
+    m_fullscreen = !m_fullscreen;
+    SDL_SetWindowFullscreen(m_window, m_fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
 }
 
 void Application::reset_window_size()
