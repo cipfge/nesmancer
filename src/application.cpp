@@ -361,8 +361,33 @@ void Application::render_about_dialog()
         m_show_popup = true;
         m_show_about = false;
 
-        ImGui::Text(EMU_VERSION_NAME);
-        ImGui::Text("Version: %s", EMU_VERSION_NUMBER);
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 128, 255, 255));
+        ImGui::Text("%s %s", EMU_VERSION_NAME, EMU_VERSION_NUMBER);
+        ImGui::PopStyleColor();
+
+        ImGui::Separator();
+
+#ifdef EMU_PLATFORM_WINDOWS
+        ImGui::Text("Platform: Windows");
+#endif
+#ifdef EMU_PLATFORM_LINUX
+        ImGui::Text("Platform: Linux");
+#endif
+#ifdef EMU_PLATFORM_MACOS
+        ImGui::Text("Platform: MacOS");
+#endif
+
+#ifdef EMU_DEBUG_ENABLED
+        ImGui::Text("Build: Debug");
+#else
+        ImGui::Text("Build: Release");
+#endif
+        ImGui::Text("License: MIT");
+
+        ImGui::Separator();
+        ImGui::Text("Thirdparty libraries:");
+        ImGui::Text("  * ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
+        ImGui::Text("  * NativeFileDialog");
         ImGui::Separator();
 
         ImGui::SetItemDefaultFocus();
@@ -379,7 +404,7 @@ void Application::render_about_dialog()
 void Application::toggle_fullscreen()
 {
     m_fullscreen = !m_fullscreen;
-    SDL_SetWindowFullscreen(m_window, m_fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+    SDL_SetWindowFullscreen(m_window, m_fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
 void Application::reset_window_size()

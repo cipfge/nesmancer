@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project("Nesmancer" VERSION 0.5.0 LANGUAGES CXX)
+project("Nesmancer" VERSION 0.1.1 LANGUAGES CXX)
 
 set(EMU_DEFAULT_BUILD_TYPE "Release")
 if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
