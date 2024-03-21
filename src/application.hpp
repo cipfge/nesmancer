@@ -44,6 +44,8 @@ private:
     bool m_show_popup = false;
     bool m_show_about = false;
 
+    SDL_version m_sdl_version;
+
     bool init();
     void process_events();
     void on_keyboard_event(const SDL_KeyboardEvent& event);

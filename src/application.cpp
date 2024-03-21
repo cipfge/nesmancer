@@ -68,6 +68,8 @@ void Application::set_window_title(const std::string& title)
 
 bool Application::init()
 {
+    SDL_GetVersion(&m_sdl_version);
+
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         LOG_FATAL("SDL_Init error: %s", SDL_GetError());
@@ -386,6 +388,7 @@ void Application::render_about_dialog()
 
         ImGui::Separator();
         ImGui::Text("Thirdparty libraries:");
+        ImGui::Text("  * SDL2 %d.%d.%d", m_sdl_version.major, m_sdl_version.minor, m_sdl_version.patch);
         ImGui::Text("  * ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
         ImGui::Text("  * NativeFileDialog");
         ImGui::Separator();
