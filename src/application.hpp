@@ -31,6 +31,7 @@ private:
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_frame_texture = nullptr;
+    SDL_version m_sdl_version = {};
     CpuWidget m_cpu_widget;
     PpuWidget m_ppu_widget;
 
@@ -43,8 +44,6 @@ private:
     bool m_exit = false;
     bool m_show_popup = false;
     bool m_show_about = false;
-
-    SDL_version m_sdl_version;
 
     bool init();
     void process_events();

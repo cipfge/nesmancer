@@ -388,9 +388,9 @@ void Application::render_about_dialog()
 
         ImGui::Separator();
         ImGui::Text("Thirdparty libraries:");
-        ImGui::Text("  * SDL2 %d.%d.%d", m_sdl_version.major, m_sdl_version.minor, m_sdl_version.patch);
-        ImGui::Text("  * ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
-        ImGui::Text("  * NativeFileDialog");
+        ImGui::Text("- SDL2 %d.%d.%d", m_sdl_version.major, m_sdl_version.minor, m_sdl_version.patch);
+        ImGui::Text("- ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
+        ImGui::Text("- NativeFileDialog");
         ImGui::Separator();
 
         ImGui::SetItemDefaultFocus();

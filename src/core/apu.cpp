@@ -1,5 +1,6 @@
 #include "apu.hpp"
 #include "global.hpp"
+#include "logger.hpp"
 
 APU::APU()
 {
@@ -7,6 +8,7 @@ APU::APU()
 
 APU::~APU()
 {
+    SDL_CloseAudioDevice(m_audio_device);
 }
 
 bool APU::init_audio_device()
@@ -26,7 +28,16 @@ bool APU::init_audio_device()
 
     m_audio_device = SDL_OpenAudioDevice(nullptr, 0,  &m_spec_desired, &m_spec_obtained, 0);
     if (!m_audio_device)
+    {
+        LOG_ERROR("SDL_OpenAudioDevice error: %s", SDL_GetError());
         return false;
+    }
+    else if (m_spec_desired.format != m_spec_obtained.format)
+    {
+        LOG_ERROR("Failed to obtain desired audio format");
+        return false;
+    }
+
     SDL_PauseAudioDevice(m_audio_device, 0);
 
     return true;
