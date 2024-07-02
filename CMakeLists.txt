@@ -16,5 +16,6 @@ if(UNIX AND NOT APPLE)
     set(NFD_PORTAL ON CACHE BOOL "Use xdg-desktop-portal instead of GTK" FORCE)
 endif()
 
+add_subdirectory(thirdparty/imgui)
 add_subdirectory(thirdparty/nativefiledialog)
 add_subdirectory(src)

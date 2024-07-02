@@ -44,23 +44,6 @@ set(EMU_SOURCE_FILES
     "main.cpp"
     "utils.hpp")
 
-set(IMGUI_SOURCE_FILES
-    "imgui/imconfig.h"
-    "imgui/imgui.cpp"
-    "imgui/imgui_demo.cpp"
-    "imgui/imgui_draw.cpp"
-    "imgui/imgui.h"
-    "imgui/imgui_impl_sdl2.cpp"
-    "imgui/imgui_impl_sdl2.h"
-    "imgui/imgui_impl_sdlrenderer2.cpp"
-    "imgui/imgui_impl_sdlrenderer2.h"
-    "imgui/imgui_internal.h"
-    "imgui/imgui_tables.cpp"
-    "imgui/imgui_widgets.cpp"
-    "imgui/imstb_rectpack.h"
-    "imgui/imstb_textedit.h"
-    "imgui/imstb_truetype.h")
-
 if (WIN32)
     set(EMU_APPLICATION_TYPE "WIN32")
     list(APPEND EMU_SOURCE_FILES "platform/windows/resources.rc")
@@ -75,10 +58,9 @@ configure_file("version.in"
 
 add_executable(nesmancer
     ${EMU_APPLICATION_TYPE}
-    ${IMGUI_SOURCE_FILES}
     ${EMU_SOURCE_FILES})
 
-target_link_libraries(nesmancer PRIVATE SDL2::SDL2 nfd)
+target_link_libraries(nesmancer PRIVATE SDL2::SDL2 imgui nfd)
 if (TARGET SDL2::SDL2main)
     target_link_libraries(nesmancer PRIVATE SDL2::SDL2main)
 endif()
@@ -87,7 +69,6 @@ target_include_directories(nesmancer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/core"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/mappers"
-    "${CMAKE_CURRENT_SOURCE_DIR}/imgui"
     "${CMAKE_CURRENT_SOURCE_DIR}/platform"
     "${CMAKE_CURRENT_SOURCE_DIR}/widgets")
 

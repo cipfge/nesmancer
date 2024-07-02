@@ -238,7 +238,7 @@ void Application::render()
     }
 
     ImGui::Render();
-    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_renderer);
 
     SDL_RenderPresent(m_renderer);
 }
