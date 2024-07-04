@@ -70,7 +70,8 @@ target_include_directories(nesmancer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/core"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/mappers"
     "${CMAKE_CURRENT_SOURCE_DIR}/platform"
-    "${CMAKE_CURRENT_SOURCE_DIR}/widgets")
+    "${CMAKE_CURRENT_SOURCE_DIR}/widgets"
+    ${SDL2_INCLUDE_DIRS})
 
 set_target_properties(nesmancer PROPERTIES
     CXX_STANDARD 20
