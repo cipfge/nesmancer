@@ -16,7 +16,7 @@ This is a work in progress hobby cross-platform C++ project tested on Windows an
 ### Windows
 * Install dependencies
   * Install Visual Studio Community with C++ desktop development and **CMake**
-  * Download [SDL2-devel-2.28.5-VC.zip](https://github.com/libsdl-org/SDL/releases/download/release-2.28.5/SDL2-devel-2.28.5-VC.zip) and extract it to **thirdparty** folder or set the **SDL2_DIR** environment variable
+  * Download latest SDL-VS binary from [SDL Github Releases](https://github.com/libsdl-org/SDL/) and extract it to **thirdparty** folder or any other directory and set the **SDL2_DIR** environment variable
 * Build
   * Clone the repository and open **nesmancer** folder in **Visual Studio** or **Visual Studio Code**
   * Build solution and run
