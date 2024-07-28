@@ -6,11 +6,15 @@ bool Emulator::init()
 {
     m_sound_queue = std::make_unique<Sound_Queue>();
 
-    if (m_sound_queue->init(SoundSampleRate))
+    if (m_sound_queue->init(SoundSampleRate)) {
+        LOG_FATAL("Sound queue init error, %s", SDL_GetError());
         return false;
+    }
 
-    if (m_apu.set_sample_rate(SoundSampleRate))
+    if (m_apu.set_sample_rate(SoundSampleRate)) {
+        LOG_FATAL("APU error, cannot set sample rate %u", SoundSampleRate);
         return false;
+    }
 
     return true;
 }
@@ -61,7 +65,9 @@ void Emulator::run()
 
         for (uint8_t i = 0; i < 3; i++)
             m_ppu.tick();
+    }
 
+    if (m_apu.samples_available() >= SoundBufferSize) {
         long size = m_apu.read_samples(m_sound_buffer, sizeof(m_sound_buffer) / sizeof(blip_sample_t));
         m_sound_queue->write(m_sound_buffer, size);
     }

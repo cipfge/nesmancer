@@ -38,7 +38,7 @@ public:
     uint32_t* screen_buffer() { return m_ppu.frame_buffer(); }
 
     static constexpr long SoundSampleRate = 44100;
-    static constexpr size_t SoundBufferSize = 2048;
+    static constexpr size_t SoundBufferSize = 4096;
 
 private:
     Cartridge m_cartridge;
