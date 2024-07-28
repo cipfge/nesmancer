@@ -30,8 +30,7 @@ int Application::run(int argc, char* argv[])
     if (!m_running)
         return -1;
 
-    if (!m_nes->init())
-        return -1;
+    m_nes->init();
 
     if (argc > 1 && !m_nes->load_rom_file(argv[1]))
         return -1;

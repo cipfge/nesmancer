@@ -18,4 +18,5 @@ endif()
 
 add_subdirectory(thirdparty/imgui)
 add_subdirectory(thirdparty/nativefiledialog)
+add_subdirectory(thirdparty/Nes_Snd_Emu)
 add_subdirectory(src)

@@ -32,6 +32,8 @@ set(EMU_SOURCE_FILES
     "core/system_bus.hpp"
     "core/types.hpp"
     "platform/platform.hpp"
+    "sound/Sound_Queue.cpp"
+    "sound/Sound_Queue.h"
     "widgets/cpu_widget.cpp"
     "widgets/cpu_widget.hpp"
     "widgets/ppu_widget.cpp"
@@ -60,7 +62,7 @@ add_executable(nesmancer
     ${EMU_APPLICATION_TYPE}
     ${EMU_SOURCE_FILES})
 
-target_link_libraries(nesmancer PRIVATE SDL2::SDL2 imgui nfd)
+target_link_libraries(nesmancer PRIVATE SDL2::SDL2 imgui nfd Nes_Snd_Emu)
 if (TARGET SDL2::SDL2main)
     target_link_libraries(nesmancer PRIVATE SDL2::SDL2main)
 endif()
@@ -70,6 +72,7 @@ target_include_directories(nesmancer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/core"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/mappers"
     "${CMAKE_CURRENT_SOURCE_DIR}/platform"
+    "${CMAKE_CURRENT_SOURCE_DIR}/sound"
     "${CMAKE_CURRENT_SOURCE_DIR}/widgets"
     ${SDL2_INCLUDE_DIRS})
 

@@ -6,6 +6,7 @@
 #include "cartridge.hpp"
 #include "controller.hpp"
 #include "system_bus.hpp"
+#include "Sound_Queue.h"
 #include <cstdint>
 #include <string>
 
@@ -23,7 +24,7 @@ public:
 
     ~Emulator() = default;
 
-    bool init();
+    void init();
     void reset();
     void power_off();
     void run();
@@ -36,6 +37,8 @@ public:
     const PPU& ppu() { return m_ppu; }
     uint32_t* screen_buffer() { return m_ppu.frame_buffer(); }
 
+    static constexpr long SoundSampleRate = 44100;
+
 private:
     Cartridge m_cartridge;
     CPU m_cpu;
@@ -43,5 +46,7 @@ private:
     PPU m_ppu;
     Controller m_controller;
     SystemBus m_system_bus;
+    std::unique_ptr<Sound_Queue> m_sound_queue;
+    blip_sample_t m_sound_buffer[2048];
     bool m_paused = false;
 };

@@ -10,13 +10,14 @@ uint8_t SystemBus::read(uint16_t address)
         return m_ram[address & 0x7FF];
     else if (address < 0x4000)
         return m_ppu.read(address);
-    else if (address < 0x4016)
-        return m_apu.read(address);
+    else if (address < 0x4016) {
+        return m_apu.read();
+    }
     else if (address < 0x4020)
     {
         switch (address)
         {
-        case 0x4015: return m_apu.read(address);
+        case 0x4015: return m_apu.read();
         case 0x4016: return m_controller.read(0);
         case 0x4017: return m_controller.read(1);
         default:

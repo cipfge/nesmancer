@@ -2,9 +2,11 @@
 #include "input_manager.hpp"
 #include "logger.hpp"
 
-bool Emulator::init()
+void Emulator::init()
 {
-    return m_apu.init_audio_device();
+    m_sound_queue = std::make_unique<Sound_Queue>();
+    m_sound_queue->init(SoundSampleRate);
+    m_apu.sample_rate(SoundSampleRate);
 }
 
 void Emulator::reset()
@@ -15,7 +17,6 @@ void Emulator::reset()
     if (m_paused)
         m_paused = false;
 
-    m_apu.reset();
     m_ppu.reset();
     m_cpu.reset();
 }
@@ -34,6 +35,7 @@ void Emulator::run()
         return;
 
     m_ppu.frame_start();
+    m_apu.end_frame();
     while (!m_ppu.frame_rendered())
     {
         if (m_cpu.cycles() == 0 && m_ppu.nmi())
@@ -52,6 +54,9 @@ void Emulator::run()
 
         for (uint8_t i = 0; i < 3; i++)
             m_ppu.tick();
+
+        long size = m_apu.read_samples(m_sound_buffer, sizeof(m_sound_buffer) / sizeof(blip_sample_t));
+        m_sound_queue->write(m_sound_buffer, size);
     }
 }
 
