@@ -24,7 +24,7 @@ public:
 
     ~Emulator() = default;
 
-    void init();
+    bool init();
     void reset();
     void power_off();
     void run();
@@ -38,6 +38,7 @@ public:
     uint32_t* screen_buffer() { return m_ppu.frame_buffer(); }
 
     static constexpr long SoundSampleRate = 44100;
+    static constexpr size_t SoundBufferSize = 2048;
 
 private:
     Cartridge m_cartridge;
@@ -47,6 +48,6 @@ private:
     Controller m_controller;
     SystemBus m_system_bus;
     std::unique_ptr<Sound_Queue> m_sound_queue;
-    blip_sample_t m_sound_buffer[2048];
+    blip_sample_t m_sound_buffer[SoundBufferSize];
     bool m_paused = false;
 };

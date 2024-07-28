@@ -59,8 +59,8 @@ TARGET_COMPILE_DEFINITIONS(Nes_Snd_Emu PUBLIC NES_SND_DYNAMIC PRIVATE NES_SND_BU
 TARGET_COMPILE_FEATURES(Nes_Snd_Emu PUBLIC cxx_std_11)
 
 IF(MSVC)
-	# windows.h defines min and max, and std::min and std::max aren't defined in <algorithm> without this macro
-	TARGET_COMPILE_DEFINITIONS(Nes_Snd_Emu PRIVATE NOMINMAX)
-	# stdlib.h on Windows defines min and max preprocessor macros by default as a "language extensions"
-	TARGET_COMPILE_DEFINITIONS(Nes_Snd_Emu PRIVATE _CRT_DECLARE_NONSTDC_NAMES=0)
+    # windows.h defines min and max, and std::min and std::max aren't defined in <algorithm> without this macro
+    TARGET_COMPILE_DEFINITIONS(Nes_Snd_Emu PRIVATE NOMINMAX)
+    # stdlib.h on Windows defines min and max preprocessor macros by default as a "language extensions"
+    TARGET_COMPILE_DEFINITIONS(Nes_Snd_Emu PRIVATE _CRT_DECLARE_NONSTDC_NAMES=0)
 ENDIF()

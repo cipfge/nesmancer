@@ -2,11 +2,17 @@
 #include "input_manager.hpp"
 #include "logger.hpp"
 
-void Emulator::init()
+bool Emulator::init()
 {
     m_sound_queue = std::make_unique<Sound_Queue>();
-    m_sound_queue->init(SoundSampleRate);
-    m_apu.sample_rate(SoundSampleRate);
+
+    if (m_sound_queue->init(SoundSampleRate))
+        return false;
+
+    if (m_apu.set_sample_rate(SoundSampleRate))
+        return false;
+
+    return true;
 }
 
 void Emulator::reset()
@@ -17,6 +23,7 @@ void Emulator::reset()
     if (m_paused)
         m_paused = false;
 
+    m_apu.reset();
     m_ppu.reset();
     m_cpu.reset();
 }
@@ -35,7 +42,7 @@ void Emulator::run()
         return;
 
     m_ppu.frame_start();
-    m_apu.end_frame();
+
     while (!m_ppu.frame_rendered())
     {
         if (m_cpu.cycles() == 0 && m_ppu.nmi())
@@ -58,6 +65,8 @@ void Emulator::run()
         long size = m_apu.read_samples(m_sound_buffer, sizeof(m_sound_buffer) / sizeof(blip_sample_t));
         m_sound_queue->write(m_sound_buffer, size);
     }
+
+    m_apu.end_frame();
 }
 
 bool Emulator::load_rom_file(const std::string& file_path)
