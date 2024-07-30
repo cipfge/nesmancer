@@ -36,7 +36,6 @@ int Application::run(int argc, char* argv[])
     if (argc > 1 && !m_nes->load_rom_file(argv[1]))
         return -1;
 
-    // NTSC ~ 60 FPS?
     constexpr int DELAY = 1000.0f / 60;
 
     uint32_t frame_start = 0;

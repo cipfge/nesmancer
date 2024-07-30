@@ -1,21 +1,40 @@
 #include "apu.hpp"
+#include "system_bus.hpp"
 #include "global.hpp"
 #include "logger.hpp"
 
-static int null_dmc_reader(int)
-{
-    return 0x55;
-}
-
 APU::APU()
 {
-    m_apu.dmc_reader = null_dmc_reader;
+    m_apu.dmc_reader = [this](int address) -> int {
+        if (!m_system_bus)
+            return 0x55; // Flat dmc samples
+        else
+            return m_system_bus->read(address);
+    };
+}
+
+void APU::set_system_bus(SystemBus* system_bus)
+{
+    m_system_bus = system_bus;
+}
+
+bool APU::init()
+{
+    m_apu.set_output(&m_buffer);
+    m_buffer.clock_rate(NTSC_ClockRate);
+    if (m_buffer.set_sample_rate(SoundSampleRate))
+    {
+        LOG_FATAL("APU error, cannot set sample rate %u", SoundSampleRate);
+        return false;
+    }
+
+    return true;
 }
 
 void APU::reset()
 {
     m_time = 0;
-    m_frame_length = FrameLength;
+    m_frame_length = NTSC_FrameLength;
 }
 
 uint8_t APU::read()
@@ -38,14 +57,6 @@ void APU::end_frame()
     m_buffer.end_frame(m_frame_length);
 }
 
-std::error_condition APU::set_sample_rate(long rate)
-{
-    m_apu.set_output(&m_buffer);
-    m_buffer.clock_rate(ClockRate);
-
-    return m_buffer.set_sample_rate(rate);
-}
-
 long APU::read_samples(blip_sample_t* buffer, long size)
 {
     return m_buffer.read_samples(buffer, size);
@@ -53,5 +64,5 @@ long APU::read_samples(blip_sample_t* buffer, long size)
 
 blip_time_t APU::clock()
 {
-    return m_time += ClockTick;
+    return m_time += NTSC_ClockTick;
 }

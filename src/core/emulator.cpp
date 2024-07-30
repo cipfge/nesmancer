@@ -2,21 +2,25 @@
 #include "input_manager.hpp"
 #include "logger.hpp"
 
+Emulator::Emulator(InputManager& input_manager):
+    m_ppu(m_cartridge),
+    m_controller(input_manager),
+    m_system_bus(m_apu, m_ppu, m_cartridge, m_controller),
+    m_cpu(m_system_bus)
+{
+    m_apu.set_system_bus(&m_system_bus);
+}
+
 bool Emulator::init()
 {
     m_sound_queue = std::make_unique<Sound_Queue>();
 
-    if (m_sound_queue->init(SoundSampleRate)) {
+    if (m_sound_queue->init(APU::SoundSampleRate)) {
         LOG_FATAL("Sound queue init error, %s", SDL_GetError());
         return false;
     }
 
-    if (m_apu.set_sample_rate(SoundSampleRate)) {
-        LOG_FATAL("APU error, cannot set sample rate %u", SoundSampleRate);
-        return false;
-    }
-
-    return true;
+    return m_apu.init();
 }
 
 void Emulator::reset()
@@ -67,12 +71,12 @@ void Emulator::run()
             m_ppu.tick();
     }
 
-    if (m_apu.samples_available() >= SoundBufferSize) {
+    m_apu.end_frame();
+
+    if (m_apu.samples_available() >= APU::SoundBufferSize) {
         long size = m_apu.read_samples(m_sound_buffer, sizeof(m_sound_buffer) / sizeof(blip_sample_t));
         m_sound_queue->write(m_sound_buffer, size);
     }
-
-    m_apu.end_frame();
 }
 
 bool Emulator::load_rom_file(const std::string& file_path)

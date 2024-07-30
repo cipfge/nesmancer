@@ -15,14 +15,7 @@ class InputManager;
 class Emulator
 {
 public:
-    Emulator(InputManager& input_manager):
-        m_ppu(m_cartridge),
-        m_controller(input_manager),
-        m_system_bus(m_apu, m_ppu, m_cartridge, m_controller),
-        m_cpu(m_system_bus)
-    {}
-
-    ~Emulator() = default;
+    Emulator(InputManager& input_manager);
 
     bool init();
     void reset();
@@ -37,9 +30,6 @@ public:
     const PPU& ppu() { return m_ppu; }
     uint32_t* screen_buffer() { return m_ppu.frame_buffer(); }
 
-    static constexpr long SoundSampleRate = 44100;
-    static constexpr size_t SoundBufferSize = 4096;
-
 private:
     Cartridge m_cartridge;
     CPU m_cpu;
@@ -47,7 +37,7 @@ private:
     PPU m_ppu;
     Controller m_controller;
     SystemBus m_system_bus;
-    std::unique_ptr<Sound_Queue> m_sound_queue;
-    blip_sample_t m_sound_buffer[SoundBufferSize];
+    std::unique_ptr<Sound_Queue> m_sound_queue = nullptr;
+    blip_sample_t m_sound_buffer[APU::SoundBufferSize] = {};
     bool m_paused = false;
 };
