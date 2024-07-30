@@ -15,3 +15,8 @@ External libraries used by the project
 - Upstream: https://github.com/btzy/nativefiledialog-extended
 - Version: 1.1.0
 - License: Zlib
+
+## Nes_Snd_Emu
+- Upstream: https://github.com/jamesathey/Nes_Snd_Emu
+- Version: 0.2.0
+- License: LGPL
