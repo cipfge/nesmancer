@@ -6,7 +6,7 @@
 #include "cartridge.hpp"
 #include "controller.hpp"
 #include "system_bus.hpp"
-#include "Sound_Queue.h"
+#include "SoundQueue.hpp"
 #include <cstdint>
 #include <string>
 
@@ -37,7 +37,7 @@ private:
     PPU m_ppu;
     Controller m_controller;
     SystemBus m_system_bus;
-    std::unique_ptr<Sound_Queue> m_sound_queue = nullptr;
+    std::unique_ptr<SoundQueue> m_sound_queue = nullptr;
     blip_sample_t m_sound_buffer[APU::SoundBufferSize] = {};
     bool m_paused = false;
 };

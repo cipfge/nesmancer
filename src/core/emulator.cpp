@@ -13,12 +13,9 @@ Emulator::Emulator(InputManager& input_manager):
 
 bool Emulator::init()
 {
-    m_sound_queue = std::make_unique<Sound_Queue>();
-
-    if (m_sound_queue->init(APU::SoundSampleRate)) {
-        LOG_FATAL("Sound queue init error, %s", SDL_GetError());
+    m_sound_queue = std::make_unique<SoundQueue>();
+    if (!m_sound_queue->init(APU::SoundSampleRate))
         return false;
-    }
 
     return m_apu.init();
 }
