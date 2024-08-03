@@ -8,7 +8,7 @@ This is a work in progress hobby cross-platform C++ project tested on Windows an
 ![screenshot](docs/screenshot.png)
 
 ## Features
-* Supported mappers: NROM(0), MMC1(1), UxROM(2), CNROM(3)
+* Supported mappers: NROM(0), MMC1(1), UxROM(2), CNROM(3), MMC3(4)
 * Gamepad: Support for Player 1 and Player 2
 
 ## Build instructions
