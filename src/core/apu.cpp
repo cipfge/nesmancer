@@ -33,8 +33,8 @@ bool APU::init()
 
 void APU::reset()
 {
-    m_time = 0;
-    m_frame_length = NTSC_FrameLength;
+    m_apu.reset();
+    m_buffer.clear();
 }
 
 uint8_t APU::read()

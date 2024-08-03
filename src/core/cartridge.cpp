@@ -6,10 +6,11 @@
 #include "mapper_uxrom.hpp"
 #include "logger.hpp"
 #include <stdexcept>
+#include <cassert>
 
 void Cartridge::reset()
 {
-    m_loaded = false;
+    m_mapper.reset();
 }
 
 bool Cartridge::load_from_file(const std::string& file_path)
@@ -44,15 +45,13 @@ bool Cartridge::load_from_file(const std::string& file_path)
             return false;
         }
 
-        m_loaded = true;
+        return true;
     }
     catch (std::runtime_error e)
     {
         LOG_ERROR("Error loading file %s: %s", file_path, e.what());
         return false;
     }
-
-    return true;
 }
 
 MirroringMode Cartridge::mirroring_mode()
@@ -64,21 +63,25 @@ MirroringMode Cartridge::mirroring_mode()
 
 uint8_t Cartridge::cpu_read(uint16_t address)
 {
+    assert(m_mapper);
     return m_mapper->cpu_read(address);
 }
 
 void Cartridge::cpu_write(uint16_t address, uint8_t data)
 {
+    assert(m_mapper);
     m_mapper->cpu_write(address, data);
 }
 
 uint8_t Cartridge::ppu_read(uint16_t address)
 {
+    assert(m_mapper);
     return m_mapper->ppu_read(address);
 }
 
 void Cartridge::ppu_write(uint16_t address, uint8_t data)
 {
+    assert(m_mapper);
     m_mapper->ppu_write(address, data);
 }
 

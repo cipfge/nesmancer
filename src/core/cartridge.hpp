@@ -14,7 +14,7 @@ public:
 
     void reset();
     bool load_from_file(const std::string& file_path);
-    bool loaded() const { return m_loaded; }
+    bool loaded() const { return m_mapper != nullptr; }
     MirroringMode mirroring_mode();
 
     uint8_t cpu_read(uint16_t address);
@@ -28,5 +28,4 @@ public:
 
 private:
     std::unique_ptr<Mapper> m_mapper = nullptr;
-    bool m_loaded = false;
 };

@@ -3,7 +3,7 @@
 #include "logger.hpp"
 
 CPU::Instruction CPU::m_instruction_table[256] = {
-    { &CPU::read_immediate,        &CPU::op_brk, "BRK", CPU::AM_IMMEDIATE,          7 }, // 0x00
+    { &CPU::read_immediate,        &CPU::op_brk, "BRK", CPU::AM_IMMEDIATE,          0 }, // 0x00
     { &CPU::read_indexed_indirect, &CPU::op_ora, "ORA", CPU::AM_INDEXED_INDIRECT,   6 }, // 0x01
     { &CPU::read_implied,          &CPU::op_hlt, "HLT", CPU::AM_IMPLIED,            2 }, // 0x02
     { &CPU::read_indexed_indirect, &CPU::op_slo, "SLO", CPU::AM_INDEXED_INDIRECT,   8 }, // 0x03
@@ -266,24 +266,22 @@ void CPU::reset()
     m_registers.A = 0;
     m_registers.X = 0;
     m_registers.Y = 0;
-    m_registers.P = STATUS_I | STATUS_U;
+    m_registers.P = STATUS_U;
     m_registers.SP = 0xFD;
-    m_registers.PC = read_word(RST_Vector);
     m_opcode = 0;
     m_address = 0;
-    m_cycles = INT_Cycles;
+
+    interrupt(InterruptType::RST);
 }
 
 void CPU::irq()
 {
-    if (check_status_flag(STATUS_I))
-        return;
-    interrupt(IRQ_Vector);
+    interrupt(InterruptType::IRQ);
 }
 
 void CPU::nmi()
 {
-    interrupt(NMI_Vector);
+    interrupt(InterruptType::NMI);
 }
 
 void CPU::tick()
@@ -304,11 +302,33 @@ void CPU::tick()
     m_cycles--;
 }
 
-void CPU::interrupt(uint16_t vector)
+void CPU::interrupt(InterruptType type)
 {
-    stack_push_word(m_registers.PC);
-    stack_push(m_registers.P | STATUS_U);
+    if (type == InterruptType::IRQ && check_status_flag(STATUS_I))
+        return;
+
+    if (type != InterruptType::RST)
+    {
+        if (type == InterruptType::BRK)
+        {
+            stack_push_word(m_registers.PC++);
+            stack_push(m_registers.P | STATUS_B | STATUS_U);
+        }
+        else
+        {
+            stack_push_word(m_registers.PC);
+            stack_push(m_registers.P | STATUS_U);
+        }
+    }
+
     set_status_flag(STATUS_I, true);
+
+    uint16_t vector = IRQ_Vector;
+    if (type == InterruptType::RST)
+        vector = RST_Vector;
+    else if (type == InterruptType::NMI)
+        vector = NMI_Vector;
+
     m_registers.PC = read_word(vector);
     m_cycles = INT_Cycles;
 }
@@ -809,11 +829,7 @@ bool CPU::op_jsr()
 
 bool CPU::op_brk()
 {
-    stack_push_word(m_registers.PC + 1);
-    stack_push(m_registers.P | STATUS_B | STATUS_U);
-    set_status_flag(STATUS_I, true);
-    m_registers.PC = read_word(IRQ_Vector);
-
+    interrupt(InterruptType::BRK);
     return false;
 }
 

@@ -46,6 +46,14 @@ public:
         AM_INDIRECT_INDEXED
     };
 
+    enum class InterruptType
+    {
+        RST,
+        BRK,
+        NMI,
+        IRQ
+    };
+
     static constexpr uint8_t INT_Cycles = 7;
 
     static constexpr uint16_t NMI_Vector = 0xFFFA;
@@ -91,7 +99,7 @@ private:
     uint16_t m_address = 0;
     uint8_t m_cycles = 0;
 
-    void interrupt(uint16_t vector);
+    void interrupt(InterruptType type);
 
     void set_status_flag(StatusFlag flag, bool value)
     {

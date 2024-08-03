@@ -2,6 +2,7 @@
 .kdev4/
 .vs/
 build/
+roms/
 thirdparty/SDL2*/
 
 # Files
