@@ -4,7 +4,6 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
 #include "cpu_widget.hpp"
-#include "utils.hpp"
 #include "logger.hpp"
 #include <nfd.hpp>
 
@@ -442,7 +441,7 @@ void Application::open_nes_file()
         if (m_nes->load_rom_file(file_path))
         {
             const std::string title = std::string(EMU_VERSION_NAME) + " - " +
-                                      filename_remove_extension(path_get_filename(file_path));
+                                      platform::file_remove_extension(platform::file_name(file_path));
             set_window_title(title);
         }
     }

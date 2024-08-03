@@ -25,7 +25,9 @@ uint8_t SystemBus::read(uint16_t address)
         }
     }
     else
+    {
         return m_cartrige.cpu_read(address);
+    }
 
     return 0;
 }
@@ -54,7 +56,9 @@ void SystemBus::write(uint16_t address, uint8_t data)
         }
     }
     else
+    {
         m_cartrige.cpu_write(address, data);
+    }
 }
 
 inline void SystemBus::oam_dma(uint8_t data)

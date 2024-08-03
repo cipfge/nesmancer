@@ -38,7 +38,7 @@ private:
     std::string m_window_title = EMU_VERSION_NAME;
     int m_window_width = PPU::ScreenWidth;
     int m_window_height = PPU::ScreenHeigh;
-    int m_screen_scale = 2;
+    int m_screen_scale = 4;
     bool m_fullscreen = false;
     bool m_running = false;
     bool m_exit = false;

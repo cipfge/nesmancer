@@ -1,37 +1,73 @@
 #pragma once
 
-#include "types.hpp"
-#include "nes_file.hpp"
+#include "nes_rom.hpp"
 #include <cstdint>
 #include <string>
+#include <array>
+#include <vector>
 
 class Mapper
 {
 public:
-    Mapper(NesFile& nes_file):
-        m_id(nes_file.mapper_id()),
-        m_program_bank_count(nes_file.program_bank_count()),
-        m_character_bank_count(nes_file.character_bank_count()),
-        m_mirroring_mode(nes_file.mirroring_mode())
-    {}
-
+    Mapper(NesRom& rom);
     virtual ~Mapper() {};
 
     uint16_t id() const { return m_id; }
-    uint8_t program_bank_count() const { return m_program_bank_count; }
-    uint8_t character_bank_count() const { return m_character_bank_count; }
-    MirroringMode mirroring_mode() const { return m_mirroring_mode; }
+    MirroringMode mirroring_mode() { return m_mirroring_mode; }
+    uint8_t cpu_read(uint16_t address);
+    virtual void cpu_write(uint16_t address, uint8_t data) = 0;
+    uint8_t ppu_read(uint16_t address);
+    virtual void ppu_write(uint16_t address, uint8_t data) = 0;
 
-    virtual std::string name() const = 0;
-    virtual uint32_t read(uint16_t address) = 0;
-    virtual uint32_t write(uint16_t address, uint8_t data) = 0;
-    virtual bool irq() = 0;
-    virtual void irq_clear() = 0;
-    virtual void scanline() = 0;
+    virtual bool irq() { return false; }
+    virtual void irq_clear() {}
+    virtual void scanline() {}
+
+    static constexpr uint8_t MaxPrgBankCount = 4;
+    static constexpr uint8_t MaxChrBankCount = 8;
 
 protected:
     uint16_t m_id = 0;
-    uint8_t m_program_bank_count = 0;
-    uint8_t m_character_bank_count = 0;
+    uint8_t m_prg_banks = 0;
+    uint32_t m_prg_size = 0;
+    uint32_t m_prg_ram_size = 0;
+    uint8_t m_chr_banks = 0;
+    uint32_t m_chr_size = 0;
+    bool m_chr_ram = false;
+
     MirroringMode m_mirroring_mode = MirroringMode::Horizontal;
+
+    std::array<uint32_t, MaxPrgBankCount> m_prg_mapping = {};
+    std::array<uint32_t, MaxChrBankCount> m_chr_mapping = {};
+
+    std::vector<uint8_t> m_prg;
+    std::vector<uint8_t> m_prg_ram;
+    std::vector<uint8_t> m_chr;
+
+    template <int KB>
+    void map_prg(int slot, int bank);
+
+    template<int KB>
+    void map_chr(int slot, int bank);
 };
+
+template
+void Mapper::map_prg<32>(int, int);
+
+template
+void Mapper::map_prg<16>(int, int);
+
+template
+void Mapper::map_prg<8>(int, int);
+
+template
+void Mapper::map_chr<8>(int, int);
+
+template
+void Mapper::map_chr<4>(int, int);
+
+template
+void Mapper::map_chr<2>(int, int);
+
+template
+void Mapper::map_chr<1>(int, int);

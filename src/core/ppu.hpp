@@ -2,6 +2,7 @@
 
 #include "global.hpp"
 #include <cstdint>
+#include <array>
 
 class Cartridge;
 
@@ -159,6 +160,8 @@ private:
     BackgroundTile m_bg_tile;
     BackgroundShifter m_bg_shifter;
 
+    std::array<uint8_t, 0x800> m_video_ram;
+
     uint8_t m_oam[256];
     uint8_t m_oam_address = 0;
     Sprite m_oam_scanline[8];
@@ -170,6 +173,7 @@ private:
     bool m_frame_rendered = false;
     bool m_frame_odd = false;
 
+    uint16_t nametable_mirror(uint16_t address);
     uint8_t video_bus_read(uint16_t address);
     void video_bus_write(uint16_t address, uint8_t data);
     uint32_t read_color_from_palette(uint8_t pixel, uint8_t palette);

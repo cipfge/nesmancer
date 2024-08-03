@@ -2,15 +2,18 @@ find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
 find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
 
 set(EMU_SOURCE_FILES
+    "core/mappers/mapper.cpp"
     "core/mappers/mapper.hpp"
-    "core/mappers/mmc1.cpp"
-    "core/mappers/mmc1.hpp"
-    "core/mappers/nrom.cpp"
-    "core/mappers/nrom.hpp"
-    "core/mappers/uxrom.cpp"
-    "core/mappers/uxrom.hpp"
-    "core/mappers/cnrom.cpp"
-    "core/mappers/cnrom.hpp"
+    "core/mappers/mapper_cnrom.cpp"
+    "core/mappers/mapper_cnrom.hpp"
+    "core/mappers/mapper_mmc1.cpp"
+    "core/mappers/mapper_mmc1.hpp"
+    "core/mappers/mapper_mmc3.cpp"
+    "core/mappers/mapper_mmc3.hpp"
+    "core/mappers/mapper_nrom.cpp"
+    "core/mappers/mapper_nrom.hpp"
+    "core/mappers/mapper_uxrom.cpp"
+    "core/mappers/mapper_uxrom.hpp"
     "core/apu.cpp"
     "core/apu.hpp"
     "core/cartridge.cpp"
@@ -24,14 +27,15 @@ set(EMU_SOURCE_FILES
     "core/global.hpp"
     "core/logger.hpp"
     "core/logger.cpp"
-    "core/nes_file.cpp"
-    "core/nes_file.hpp"
     "core/ppu.cpp"
     "core/ppu.hpp"
     "core/system_bus.cpp"
     "core/system_bus.hpp"
     "core/types.hpp"
     "platform/platform.hpp"
+    "rom/nes_file.hpp"
+    "rom/nes_rom.cpp"
+    "rom/nes_rom.hpp"
     "sound/SoundQueue.cpp"
     "sound/SoundQueue.hpp"
     "widgets/cpu_widget.cpp"
@@ -43,8 +47,7 @@ set(EMU_SOURCE_FILES
     "application.hpp"
     "input_manager.cpp"
     "input_manager.hpp"
-    "main.cpp"
-    "utils.hpp")
+    "main.cpp")
 
 if (WIN32)
     set(EMU_APPLICATION_TYPE "WIN32")
@@ -72,6 +75,7 @@ target_include_directories(nesmancer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/core"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/mappers"
     "${CMAKE_CURRENT_SOURCE_DIR}/platform"
+    "${CMAKE_CURRENT_SOURCE_DIR}/rom"
     "${CMAKE_CURRENT_SOURCE_DIR}/sound"
     "${CMAKE_CURRENT_SOURCE_DIR}/widgets"
     ${SDL2_INCLUDE_DIRS})

@@ -222,11 +222,26 @@ void PPU::write(uint16_t address, uint8_t data)
     }
 }
 
+uint16_t PPU::nametable_mirror(uint16_t address)
+{
+    switch (m_cartridge.mirroring_mode())
+    {
+    case MirroringMode::Horizontal:
+        return ((address / 2) & 0x400) + (address % 0x400);
+    case MirroringMode::Vertical:
+        return address % 0x800;
+    default:
+        return address - 0x2000;
+    }
+}
+
 uint8_t PPU::video_bus_read(uint16_t address)
 {
     uint8_t data = 0;
-    if (address < 0x3F00)
+    if (address < 0x2000)
         data = m_cartridge.ppu_read(address);
+    else if (address < 0x3F00)
+        data = m_video_ram[nametable_mirror(address)];
     else
     {
         uint16_t palette_address = (address - 0x3F00) & 0x1F;
@@ -240,8 +255,10 @@ uint8_t PPU::video_bus_read(uint16_t address)
 
 void PPU::video_bus_write(uint16_t address, uint8_t data)
 {
-    if (address < 0x3F00)
+    if (address < 0x2000)
         m_cartridge.ppu_write(address, data);
+    else if (address < 0x3F00)
+        m_video_ram[nametable_mirror(address)] = data;
     else
     {
         uint16_t palette_address = (address - 0x3F00) & 0x1F;
