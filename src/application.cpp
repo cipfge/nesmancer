@@ -99,7 +99,7 @@ bool Application::init()
                                         SDL_PIXELFORMAT_RGB888,
                                         SDL_TEXTUREACCESS_STREAMING,
                                         PPU::ScreenWidth,
-                                        PPU::ScreenHeigh);
+                                        PPU::ScreenHeight);
     if (!m_frame_texture)
     {
         LOG_FATAL("SDL_CreateTexture error: %s", SDL_GetError());
@@ -117,9 +117,10 @@ bool Application::init()
     ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer);
     ImGui_ImplSDLRenderer2_Init(m_renderer);
 
-    set_dark_theme();
+    SDL_RenderSetScale(m_renderer, 1.0, 1.0);
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
+    set_dark_theme();
     reset_window_size();
 
     m_input_manager.search_controllers();
@@ -223,18 +224,13 @@ void Application::render()
 
     if (m_nes->running())
     {
+        // Keep aspect ratio
+        SDL_RenderSetLogicalSize(m_renderer, PPU::ScreenWidth, PPU::ScreenHeight);
         SDL_UpdateTexture(m_frame_texture, nullptr, m_nes->screen_buffer(), PPU::ScreenWidth * sizeof(uint32_t));
-
-        SDL_Rect window_rect = {
-            0,
-            (int)ImGui::GetFrameHeight(),
-            m_window_width,
-            m_window_height - (int)ImGui::GetFrameHeight()
-        };
-
-        SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, &window_rect);
+        SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, nullptr);
     }
 
+    SDL_RenderSetLogicalSize(m_renderer, m_window_width, m_window_height);
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_renderer);
 
@@ -411,10 +407,11 @@ void Application::toggle_fullscreen()
 void Application::reset_window_size()
 {
     m_window_width = PPU::ScreenWidth * m_screen_scale;
-    m_window_height = PPU::ScreenHeigh * m_screen_scale
+    m_window_height = PPU::ScreenHeight * m_screen_scale
                     + (int)ImGui::GetFrameHeight(); // Add menubar height
 
     SDL_SetWindowSize(m_window, m_window_width, m_window_height);
+    SDL_RenderSetScale(m_renderer, 1.0, 1.0);
 }
 
 void Application::open_nes_file()
