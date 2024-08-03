@@ -51,23 +51,28 @@ protected:
     void map_chr(int slot, int bank);
 };
 
-template
-void Mapper::map_prg<32>(int, int);
+template <int KB>
+void Mapper::map_prg(int slot, int bank)
+{
+    if (bank < 0)
+        bank = (m_prg_size / (0x400 * KB)) + bank;
 
-template
-void Mapper::map_prg<16>(int, int);
+    for (int i = 0; i < (KB / 8); i++)
+        m_prg_mapping[(KB / 8) * slot + i] = (KB * 0x400 * bank + 0x2000 * i) % m_prg_size;
+}
 
-template
-void Mapper::map_prg<8>(int, int);
+template void Mapper::map_prg<32>(int, int);
+template void Mapper::map_prg<16>(int, int);
+template void Mapper::map_prg<8>(int, int);
 
-template
-void Mapper::map_chr<8>(int, int);
+template <int KB>
+void Mapper::map_chr(int slot, int bank)
+{
+    for (int i = 0; i < KB; i++)
+        m_chr_mapping[KB * slot + i] = (KB * 0x400 * bank + 0x400 * i) % m_chr_size;
+}
 
-template
-void Mapper::map_chr<4>(int, int);
-
-template
-void Mapper::map_chr<2>(int, int);
-
-template
-void Mapper::map_chr<1>(int, int);
+template void Mapper::map_chr<8>(int, int);
+template void Mapper::map_chr<4>(int, int);
+template void Mapper::map_chr<2>(int, int);
+template void Mapper::map_chr<1>(int, int);

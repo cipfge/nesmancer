@@ -1,5 +1,6 @@
 #include "nes_rom.hpp"
 #include "platform.hpp"
+#include <string.h>
 #include <fstream>
 
 NesRom::NesRom(const std::string& file_path)

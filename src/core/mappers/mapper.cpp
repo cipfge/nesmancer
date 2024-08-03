@@ -39,20 +39,3 @@ uint8_t Mapper::ppu_read(uint16_t address)
 {
     return m_chr[m_chr_mapping[address / 0x400] + (address % 0x400)];
 }
-
-template <int KB>
-void Mapper::map_prg(int slot, int bank)
-{
-    if (bank < 0)
-        bank = (m_prg_size / (0x400 * KB)) + bank;
-
-    for (int i = 0; i < (KB / 8); i++)
-        m_prg_mapping[(KB / 8) * slot + i] = (KB * 0x400 * bank + 0x2000 * i) % m_prg_size;
-}
-
-template <int KB>
-void Mapper::map_chr(int slot, int bank)
-{
-    for (int i = 0; i < KB; i++)
-        m_chr_mapping[KB * slot + i] = (KB * 0x400 * bank + 0x400 * i) % m_chr_size;
-}
