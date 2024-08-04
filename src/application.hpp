@@ -36,9 +36,8 @@ private:
     PpuWidget m_ppu_widget;
 
     std::string m_window_title = EMU_VERSION_NAME;
-    int m_window_width = PPU::ScreenWidth;
-    int m_window_height = PPU::ScreenHeight;
-    int m_screen_scale = 4;
+    int m_window_width = PPU::ScreenWidth * 2;
+    int m_window_height = PPU::ScreenHeight * 2;
     bool m_fullscreen = false;
     bool m_running = false;
     bool m_exit = false;
@@ -55,7 +54,6 @@ private:
     void render_about_dialog();
 
     void toggle_fullscreen();
-    void reset_window_size();
     void open_nes_file();
     void set_dark_theme();
 };

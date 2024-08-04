@@ -64,8 +64,10 @@ void Emulator::run()
 
         m_cpu.tick();
 
-        for (uint8_t i = 0; i < 3; i++)
-            m_ppu.tick();
+        // PPU is 3 times faster
+        m_ppu.tick();
+        m_ppu.tick();
+        m_ppu.tick();
     }
 
     m_apu.end_frame();

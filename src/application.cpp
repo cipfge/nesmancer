@@ -36,13 +36,11 @@ int Application::run(int argc, char* argv[])
         return -1;
 
     constexpr int DELAY = 1000.0f / 60;
-
-    uint32_t frame_start = 0;
     uint32_t frame_time = 0;
 
     while (m_running)
     {
-        frame_start = SDL_GetTicks();
+        const uint32_t frame_start = SDL_GetTicks();
 
         process_events();
         if (!m_show_popup)
@@ -118,10 +116,9 @@ bool Application::init()
     ImGui_ImplSDLRenderer2_Init(m_renderer);
 
     SDL_RenderSetScale(m_renderer, 1.0, 1.0);
-    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(m_renderer, 15, 15, 15, 255);
 
     set_dark_theme();
-    reset_window_size();
 
     m_input_manager.search_controllers();
 
@@ -402,16 +399,6 @@ void Application::toggle_fullscreen()
 {
     m_fullscreen = !m_fullscreen;
     SDL_SetWindowFullscreen(m_window, m_fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-}
-
-void Application::reset_window_size()
-{
-    m_window_width = PPU::ScreenWidth * m_screen_scale;
-    m_window_height = PPU::ScreenHeight * m_screen_scale
-                    + (int)ImGui::GetFrameHeight(); // Add menubar height
-
-    SDL_SetWindowSize(m_window, m_window_width, m_window_height);
-    SDL_RenderSetScale(m_renderer, 1.0, 1.0);
 }
 
 void Application::open_nes_file()

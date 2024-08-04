@@ -30,9 +30,12 @@ Mapper::Mapper(NesRom& rom)
 
 uint8_t Mapper::cpu_read(uint16_t address)
 {
-    if (address >= 0x8000)
+    if (address < 0x6000)
+        return 0x00; // Expansion ROM, not supported
+    else if (address < 0x8000)
+        return m_prg_ram[address - 0x6000];
+    else
         return m_prg[m_prg_mapping[(address - 0x8000) / 0x2000] + ((address - 0x8000) % 0x2000)];
-    return m_prg_ram[address - 0x6000];
 }
 
 uint8_t Mapper::ppu_read(uint16_t address)
