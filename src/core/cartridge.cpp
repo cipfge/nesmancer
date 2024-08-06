@@ -18,25 +18,26 @@ bool Cartridge::load_from_file(const std::string& file_path)
     try
     {
         NesRom rom(file_path);
+
         switch (rom.mapper_id())
         {
-        case 0:
+        case MAPPER_NROM:
             m_mapper = std::make_unique<Mapper_NROM>(rom);
             break;
 
-        case 1:
+        case MAPPER_MMC1:
             m_mapper = std::make_unique<Mapper_MMC1>(rom);
             break;
 
-        case 2:
+        case MAPPER_UXROM:
             m_mapper = std::make_unique<Mapper_UxROM>(rom);
             break;
 
-        case 3:
+        case MAPPER_CNROM:
             m_mapper = std::make_unique<Mapper_CNROM>(rom);
             break;
 
-        case 4:
+        case MAPPER_MMC3:
             m_mapper = std::make_unique<Mapper_MMC3>(rom);
             break;
 
@@ -56,8 +57,7 @@ bool Cartridge::load_from_file(const std::string& file_path)
 
 MirroringMode Cartridge::mirroring_mode()
 {
-    if (!m_mapper)
-        return MirroringMode::Horizontal;
+    assert(m_mapper);
     return m_mapper->mirroring_mode();
 }
 

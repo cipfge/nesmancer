@@ -6,6 +6,15 @@
 #include <array>
 #include <vector>
 
+enum SupportedMappers
+{
+    MAPPER_NROM,
+    MAPPER_MMC1,
+    MAPPER_UXROM,
+    MAPPER_CNROM,
+    MAPPER_MMC3
+};
+
 class Mapper
 {
 public:
