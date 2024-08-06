@@ -1,6 +1,5 @@
 #pragma once
 
-#include "global.hpp"
 #include "emulator.hpp"
 #include "input_manager.hpp"
 #include "cpu_widget.hpp"
@@ -27,7 +26,7 @@ public:
 
 private:
     InputManager m_input_manager;
-    std::unique_ptr<Emulator> m_nes;
+    std::unique_ptr<Emulator> m_nes = nullptr;
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_frame_texture = nullptr;

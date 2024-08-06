@@ -2,7 +2,7 @@
 #include "application.hpp"
 
 #ifdef EMU_PLATFORM_WINDOWS
-#include "global.hpp"
+#include "common.hpp"
 #include <Windows.h>
 #endif // Windows
 

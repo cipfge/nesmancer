@@ -20,7 +20,7 @@ NesRom::NesRom(const std::string& file_path)
     if (!is_valid())
         throw NesInvalidRomException();
 
-    if (version() == NesFileVersion::Unsupported)
+    if (version() == NesRomVersion::Unsupported)
         throw NesUnsupportedException();
 }
 
@@ -38,25 +38,25 @@ bool NesRom::has_trainer_data() const
     return (m_header->bytes[0] & mask) == mask;
 }
 
-NesFileVersion NesRom::version() const
+NesRomVersion NesRom::version() const
 {
     const uint8_t mask = 0x0C;
 
     if ((m_header->bytes[1] & mask) == 0x08)
-        return NesFileVersion::Nes2;
+        return NesRomVersion::Nes2;
     else if ((m_header->bytes[1] & mask) == 0x00)
-        return NesFileVersion::iNes;
+        return NesRomVersion::iNes;
 
-    return NesFileVersion::Unsupported;
+    return NesRomVersion::Unsupported;
 }
 
 uint16_t NesRom::mapper_id() const
 {
     switch (version())
     {
-    case NesFileVersion::iNes:
+    case NesRomVersion::iNes:
         return (m_header->bytes[1] & 0xF0) | (m_header->bytes[0] >> 4);
-    case NesFileVersion::Nes2:
+    case NesRomVersion::Nes2:
         return ((m_header->bytes[2] & 0x0F) << 8) | (m_header->bytes[1] & 0xF0) | (m_header->bytes[0] >> 4);
     default:
         return 0xFFFF;
@@ -76,9 +76,9 @@ uint32_t NesRom::program_rom_size() const
 {
     switch (version())
     {
-    case NesFileVersion::iNes:
+    case NesRomVersion::iNes:
         return program_banks() * 0x4000;
-    case NesFileVersion::Nes2:
+    case NesRomVersion::Nes2:
         return (((m_header->bytes[2] & 0x07) << 8) | program_banks()) * 0x4000;
     default:
         return 0;
@@ -94,9 +94,9 @@ uint32_t NesRom::character_rom_size() const
 {
     switch (version())
     {
-    case NesFileVersion::iNes:
+    case NesRomVersion::iNes:
         return character_banks() * 0x2000;
-    case NesFileVersion::Nes2:
+    case NesRomVersion::Nes2:
         return (((m_header->bytes[2] & 0x38) << 8) | character_banks()) * 0x2000;
     default:
         return 0;

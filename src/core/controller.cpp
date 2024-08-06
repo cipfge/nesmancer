@@ -4,7 +4,7 @@
 
 uint8_t Controller::read(uint8_t index)
 {
-    if (index >= EMU_CONTROLLER_COUNT)
+    if (index >= ControllerCount)
     {
         LOG_WARNING("Invalid controller index %u", index);
         return 0;
@@ -23,7 +23,7 @@ void Controller::write(uint8_t data)
 {
     if (m_strobe && !(data & 0x1))
     {
-        for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
+        for (int i = 0; i < ControllerCount; i++)
             m_registers[i] = m_input_manager.get_buttons_state(i);
     }
 

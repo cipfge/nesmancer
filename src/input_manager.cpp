@@ -4,7 +4,7 @@
 
 InputManager::~InputManager()
 {
-    for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
+    for (int i = 0; i < Controller::ControllerCount; i++)
     {
         if (m_controllers[i])
             SDL_GameControllerClose(m_controllers[i]);
@@ -30,7 +30,7 @@ void InputManager::process_input_event(SDL_Event& event)
 
 uint8_t InputManager::get_buttons_state(uint8_t index)
 {
-    if (index >= EMU_CONTROLLER_COUNT)
+    if (index >= Controller::ControllerCount)
     {
         LOG_WARNING("Invalid controller index %u", index);
         return 0;
@@ -76,7 +76,7 @@ uint8_t InputManager::get_buttons_state(uint8_t index)
 uint8_t InputManager::controller_count()
 {
     uint8_t count = 0;
-    for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
+    for (int i = 0; i < Controller::ControllerCount; i++)
     {
         if (m_controllers[i])
             count++;
@@ -93,7 +93,7 @@ void InputManager::search_controllers()
             controller_assigned(id))
             continue;
 
-        if (controller_count() >= EMU_CONTROLLER_COUNT)
+        if (controller_count() >= Controller::ControllerCount)
             return;
 
         SDL_GameController* controller = SDL_GameControllerOpen(id);
@@ -108,7 +108,7 @@ void InputManager::search_controllers()
 void InputManager::on_controller_connected(SDL_JoystickID id)
 {
     if (controller_assigned(id) ||
-        controller_count() >= EMU_CONTROLLER_COUNT)
+        controller_count() >= Controller::ControllerCount)
         return;
 
     SDL_GameController* controller = SDL_GameControllerOpen(id);
@@ -123,7 +123,7 @@ void InputManager::on_controller_connected(SDL_JoystickID id)
 
 void InputManager::on_controller_disconnected(SDL_JoystickID id)
 {
-    for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
+    for (int i = 0; i < Controller::ControllerCount; i++)
     {
         if (m_controllers[i] &&
             SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_controllers[i])) == id)
@@ -140,7 +140,7 @@ void InputManager::on_controller_disconnected(SDL_JoystickID id)
 
 bool InputManager::controller_assigned(SDL_JoystickID id)
 {
-    for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
+    for (int i = 0; i < Controller::ControllerCount; i++)
     {
         if (m_controllers[i] &&
             SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_controllers[i])) == id)
@@ -154,7 +154,7 @@ bool InputManager::controller_assigned(SDL_JoystickID id)
 
 void InputManager::assign_controller(SDL_GameController* controller)
 {
-    for (int i = 0; i < EMU_CONTROLLER_COUNT; i++)
+    for (int i = 0; i < Controller::ControllerCount; i++)
     {
         if (m_controllers[i])
             continue;

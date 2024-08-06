@@ -1,5 +1,5 @@
 #include "mapper_nrom.hpp"
-#include "global.hpp"
+#include "common.hpp"
 
 Mapper_NROM::Mapper_NROM(NesRom& rom) :
     Mapper(rom)

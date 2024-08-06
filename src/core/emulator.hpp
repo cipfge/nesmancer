@@ -6,7 +6,7 @@
 #include "cartridge.hpp"
 #include "controller.hpp"
 #include "system_bus.hpp"
-#include "SoundQueue.hpp"
+#include "sound_queue.hpp"
 #include <cstdint>
 #include <string>
 

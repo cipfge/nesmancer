@@ -1,6 +1,5 @@
 #pragma once
 
-#include "nes_file.hpp"
 #include "types.hpp"
 #include <cstdint>
 #include <string>
@@ -31,6 +30,25 @@ public:
     {}
 };
 
+enum class NesRomVersion
+{
+    iNes,
+    Nes2,
+    Unsupported
+};
+
+struct NesFileHeader
+{
+    static constexpr char ValidSignature[] = "NES\x1A";
+    static constexpr uint16_t TrainerSize = 512;
+
+    char signature[4] = {};
+    uint8_t prg_bank_count = 0;
+    uint8_t chr_bank_count = 0;
+    uint8_t bytes[10] = {};
+};
+
+
 class NesRom
 {
 public:
@@ -38,7 +56,7 @@ public:
 
     bool is_valid() const;
     bool has_trainer_data() const;
-    NesFileVersion version() const;
+    NesRomVersion version() const;
     uint16_t mapper_id() const;
     uint8_t program_banks() const;
     uint8_t character_banks() const;

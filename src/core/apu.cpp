@@ -1,6 +1,5 @@
 #include "apu.hpp"
 #include "system_bus.hpp"
-#include "global.hpp"
 #include "logger.hpp"
 
 APU::APU()
