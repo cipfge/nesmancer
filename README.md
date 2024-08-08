@@ -8,34 +8,58 @@ This is a work in progress hobby cross-platform C++ project tested on Windows an
 ![screenshot](docs/screenshot.png)
 
 ## Features
-* Supported mappers: NROM(0), MMC1(1), UxROM(2), CNROM(3), MMC3(4)
-* Sound
-* Gamepad: Support for Player 1 and Player 2
+* CPU: Official and unofficial opcodes
+* PPU: NTSC
+* APU: Implemented using Blargg's Audio Libraries - Nes_Snd_Emu
+* Mappers: NROM(0), MMC1(1), UxROM(2), CNROM(3), MMC3(4)
+* Gamepad: Support for both Player 1 and Player 2
+* ROM Files: iNes and Nes2 file formats
+* System pause and resume
 
 ## Build instructions
+
 ### Windows
-* Install dependencies
-  * Install Visual Studio Community with C++ desktop development and **CMake**
-  * Download latest SDL-VS binary from [SDL Github Releases](https://github.com/libsdl-org/SDL/) and extract it to **thirdparty** folder or any other directory and set the **SDL2_DIR** environment variable
-* Build
-  * Clone the repository and open **nesmancer** folder in **Visual Studio** or **Visual Studio Code**
-  * Build solution and run
+
+#### Install dependencies
+Install Visual Studio Community with C++ desktop development and **CMake**
+
+Download latest SDL Visual Studio binary from [SDL Github Releases](https://github.com/libsdl-org/SDL/) and extract it to **thirdparty** folder or any other directory and set the **SDL2_DIR** environment variable
+
+#### Build
+Clone the repository and open **nesmancer** folder in **Visual Studio** or **Visual Studio Code**
+Build solution and run
 
 ### Linux
-* Install dependencies
-  * Debian/Ubuntu: ```sudo apt install build-essential cmake ninja-build libsdl2-dev libdbus-1-dev```
-  * Fedora: ```sudo dnf install gcc-c++ cmake ninja-build SDL2-devel dbus-devel```
-  * Arch: ```sudo pacman -S gcc cmake ninja sdl2 dbus```
 
-* Build
-  * Clone the repository and open the terminal application in the project directory.
-  * Run the following commands: ```mkdir build && cd build && cmake -G Ninja .. && ninja```
-  * Run the emulator: ```./nesmancer [path to ROM file]```
+#### Install dependencies
+Debian/Ubuntu:
+```
+sudo apt install build-essential cmake ninja-build libsdl2-dev libdbus-1-dev
+```
+
+Fedora:
+```
+sudo dnf install gcc-c++ cmake ninja-build SDL2-devel dbus-devel
+```
+
+Arch:
+```
+sudo pacman -S gcc cmake ninja sdl2 dbus
+```
+
+#### Build
+Clone the repository and open the terminal application in the project directory.
+Run the following commands:
+```
+mkdir build && cd build && cmake -G Ninja .. && ninja
+```
+Run the emulator:
+```
+./nesmancer [path to ROM file]
+```
 
 ## Usage
 To open a ROM file use the **File->Open (Ctr+O)** menu or pass the ROM file as the first argument when launching the program.
-
-To pause or resume the emulatation use the **System->Pause (Esc)** menu.
 
 ## Controller configuration
 Controller and keyboard mapping:
