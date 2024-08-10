@@ -235,6 +235,9 @@ void Application::render()
 
 void Application::render_menubar()
 {
+    if (m_fullscreen)
+        return;
+
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))

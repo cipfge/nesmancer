@@ -17,7 +17,6 @@ Mapper::Mapper(NesRom& rom)
  
     if (m_chr_size == 0)
     {
-        m_chr_ram = true;
         m_chr_size = 0x2000;
         m_chr.resize(m_chr_size);
     }
@@ -41,4 +40,19 @@ uint8_t Mapper::cpu_read(uint16_t address)
 uint8_t Mapper::ppu_read(uint16_t address)
 {
     return m_chr[m_chr_mapping[address / 0x400] + (address % 0x400)];
+}
+
+void Mapper::map_prg(uint32_t size_kb, uint16_t slot, uint16_t bank)
+{
+    if (bank < 0)
+        bank = (m_prg_size / (0x400 * size_kb)) + bank;
+
+    for (int i = 0; i < (size_kb / 8); i++)
+        m_prg_mapping[(size_kb / 8) * slot + i] = (size_kb * 0x400 * bank + 0x2000 * i) % m_prg_size;
+}
+
+void Mapper::map_chr(uint32_t size_kb, uint16_t slot, uint16_t bank)
+{
+    for (int i = 0; i < size_kb; i++)
+        m_chr_mapping[size_kb * slot + i] = (size_kb * 0x400 * bank + 0x400 * i) % m_chr_size;
 }

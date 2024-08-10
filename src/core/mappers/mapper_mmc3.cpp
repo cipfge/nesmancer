@@ -3,8 +3,7 @@
 Mapper_MMC3::Mapper_MMC3(NesRom& rom) :
     Mapper(rom)
 {
-    map_prg<8>(3, -1);
-
+    map_prg(8, 3, -1);
     configure();
 }
 
@@ -47,34 +46,34 @@ void Mapper_MMC3::scanline()
 
 void Mapper_MMC3::configure()
 {
-    map_prg<8>(1, m_registers[7]);
+    map_prg(8, 1, m_registers[7]);
 
     if (!(m_tregister & (1 << 6)))
     {
-        map_prg<8>(0, m_registers[6]);
-        map_prg<8>(2, -2);
+        map_prg(8, 0, m_registers[6]);
+        map_prg(8, 2, -2);
     }
     else
     {
-        map_prg<8>(0, -2);
-        map_prg<8>(2, m_registers[6]);
+        map_prg(8, 0, -2);
+        map_prg(8, 2, m_registers[6]);
     }
 
     if (!(m_tregister & (1 << 7)))
     {
-        map_chr<2>(0, m_registers[0] >> 1);
-        map_chr<2>(1, m_registers[1] >> 1);
+        map_chr(2, 0, m_registers[0] >> 1);
+        map_chr(2, 1, m_registers[1] >> 1);
 
         for (int i = 0; i < 4; i++)
-            map_chr<1>(4 + i, m_registers[2 + i]);
+            map_chr(1, 4 + i, m_registers[2 + i]);
     }
     else
     {
         for (int i = 0; i < 4; i++)
-            map_chr<1>(i, m_registers[2 + i]);
+            map_chr(1, i, m_registers[2 + i]);
 
-        map_chr<2>(2, m_registers[0] >> 1);
-        map_chr<2>(3, m_registers[1] >> 1);
+        map_chr(2, 2, m_registers[0] >> 1);
+        map_chr(2, 3, m_registers[1] >> 1);
     }
 
     m_mirroring_mode = m_horizontal_mirroring ? MirroringMode::Horizontal : MirroringMode::Vertical;

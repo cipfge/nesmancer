@@ -24,14 +24,14 @@ void Mapper_CNROM::configure()
 {
     if (m_prg_banks == 1)
     {
-        map_prg<16>(0, 0);
-        map_prg<16>(1, 0);
+        map_prg(16, 0, 0);
+        map_prg(16, 1, 0);
     }
     else
     {
-        map_prg<16>(0, 0);
-        map_prg<16>(1, 1);
+        map_prg(16, 0, 0);
+        map_prg(16, 1, 1);
     }
 
-    map_chr<8>(0, m_register & 0b11);
+    map_chr(8, 0, m_register & 0b11);
 }

@@ -42,7 +42,6 @@ protected:
     uint32_t m_prg_ram_size = 0;
     uint8_t m_chr_banks = 0;
     uint32_t m_chr_size = 0;
-    bool m_chr_ram = false;
 
     MirroringMode m_mirroring_mode = MirroringMode::Horizontal;
 
@@ -53,35 +52,6 @@ protected:
     std::vector<uint8_t> m_prg_ram;
     std::vector<uint8_t> m_chr;
 
-    template <int KB>
-    void map_prg(int slot, int bank);
-
-    template<int KB>
-    void map_chr(int slot, int bank);
+    void map_prg(uint32_t size_kb, uint16_t slot, uint16_t bank);
+    void map_chr(uint32_t size_kb, uint16_t slot, uint16_t bank);
 };
-
-template <int KB>
-void Mapper::map_prg(int slot, int bank)
-{
-    if (bank < 0)
-        bank = (m_prg_size / (0x400 * KB)) + bank;
-
-    for (int i = 0; i < (KB / 8); i++)
-        m_prg_mapping[(KB / 8) * slot + i] = (KB * 0x400 * bank + 0x2000 * i) % m_prg_size;
-}
-
-template void Mapper::map_prg<32>(int, int);
-template void Mapper::map_prg<16>(int, int);
-template void Mapper::map_prg<8>(int, int);
-
-template <int KB>
-void Mapper::map_chr(int slot, int bank)
-{
-    for (int i = 0; i < KB; i++)
-        m_chr_mapping[KB * slot + i] = (KB * 0x400 * bank + 0x400 * i) % m_chr_size;
-}
-
-template void Mapper::map_chr<8>(int, int);
-template void Mapper::map_chr<4>(int, int);
-template void Mapper::map_chr<2>(int, int);
-template void Mapper::map_chr<1>(int, int);

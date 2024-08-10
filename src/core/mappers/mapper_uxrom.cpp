@@ -22,8 +22,7 @@ void Mapper_UxROM::ppu_write(uint16_t address, uint8_t data)
 
 void Mapper_UxROM::configure()
 {
-    map_prg<16>(0, m_register & 0xF);
-    map_prg<16>(1, 0xF);
-
-    map_chr<8>(0, 0);
+    map_prg(16, 0, m_register & 0xF);
+    map_prg(16, 1, 0xF);
+    map_chr(8, 0, 0);
 }

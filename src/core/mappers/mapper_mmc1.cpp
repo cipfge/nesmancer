@@ -53,28 +53,28 @@ void Mapper_MMC1::configure()
     {
         if (m_registers[0] & 0b100)
         {
-            map_prg<16>(0, m_registers[3] & 0xF);
-            map_prg<16>(1, 0xF);
+            map_prg(16, 0, m_registers[3] & 0xF);
+            map_prg(16, 1, 0xF);
         }
         else
         {
-            map_prg<16>(0, 0);
-            map_prg<16>(1, m_registers[3] & 0xF);
+            map_prg(16, 0, 0);
+            map_prg(16, 1, m_registers[3] & 0xF);
         }
     }
     else
     {
-        map_prg<32>(0, (m_registers[3] & 0xF) >> 1);
+        map_prg(32, 0, (m_registers[3] & 0xF) >> 1);
     }
 
     if (m_registers[0] & 0b10000)
     {
-        map_chr<4>(0, m_registers[1]);
-        map_chr<4>(1, m_registers[2]);
+        map_chr(4, 0, m_registers[1]);
+        map_chr(4, 1, m_registers[2]);
     }
     else
     {
-        map_chr<8>(0, m_registers[1] >> 1);
+        map_chr(8, 0, m_registers[1] >> 1);
     }
 
     switch (m_registers[0] & 0b11)
