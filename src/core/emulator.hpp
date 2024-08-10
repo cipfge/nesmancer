@@ -6,7 +6,6 @@
 #include "cartridge.hpp"
 #include "controller.hpp"
 #include "system_bus.hpp"
-#include "sound_queue.hpp"
 #include <cstdint>
 #include <string>
 
@@ -24,6 +23,8 @@ public:
     bool load_rom_file(const std::string& file_path);
     bool running() const { return m_cartridge.loaded(); }
     bool paused() const { return m_paused; }
+    const long sound_samples_available() const;
+    const long read_sound_samples(blip_sample_t* buffer, long size);
     void toggle_pause();
 
     const CPU& cpu() { return m_cpu; }
@@ -37,7 +38,5 @@ private:
     PPU m_ppu;
     Controller m_controller;
     SystemBus m_system_bus;
-    std::unique_ptr<SoundQueue> m_sound_queue = nullptr;
-    blip_sample_t m_sound_buffer[APU::SoundBufferSize] = {};
     bool m_paused = false;
 };

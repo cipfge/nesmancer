@@ -14,10 +14,6 @@ Emulator::Emulator(InputManager& input_manager):
 
 bool Emulator::init()
 {
-    m_sound_queue = std::make_unique<SoundQueue>();
-    if (!m_sound_queue->init(APU::SoundSampleRate))
-        return false;
-
     return m_apu.init();
 }
 
@@ -71,11 +67,6 @@ void Emulator::run()
     }
 
     m_apu.end_frame();
-
-    if (m_apu.samples_available() >= APU::SoundBufferSize) {
-        long size = m_apu.read_samples(m_sound_buffer, sizeof(m_sound_buffer) / sizeof(blip_sample_t));
-        m_sound_queue->write(m_sound_buffer, size);
-    }
 }
 
 bool Emulator::load_rom_file(const std::string& file_path)
@@ -86,6 +77,17 @@ bool Emulator::load_rom_file(const std::string& file_path)
     reset();
 
     return true;
+}
+
+const long Emulator::sound_samples_available() const
+{
+    return m_apu.samples_available();
+}
+
+const long Emulator::read_sound_samples(blip_sample_t* buffer, long size)
+{
+    assert(buffer);
+    return m_apu.read_samples(buffer, size);
 }
 
 void Emulator::toggle_pause()

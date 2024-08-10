@@ -2,6 +2,7 @@
 
 #include "emulator.hpp"
 #include "input_manager.hpp"
+#include "sound_queue.hpp"
 #include "cpu_widget.hpp"
 #include "ppu_widget.hpp"
 #include "version.hpp"
@@ -27,6 +28,8 @@ public:
 private:
     InputManager m_input_manager;
     std::unique_ptr<Emulator> m_nes = nullptr;
+    std::unique_ptr<SoundQueue> m_sound_queue = nullptr;
+    blip_sample_t m_sound_buffer[APU::SoundBufferSize] = {};
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_frame_texture = nullptr;
@@ -54,5 +57,4 @@ private:
 
     void toggle_fullscreen();
     void open_nes_file();
-    void set_dark_theme();
 };

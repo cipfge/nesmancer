@@ -37,6 +37,8 @@ set(EMU_SOURCE_FILES
     "widgets/widget.hpp"
     "application.cpp"
     "application.hpp"
+    "color_theme.cpp"
+    "color_theme.hpp"
     "common.hpp"
     "input_manager.cpp"
     "input_manager.hpp"

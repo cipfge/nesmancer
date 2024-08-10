@@ -15,6 +15,7 @@
 
 namespace platform
 {
+
 inline uint32_t file_size(const std::string& file_path)
 {
     std::filesystem::path path{ file_path };
