@@ -167,7 +167,8 @@ void Application::on_keyboard_event(const SDL_KeyboardEvent& event)
 
     if (event.keysym.sym == SDLK_ESCAPE)
     {
-        m_nes->toggle_pause();
+        if (m_fullscreen)
+            toggle_fullscreen();
         return;
     }
 
