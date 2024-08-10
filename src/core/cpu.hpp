@@ -71,9 +71,11 @@ public:
     void irq();
     void nmi();
     void tick();
+    void dma();
 
     const Registers& registers() const { return m_registers; }
-    uint8_t cycles() const { return m_cycles; }
+    bool running_op() const { return m_opcycles > 0; }
+    const uint64_t cycles() const { return m_total_cycles; }
 
     bool check_status_flag(StatusFlag flag) const
     {
@@ -97,7 +99,8 @@ private:
     uint8_t m_opcode = 0;
     AddressingMode m_addressing_mode = AM_IMPLIED;
     uint16_t m_address = 0;
-    uint8_t m_cycles = 0;
+    uint16_t m_opcycles = 0;
+    uint64_t m_total_cycles = 0;
 
     void interrupt(InterruptType type);
 

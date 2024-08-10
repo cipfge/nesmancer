@@ -109,7 +109,6 @@ bool Application::init()
 
     ImGuiIO& imgui_io = ImGui::GetIO();
     imgui_io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    imgui_io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     imgui_io.IniFilename = nullptr;
 
     ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer);
@@ -292,8 +291,6 @@ void Application::render_menubar()
         }
 
         ImGui::Separator();
-        ImGui::Text("Status:");
-
         if (m_nes->running())
         {
             if (m_nes->paused())
@@ -310,7 +307,7 @@ void Application::render_menubar()
         else
         {
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));
-            ImGui::Text("IDLE");
+            ImGui::Text("Idle");
         }
         ImGui::PopStyleColor();
 

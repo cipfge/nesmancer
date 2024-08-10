@@ -8,6 +8,7 @@ Emulator::Emulator(InputManager& input_manager):
     m_system_bus(m_apu, m_ppu, m_cartridge, m_controller),
     m_cpu(m_system_bus)
 {
+    m_system_bus.set_cpu(&m_cpu);
     m_apu.set_system_bus(&m_system_bus);
 }
 
@@ -50,24 +51,23 @@ void Emulator::run()
 
     while (!m_ppu.frame_rendered())
     {
-        if (m_cpu.cycles() == 0 && m_ppu.nmi())
+        // PPU is 3 times faster
+        m_ppu.tick();
+        m_ppu.tick();
+        m_ppu.tick();
+        m_cpu.tick();
+
+        if (m_ppu.nmi())
         {
             m_cpu.nmi();
             m_ppu.nmi_clear();
         }
 
-        if (m_cpu.cycles() == 0 && m_cartridge.irq())
+        if (m_cartridge.irq())
         {
             m_cpu.irq();
             m_cartridge.irq_clear();
         }
-
-        m_cpu.tick();
-
-        // PPU is 3 times faster
-        m_ppu.tick();
-        m_ppu.tick();
-        m_ppu.tick();
     }
 
     m_apu.end_frame();

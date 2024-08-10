@@ -5,10 +5,8 @@
 APU::APU()
 {
     m_apu.dmc_reader = [this](int address) -> int {
-        if (!m_system_bus)
-            return 0x55; // Flat dmc samples
-        else
-            return m_system_bus->read(address);
+        assert(m_system_bus);
+        return m_system_bus->read(address);
     };
 }
 
@@ -20,7 +18,7 @@ void APU::set_system_bus(SystemBus* system_bus)
 bool APU::init()
 {
     m_apu.set_output(&m_buffer);
-    m_buffer.clock_rate(NTSC_ClockRate);
+    m_buffer.clock_rate(ClockRate);
     if (m_buffer.set_sample_rate(SoundSampleRate))
     {
         LOG_FATAL("APU error, cannot set sample rate %u", SoundSampleRate);
@@ -63,5 +61,5 @@ long APU::read_samples(blip_sample_t* buffer, long size)
 
 blip_time_t APU::clock()
 {
-    return m_time += NTSC_ClockTick;
+    return m_time += ClockTick;
 }

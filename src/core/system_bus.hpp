@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <array>
 
+class CPU;
 class APU;
 class PPU;
 class Cartridge;
@@ -20,11 +21,14 @@ public:
 
     ~SystemBus() = default;
 
+    void set_cpu(CPU* cpu) { m_cpu = cpu; }
+
     uint8_t read(uint16_t address);
     void write(uint16_t address, uint8_t data);
 
 private:
     std::array<uint8_t, 0x800> m_ram{};
+    CPU* m_cpu = nullptr;
     APU& m_apu;
     PPU& m_ppu;
     Cartridge& m_cartrige;

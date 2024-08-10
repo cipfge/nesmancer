@@ -1,4 +1,5 @@
 #include "system_bus.hpp"
+#include "cpu.hpp"
 #include "ppu.hpp"
 #include "apu.hpp"
 #include "cartridge.hpp"
@@ -63,6 +64,9 @@ void SystemBus::write(uint16_t address, uint8_t data)
 
 inline void SystemBus::oam_dma(uint8_t data)
 {
+    assert(m_cpu);
+    m_cpu->dma();
+
     for (uint16_t i = 0; i < 256; i++)
         write(0x2004, read(0x100 * data + i));
 }

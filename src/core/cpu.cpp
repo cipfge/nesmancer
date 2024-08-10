@@ -270,6 +270,8 @@ void CPU::reset()
     m_registers.SP = 0xFD;
     m_opcode = 0;
     m_address = 0;
+    m_opcycles = 0;
+    m_total_cycles = 0;
 
     interrupt(InterruptType::RST);
 }
@@ -286,20 +288,34 @@ void CPU::nmi()
 
 void CPU::tick()
 {
-    if (m_cycles == 0)
+    m_total_cycles++;
+    if (m_opcycles != 0)
     {
-        m_opcode = read(m_registers.PC++);
-        Instruction op = m_instruction_table[m_opcode];
-        m_addressing_mode = op.addressing_mode;
-        m_cycles = op.cycles;
-        m_address = 0;
-        bool am_cycle = (this->*op.read_address)();
-        bool op_cycle = (this->*op.execute)();
-        if (am_cycle && op_cycle)
-            m_cycles++;
+        m_opcycles--;
+        return;
     }
 
-    m_cycles--;
+    m_opcode = read(m_registers.PC++);
+    Instruction op = m_instruction_table[m_opcode];
+    m_addressing_mode = op.addressing_mode;
+    m_opcycles = op.cycles;
+    m_address = 0;
+    bool am_cycle = (this->*op.read_address)();
+    bool op_cycle = (this->*op.execute)();
+    if (am_cycle && op_cycle)
+        m_opcycles++;
+
+    m_opcycles--;
+}
+
+void CPU::dma()
+{
+    // Skip DMA cycles, 256 read + 256 write
+    m_opcycles += 512;
+
+    // On odd cycles add 1
+    if (m_total_cycles & 1)
+        m_opcycles++;
 }
 
 void CPU::interrupt(InterruptType type)
@@ -330,7 +346,7 @@ void CPU::interrupt(InterruptType type)
         vector = NMI_Vector;
 
     m_registers.PC = read_word(vector);
-    m_cycles = INT_Cycles;
+    m_opcycles = INT_Cycles;
 }
 
 void CPU::set_status_zn_flags(uint8_t value)
@@ -496,7 +512,7 @@ bool CPU::read_indirect_indexed()
 void CPU::branch()
 {
     m_registers.PC = m_address;
-    m_cycles++;
+    m_opcycles++;
 }
 
 bool CPU::op_bcs()
