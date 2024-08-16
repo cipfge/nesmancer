@@ -1,6 +1,6 @@
 # Nesmancer
-![GitHub Actions](https://github.com/cipfge/nesmancer/actions/workflows/windows.yml/badge.svg)
-![GitHub Actions](https://github.com/cipfge/nesmancer/actions/workflows/linux.yml/badge.svg)
+![GitHub Actions](https://github.com/cipfge/nesmancer/actions/workflows/windows.yaml/badge.svg)
+![GitHub Actions](https://github.com/cipfge/nesmancer/actions/workflows/linux.yaml/badge.svg)
 
 Nintendo Entertainment System emulator.
 
