@@ -369,10 +369,11 @@ void Application::render_about_dialog()
         m_show_about = false;
 
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 128, 255, 255));
-        ImGui::Text("%s %s", EMU_VERSION_NAME, EMU_VERSION_NUMBER);
+        ImGui::Text("%s", EMU_VERSION_NAME);
         ImGui::PopStyleColor();
 
         ImGui::Separator();
+        ImGui::Text("Version: %s", EMU_VERSION_NUMBER);
 
 #ifdef EMU_PLATFORM_WINDOWS
         ImGui::Text("Platform: Windows");
@@ -393,13 +394,14 @@ void Application::render_about_dialog()
 
         ImGui::Separator();
         ImGui::Text("Thirdparty libraries:");
-        ImGui::Text("- SDL2 %d.%d.%d", m_sdl_version.major, m_sdl_version.minor, m_sdl_version.patch);
-        ImGui::Text("- ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
-        ImGui::Text("- NativeFileDialog");
+        ImGui::Text("- SDL2 - %d.%d.%d", m_sdl_version.major, m_sdl_version.minor, m_sdl_version.patch);
+        ImGui::Text("- ImGui - %s", IMGUI_VERSION);
+        ImGui::Text("- NesSndEmu - 0.2.0");
+        ImGui::Text("- NativeFileDialog - 1.1.0");
         ImGui::Separator();
 
         ImGui::SetItemDefaultFocus();
-        if (ImGui::Button("OK", ImVec2(120, 0)))
+        if (ImGui::Button("OK", ImVec2(200, 0)))
         {
             m_show_popup = false;
             ImGui::CloseCurrentPopup();
