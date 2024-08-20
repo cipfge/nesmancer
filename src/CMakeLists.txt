@@ -30,11 +30,6 @@ set(EMU_SOURCE_FILES
     "core/system_bus.hpp"
     "core/types.hpp"
     "platform/platform.hpp"
-    "widgets/cpu_widget.cpp"
-    "widgets/cpu_widget.hpp"
-    "widgets/ppu_widget.cpp"
-    "widgets/ppu_widget.hpp"
-    "widgets/widget.hpp"
     "application.cpp"
     "application.hpp"
     "color_theme.cpp"
@@ -76,7 +71,6 @@ target_include_directories(nesmancer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/core"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/mappers"
     "${CMAKE_CURRENT_SOURCE_DIR}/platform"
-    "${CMAKE_CURRENT_SOURCE_DIR}/widgets"
     ${SDL2_INCLUDE_DIRS})
 
 set_target_properties(nesmancer PROPERTIES
