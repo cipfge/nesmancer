@@ -1,6 +1,5 @@
 #include "application.hpp"
 #include "platform.hpp"
-#include "color_theme.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
@@ -123,7 +122,7 @@ bool Application::init()
     ImGuiIO& imgui_io = ImGui::GetIO();
     imgui_io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     imgui_io.IniFilename = nullptr;
-    DarkColorTheme(ImGui::GetStyle());
+    m_style.set_color_theme(ColorTheme::Default);
 
     ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer);
     ImGui_ImplSDLRenderer2_Init(m_renderer);
@@ -283,6 +282,20 @@ void Application::render_menubar()
 
         if (ImGui::BeginMenu("View"))
         {
+            if (ImGui::BeginMenu("Theme"))
+            {
+                if (ImGui::MenuItem("Default", nullptr, m_style.selected_theme() == ColorTheme::Default))
+                    m_style.set_color_theme(ColorTheme::Default);
+                if (ImGui::MenuItem("ImGui Classic", nullptr, m_style.selected_theme() == ColorTheme::ImGuiClassic))
+                    m_style.set_color_theme(ColorTheme::ImGuiClassic);
+                if (ImGui::MenuItem("ImGui Dark", nullptr, m_style.selected_theme() == ColorTheme::ImGuiDark))
+                    m_style.set_color_theme(ColorTheme::ImGuiDark);
+                if (ImGui::MenuItem("ImGui Light", nullptr, m_style.selected_theme() == ColorTheme::ImGuiLight))
+                    m_style.set_color_theme(ColorTheme::ImGuiLight);
+
+                ImGui::EndMenu();
+            }
+
             if (ImGui::MenuItem("Full screen", "Ctr+F", m_fullscreen))
                 toggle_fullscreen();
 
@@ -301,22 +314,12 @@ void Application::render_menubar()
         if (m_nes->running())
         {
             if (m_nes->paused())
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 255, 255));
                 ImGui::Text("Paused");
-            }
             else
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
                 ImGui::Text("Running...");
-            }
         }
         else
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));
             ImGui::Text("Idle");
-        }
-        ImGui::PopStyleColor();
 
         ImGui::EndMainMenuBar();
     }

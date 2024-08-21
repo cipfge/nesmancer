@@ -3,6 +3,7 @@
 #include "emulator.hpp"
 #include "input_manager.hpp"
 #include "sound_queue.hpp"
+#include "application_style.hpp"
 #include "version.hpp"
 #include <string>
 #include <memory>
@@ -30,6 +31,7 @@ private:
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_frame_texture = nullptr;
     SDL_version m_sdl_version = {};
+    ApplicationStyle m_style;
 
     std::string m_window_title = EMU_VERSION_NAME;
     int m_window_width = PPU::ScreenWidth * 2;
