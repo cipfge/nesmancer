@@ -19,10 +19,6 @@ PPU::PPU(Cartridge& cartridge)
     reset();
 }
 
-PPU::~PPU()
-{
-}
-
 void PPU::reset()
 {
     m_control.value = 0;

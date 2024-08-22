@@ -10,8 +10,6 @@
 class Cartridge
 {
 public:
-    Cartridge() = default;
-
     void reset();
     bool load_from_file(const std::string& file_path);
     bool loaded() const { return m_mapper != nullptr; }

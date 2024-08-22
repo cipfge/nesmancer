@@ -19,8 +19,6 @@ public:
         m_controller(controller)
     {}
 
-    ~SystemBus() = default;
-
     void set_cpu(CPU* cpu) { m_cpu = cpu; }
 
     uint8_t read(uint16_t address);

@@ -20,12 +20,11 @@ public:
         PPU_DATA
     };
 
-public:
-    PPU(Cartridge& cartridge);
-    ~PPU();
-
     static constexpr uint16_t ScreenWidth = 256;
     static constexpr uint16_t ScreenHeight = 240;
+
+public:
+    PPU(Cartridge& cartridge);
 
     void reset();
     void tick();
