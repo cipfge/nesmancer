@@ -2,18 +2,19 @@
 ![GitHub Actions](https://github.com/cipfge/nesmancer/actions/workflows/windows.yaml/badge.svg)
 ![GitHub Actions](https://github.com/cipfge/nesmancer/actions/workflows/linux.yaml/badge.svg)
 
-Nintendo Entertainment System emulator.
+Nesmancer is a Nintendo Entertainment System emulator written in C++ for Windows and Linux.
 
-This is a work in progress hobby cross-platform C++ project tested on Windows and Linux, the emulator is not cycle accurate.
+The emulator is not cycle accurate.
 
 ![screenshot](docs/screenshot.png)
 
 ## Features
 * CPU: Official and unofficial opcodes
 * PPU: NTSC
-* APU: Implemented using Blargg's Audio Libraries - Nes_Snd_Emu
+* APU: Implemented using Blargg's Audio Libraries - NesSndEmu
 * Mappers: NROM(0), MMC1(1), UxROM(2), CNROM(3), MMC3(4)
 * Gamepad: Support for both Player 1 and Player 2
+* Xbox controller support
 * ROM Files: iNes and Nes2 file formats
 * System pause and resume
 
