@@ -23,39 +23,37 @@ The emulator is not cycle accurate.
 ### Windows
 
 #### Install dependencies
-Install Visual Studio Community with C++ desktop development and **CMake**
-
-Download latest SDL Visual Studio binary from [SDL Github Releases](https://github.com/libsdl-org/SDL/) and extract it to **thirdparty** folder or any other directory and set the **SDL2_DIR** environment variable
+* Install Visual Studio Community with C++ desktop development and **CMake**
+* Download latest SDL Visual Studio binary from [SDL Github Releases](https://github.com/libsdl-org/SDL/) and extract it to **thirdparty** folder or any other directory and set the **SDL2_DIR** environment variable
 
 #### Build
-Clone the repository and open **nesmancer** folder in **Visual Studio** or **Visual Studio Code**
-Build solution and run
+* Clone the repository and open **nesmancer** folder in **Visual Studio** or **Visual Studio Code**
+* Build solution and run
 
 ### Linux
 
 #### Install dependencies
-Debian/Ubuntu:
+* Debian/Ubuntu:
 ```
 sudo apt install build-essential cmake ninja-build libsdl2-dev libdbus-1-dev
 ```
 
-Fedora:
+* Fedora:
 ```
 sudo dnf install gcc-c++ cmake ninja-build SDL2-devel dbus-devel
 ```
 
-Arch:
+* Arch:
 ```
 sudo pacman -S gcc cmake ninja sdl2 dbus
 ```
 
 #### Build
-Clone the repository and open the terminal application in the project directory.
-Run the following commands:
+* Clone the repository and open the terminal application in the project directory and run the build commands:
 ```
 mkdir build && cd build && cmake -G Ninja .. && ninja
 ```
-Run the emulator:
+* Run the emulator:
 ```
 ./nesmancer [path to ROM file]
 ```
