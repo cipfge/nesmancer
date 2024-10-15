@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.20)
-project(nativefiledialog-extended VERSION 1.1.0)
+cmake_minimum_required(VERSION 3.5)
+project(nativefiledialog-extended VERSION 1.2.1)
 
 set(nfd_ROOT_PROJECT OFF)
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -7,6 +7,8 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif ()
 
 option(BUILD_SHARED_LIBS "Build a shared library instead of static" OFF)
+option(NFD_BUILD_TESTS "Build tests for nfd" ${nfd_ROOT_PROJECT})
+option(NFD_BUILD_SDL2_TESTS "Build SDL2 tests for nfd" OFF)
 option(NFD_INSTALL "Generate install target for nfd" ${nfd_ROOT_PROJECT})
 
 set(nfd_PLATFORM Undefined)
@@ -46,3 +48,7 @@ if(NOT DEFINED CMAKE_CXX_STANDARD)
 endif()
 
 add_subdirectory(src)
+
+if(${NFD_BUILD_TESTS} OR ${NFD_BUILD_SDL2_TESTS})
+  add_subdirectory(test)
+endif()

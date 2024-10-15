@@ -5,6 +5,7 @@
 #include "imgui_impl_sdlrenderer2.h"
 #include "logger.hpp"
 #include <nfd.hpp>
+#include <nfd_sdl2.h>
 
 #ifdef EMU_PLATFORM_WINDOWS
 #include <SDL_syswm.h>
@@ -390,7 +391,7 @@ void Application::render_about_dialog()
         ImGui::Text("- SDL2 - %d.%d.%d", m_sdl_version.major, m_sdl_version.minor, m_sdl_version.patch);
         ImGui::Text("- ImGui - %s", IMGUI_VERSION);
         ImGui::Text("- NesSndEmu - 0.2.0");
-        ImGui::Text("- NativeFileDialog - 1.1.0");
+        ImGui::Text("- NativeFileDialog - 1.2.1");
         ImGui::Separator();
 
         ImGui::SetItemDefaultFocus();
@@ -413,21 +414,16 @@ void Application::toggle_fullscreen()
 void Application::open_nes_file()
 {
     NFD::Guard guard;
-    NFD::UniquePath nes_file_path;
+    NFD::UniquePath nes_file_path = nullptr;
 
     nfdfilteritem_t filter[1] = {
         {"NES File", "nes"}
     };
 
-#ifdef EMU_PLATFORM_WINDOWS
-    // Set window owner
-    SDL_SysWMinfo win_info {};
-    SDL_VERSION(&win_info.version);
-    SDL_GetWindowWMInfo(m_window, &win_info);
-    NFD::SetWindowOwner(win_info.info.win.window);
-#endif // Windows
+    nfdwindowhandle_t parent_window = {};
+    NFD_GetNativeWindowFromSDLWindow(m_window, &parent_window);
 
-    nfdresult_t result = NFD::OpenDialog(nes_file_path, filter, 1);
+    nfdresult_t result = NFD::OpenDialog(nes_file_path, filter, 1, nullptr, parent_window);
     if (result == NFD_OKAY)
     {
         std::string file_path(nes_file_path.get());
