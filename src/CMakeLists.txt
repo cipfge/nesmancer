@@ -61,6 +61,10 @@ add_executable(nesmancer
     ${EMU_APPLICATION_TYPE}
     ${EMU_SOURCE_FILES})
 
+if (WIN32)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT nesmancer)
+endif()
+
 target_link_libraries(nesmancer PRIVATE SDL2::SDL2 imgui nfd Nes_Snd_Emu)
 if (TARGET SDL2::SDL2main)
     target_link_libraries(nesmancer PRIVATE SDL2::SDL2main)
