@@ -8,12 +8,12 @@ External libraries used by the project
 
 ## Imgui
 - Upstream: https://github.com/ocornut/imgui
-- Version: 1.90.9
+- Version: 1.91.5
 - License: MIT
 
 ## Native File Dialog Extended
 - Upstream: https://github.com/btzy/nativefiledialog-extended
-- Version: 1.1.0
+- Version: 1.2.1
 - License: Zlib
 
 ## Nes_Snd_Emu
