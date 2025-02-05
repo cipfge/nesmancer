@@ -8,7 +8,7 @@ External libraries used by the project
 
 ## Imgui
 - Upstream: https://github.com/ocornut/imgui
-- Version: 1.91.5
+- Version: 1.91.8
 - License: MIT
 
 ## Native File Dialog Extended
