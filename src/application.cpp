@@ -6,6 +6,7 @@
 #include "logger.hpp"
 #include <nfd.hpp>
 #include <nfd_sdl2.h>
+#include <toml.hpp>
 
 #ifdef EMU_PLATFORM_WINDOWS
 #include <SDL_syswm.h>
@@ -25,6 +26,8 @@ Application::~Application()
 
 int Application::run(int argc, char* argv[])
 {
+    load_settings();
+
     m_running = init();
     if (!m_running)
         return -1;
@@ -60,6 +63,8 @@ int Application::run(int argc, char* argv[])
         if (frame_time < DELAY)
             SDL_Delay((int)(DELAY - frame_time));
     }
+
+    save_settings();
 
     return 0;
 }
@@ -403,6 +408,55 @@ void Application::render_about_dialog()
 
         ImGui::EndPopup();
     }
+}
+
+void Application::load_settings()
+{
+    toml::parse_result config = toml::parse_file("nesmancer.toml");
+    if (!config)
+        return;
+
+    std::optional<uint32_t> window_width = config.table()["window"]["width"][0].value<uint32_t>();
+    std::optional<uint32_t> window_height = config.table()["window"]["height"][0].value<uint32_t>();
+
+    if (window_width.has_value())
+        m_window_width = window_width.value() >= DefaultWindowWidth ? window_width.value() : DefaultWindowWidth;
+    if (window_height.has_value())
+        m_window_height = window_height.value() >= DefaultWindowHeight ? window_height.value() : DefaultWindowHeight;
+}
+
+void Application::save_settings()
+{
+    toml::parse_result config = toml::parse(R"(
+        [window]
+        width = [0]
+        height = [0]
+    )");
+
+    if (!config)
+        return;
+
+    if (toml::array* width = config.table()["window"]["width"].as_array())
+    {
+        width->for_each([this](auto&& el) {
+            if constexpr (toml::is_number<decltype(el)>)
+                el = m_window_width;
+        });
+    }
+
+    if (toml::array* height = config.table()["window"]["height"].as_array())
+    {
+        height->for_each([this](auto&& el) {
+            if constexpr (toml::is_number<decltype(el)>)
+                el = m_window_height;
+        });
+    }
+
+    std::ofstream config_file("nesmancer.toml");
+    if (!config_file.is_open())
+        return;
+
+    config_file << config.table() << "\n";
 }
 
 void Application::toggle_fullscreen()

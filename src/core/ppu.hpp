@@ -22,6 +22,7 @@ public:
 
     static constexpr uint16_t ScreenWidth = 256;
     static constexpr uint16_t ScreenHeight = 240;
+    static constexpr uint16_t ScreenScale = 2;
 
 public:
     PPU(Cartridge& cartridge);

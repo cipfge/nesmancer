@@ -75,6 +75,7 @@ target_include_directories(nesmancer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/core"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/mappers"
     "${CMAKE_CURRENT_SOURCE_DIR}/platform"
+    "${CMAKE_CURRENT_SOURCE_DIR}/toml"
     ${SDL2_INCLUDE_DIRS})
 
 set_target_properties(nesmancer PROPERTIES
@@ -83,4 +84,5 @@ set_target_properties(nesmancer PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
 target_compile_definitions(nesmancer PRIVATE
-    "$<$<CONFIG:Debug>:EMU_DEBUG_ENABLED>")
+    "$<$<CONFIG:Debug>:EMU_DEBUG_ENABLED>"
+    TOML_EXCEPTIONS=0)

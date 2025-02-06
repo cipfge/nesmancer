@@ -22,6 +22,9 @@ public:
     void set_window_title(const std::string& title);
     SDL_Window* window() const { return m_window; }
 
+    static constexpr uint16_t DefaultWindowWidth = PPU::ScreenWidth * PPU::ScreenScale;
+    static constexpr uint16_t DefaultWindowHeight = PPU::ScreenHeight * PPU::ScreenScale;
+
 private:
     InputManager m_input_manager;
     std::unique_ptr<Emulator> m_nes = nullptr;
@@ -34,8 +37,8 @@ private:
     ApplicationStyle m_style;
 
     std::string m_window_title = EMU_VERSION_NAME;
-    int m_window_width = PPU::ScreenWidth * 2;
-    int m_window_height = PPU::ScreenHeight * 2;
+    int m_window_width = DefaultWindowWidth;
+    int m_window_height = DefaultWindowHeight;
     bool m_fullscreen = false;
     bool m_running = false;
     bool m_exit = false;
@@ -50,6 +53,9 @@ private:
     void render_menubar();
     void render_exit_dialog();
     void render_about_dialog();
+
+    void load_settings();
+    void save_settings();
 
     void toggle_fullscreen();
     void open_nes_file();
