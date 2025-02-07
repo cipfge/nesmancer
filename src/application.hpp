@@ -39,6 +39,8 @@ private:
     std::string m_window_title = EMU_VERSION_NAME;
     int m_window_width = DefaultWindowWidth;
     int m_window_height = DefaultWindowHeight;
+    int m_window_x = SDL_WINDOWPOS_CENTERED;
+    int m_window_y = SDL_WINDOWPOS_CENTERED;
     bool m_fullscreen = false;
     bool m_running = false;
     bool m_exit = false;

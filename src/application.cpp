@@ -87,8 +87,8 @@ bool Application::init()
     }
 
     m_window = SDL_CreateWindow(m_window_title.c_str(),
-                                SDL_WINDOWPOS_CENTERED,
-                                SDL_WINDOWPOS_CENTERED,
+                                m_window_x,
+                                m_window_y,
                                 m_window_width,
                                 m_window_height,
                                 SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
@@ -416,9 +416,15 @@ void Application::load_settings()
     if (!config)
         return;
 
+    std::optional<uint32_t> window_x = config.table()["window"]["x"][0].value<uint32_t>();
+    std::optional<uint32_t> window_y = config.table()["window"]["y"][0].value<uint32_t>();
     std::optional<uint32_t> window_width = config.table()["window"]["width"][0].value<uint32_t>();
     std::optional<uint32_t> window_height = config.table()["window"]["height"][0].value<uint32_t>();
 
+    if (window_x.has_value())
+        m_window_x = window_x.value() > 0 ? window_x.value() : SDL_WINDOWPOS_CENTERED;
+    if (window_y.has_value())
+        m_window_y = window_y.value() > 0 ? window_y.value() : SDL_WINDOWPOS_CENTERED;
     if (window_width.has_value())
         m_window_width = window_width.value() >= DefaultWindowWidth ? window_width.value() : DefaultWindowWidth;
     if (window_height.has_value())
@@ -429,6 +435,8 @@ void Application::save_settings()
 {
     toml::parse_result config = toml::parse(R"(
         [window]
+        x = [0]
+        y = [0]
         width = [0]
         height = [0]
     )");
@@ -436,17 +444,35 @@ void Application::save_settings()
     if (!config)
         return;
 
-    if (toml::array* width = config.table()["window"]["width"].as_array())
+    SDL_GetWindowPosition(m_window, &m_window_x, &m_window_y);
+
+    if (toml::array* window_x = config.table()["window"]["x"].as_array())
     {
-        width->for_each([this](auto&& el) {
+        window_x->for_each([this](auto&& el) {
+            if constexpr (toml::is_number<decltype(el)>)
+                el = m_window_x;
+            });
+    }
+
+    if (toml::array* window_y = config.table()["window"]["y"].as_array())
+    {
+        window_y->for_each([this](auto&& el) {
+            if constexpr (toml::is_number<decltype(el)>)
+                el = m_window_y;
+            });
+    }
+
+    if (toml::array* window_width = config.table()["window"]["width"].as_array())
+    {
+        window_width->for_each([this](auto&& el) {
             if constexpr (toml::is_number<decltype(el)>)
                 el = m_window_width;
         });
     }
 
-    if (toml::array* height = config.table()["window"]["height"].as_array())
+    if (toml::array* window_height = config.table()["window"]["height"].as_array())
     {
-        height->for_each([this](auto&& el) {
+        window_height->for_each([this](auto&& el) {
             if constexpr (toml::is_number<decltype(el)>)
                 el = m_window_height;
         });
