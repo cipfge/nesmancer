@@ -206,10 +206,23 @@ void Application::on_keyboard_event(const SDL_KeyboardEvent& event)
 
 void Application::on_window_event(const SDL_Event& event)
 {
-    if (event.window.event == SDL_WINDOWEVENT_RESIZED)
+    if (SDL_GetWindowFlags(m_window) & SDL_WINDOW_MAXIMIZED)
+        return;
+
+    switch (event.window.event)
     {
+    case SDL_WINDOWEVENT_RESIZED:
         m_window_width = event.window.data1;
         m_window_height = event.window.data2;
+        break;
+
+    case SDL_WINDOWEVENT_MOVED:
+        m_window_x = event.window.data1;
+        m_window_y = event.window.data2;
+        break;
+
+    default:
+        break;
     }
 }
 
@@ -241,7 +254,11 @@ void Application::render()
         SDL_RenderCopy(m_renderer, m_frame_texture, nullptr, nullptr);
     }
 
-    SDL_RenderSetLogicalSize(m_renderer, m_window_width, m_window_height);
+    int width = 0;
+    int height = 0;
+    SDL_GetWindowSize(m_window, &width, &height);
+    SDL_RenderSetLogicalSize(m_renderer, width, height);
+
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_renderer);
 
@@ -444,8 +461,6 @@ void Application::save_settings()
     if (!config)
         return;
 
-    SDL_GetWindowPosition(m_window, &m_window_x, &m_window_y);
-
     if (toml::array* window_x = config.table()["window"]["x"].as_array())
     {
         window_x->for_each([this](auto&& el) {
@@ -459,7 +474,7 @@ void Application::save_settings()
         window_y->for_each([this](auto&& el) {
             if constexpr (toml::is_number<decltype(el)>)
                 el = m_window_y;
-            });
+        });
     }
 
     if (toml::array* window_width = config.table()["window"]["width"].as_array())
