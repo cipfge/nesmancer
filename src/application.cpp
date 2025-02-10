@@ -128,7 +128,7 @@ bool Application::init()
     ImGuiIO& imgui_io = ImGui::GetIO();
     imgui_io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     imgui_io.IniFilename = nullptr;
-    m_style.set_color_theme(ColorTheme::Default);
+    m_style.set_color_theme(m_style_name);
 
     ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer);
     ImGui_ImplSDLRenderer2_Init(m_renderer);
@@ -308,14 +308,25 @@ void Application::render_menubar()
             if (ImGui::BeginMenu("Theme"))
             {
                 if (ImGui::MenuItem("Default", nullptr, m_style.selected_theme() == ColorTheme::Default))
+                {
+                    m_style_name = "default";
                     m_style.set_color_theme(ColorTheme::Default);
+                }
                 if (ImGui::MenuItem("ImGui Classic", nullptr, m_style.selected_theme() == ColorTheme::ImGuiClassic))
+                {
+                    m_style_name = "classic";
                     m_style.set_color_theme(ColorTheme::ImGuiClassic);
+                }
                 if (ImGui::MenuItem("ImGui Dark", nullptr, m_style.selected_theme() == ColorTheme::ImGuiDark))
+                {
+                    m_style_name = "dark";
                     m_style.set_color_theme(ColorTheme::ImGuiDark);
+                }
                 if (ImGui::MenuItem("ImGui Light", nullptr, m_style.selected_theme() == ColorTheme::ImGuiLight))
+                {
+                    m_style_name = "light";
                     m_style.set_color_theme(ColorTheme::ImGuiLight);
-
+                }
                 ImGui::EndMenu();
             }
 
@@ -433,11 +444,14 @@ void Application::load_settings()
     if (!config)
         return;
 
+    std::optional<std::string> theme = config.table()["application"]["theme"][0].value<std::string>();
     std::optional<uint32_t> window_x = config.table()["window"]["x"][0].value<uint32_t>();
     std::optional<uint32_t> window_y = config.table()["window"]["y"][0].value<uint32_t>();
     std::optional<uint32_t> window_width = config.table()["window"]["width"][0].value<uint32_t>();
     std::optional<uint32_t> window_height = config.table()["window"]["height"][0].value<uint32_t>();
 
+    if (theme.has_value())
+        m_style_name = theme.value();
     if (window_x.has_value())
         m_window_x = window_x.value() > 0 ? window_x.value() : SDL_WINDOWPOS_CENTERED;
     if (window_y.has_value())
@@ -451,6 +465,9 @@ void Application::load_settings()
 void Application::save_settings()
 {
     toml::parse_result config = toml::parse(R"(
+        [application]
+        theme = ['default']
+
         [window]
         x = [0]
         y = [0]
@@ -461,12 +478,20 @@ void Application::save_settings()
     if (!config)
         return;
 
+    if (toml::array* theme = config.table()["application"]["theme"].as_array())
+    {
+        theme->for_each([this](auto&& el) {
+            if constexpr (toml::is_string<decltype(el)>)
+                el = m_style_name;
+        });
+    }
+
     if (toml::array* window_x = config.table()["window"]["x"].as_array())
     {
         window_x->for_each([this](auto&& el) {
             if constexpr (toml::is_number<decltype(el)>)
                 el = m_window_x;
-            });
+        });
     }
 
     if (toml::array* window_y = config.table()["window"]["y"].as_array())

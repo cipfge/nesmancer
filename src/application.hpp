@@ -35,6 +35,7 @@ private:
     SDL_Texture* m_frame_texture = nullptr;
     SDL_version m_sdl_version = {};
     ApplicationStyle m_style;
+    std::string m_style_name = "default";
 
     std::string m_window_title = EMU_VERSION_NAME;
     int m_window_width = DefaultWindowWidth;

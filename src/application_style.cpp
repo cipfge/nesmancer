@@ -106,3 +106,20 @@ void ApplicationStyle::set_color_theme(ColorTheme theme)
 
     m_selected_theme = theme;
 }
+
+void ApplicationStyle::set_color_theme(const std::string& name)
+{
+    set_color_theme(get_theme_from_string(name));
+}
+
+ColorTheme ApplicationStyle::get_theme_from_string(const std::string name)
+{
+    if (name == "dark")
+        return ColorTheme::ImGuiDark;
+    else if (name == "classic")
+        return ColorTheme::ImGuiClassic;
+    else if (name == "light")
+        return ColorTheme::ImGuiLight;
+    else
+        return ColorTheme::Default;
+}
