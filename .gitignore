@@ -19,3 +19,4 @@ thirdparty/SDL2*/
 
 # Generated files
 src/version.hpp
+src/platform/windows/RCa*
