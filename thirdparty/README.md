@@ -20,3 +20,8 @@ External libraries used by the project
 - Upstream: https://github.com/jamesathey/Nes_Snd_Emu
 - Version: 0.2.0
 - License: LGPL
+
+## toml++
+- Upstream: https://github.com/marzer/tomlplusplus
+- Version: 3.4.0
+- License: MIT
