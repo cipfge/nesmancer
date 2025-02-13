@@ -33,6 +33,8 @@ public:
     uint8_t read(uint16_t address);
     void write(uint16_t address, uint8_t data);
 
+    void set_palette(const uint32_t* palette);
+
     uint16_t cycle() const { return m_cycle; }
     uint16_t scanline() const { return m_scanline; }
     void frame_start() { m_frame_rendered = false; }
@@ -140,8 +142,8 @@ private:
         uint8_t pattern_high[8];
     };
 
-    static uint32_t m_palette[64];
-
+    static uint32_t m_default_palette[64];
+    uint32_t m_palette[64];
     Cartridge& m_cartridge;
     Control m_control;
     Mask m_mask;
@@ -190,4 +192,5 @@ private:
     void sprite_zero_hit(uint8_t spr_pixel, uint8_t bg_pixel);
     void render_cycle();
     void render_pixel();
+    void load_default_palette();
 };

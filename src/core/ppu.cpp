@@ -2,7 +2,7 @@
 #include "cartridge.hpp"
 #include <cstring>
 
-uint32_t PPU::m_palette[64] = {
+uint32_t PPU::m_default_palette[64] = {
     0x666666, 0x002A88, 0x1412A7, 0x3B00A4, 0x5C007E, 0x6E0040, 0x6C0600, 0x561D00,
     0x333500, 0x0B4800, 0x005200, 0x004F08, 0x00404D, 0x000000, 0x000000, 0x000000,
     0xADADAD, 0x155FD9, 0x4240FF, 0x7527FE, 0xA01ACC, 0xB71E7B, 0xB53120, 0x994E00,
@@ -16,6 +16,7 @@ uint32_t PPU::m_palette[64] = {
 PPU::PPU(Cartridge& cartridge)
     : m_cartridge(cartridge)
 {
+    load_default_palette();
     reset();
 }
 
@@ -207,6 +208,12 @@ void PPU::write(uint16_t address, uint8_t data)
     default:
         break;
     }
+}
+
+void PPU::set_palette(const uint32_t* palette)
+{
+    for (int i = 0; i < 64; i++)
+        m_palette[i] = palette[i];
 }
 
 uint16_t PPU::nametable_mirror(uint16_t address)
@@ -585,4 +592,10 @@ void PPU::render_pixel()
 
     uint32_t color = read_color_from_palette(pixel, palette);
     m_frame_buffer[m_scanline * ScreenWidth + m_cycle] = color;
+}
+
+void PPU::load_default_palette()
+{
+    for (int i = 0; i < 64; i++)
+        m_palette[i] = m_default_palette[i];
 }

@@ -286,6 +286,10 @@ void Application::render_menubar()
 
         if (ImGui::BeginMenu("System"))
         {
+            if (ImGui::MenuItem("Load Palette", nullptr, false))
+                open_palette_file();
+
+            ImGui::Separator();
             const std::string menu_title = m_nes->paused() ? "Resume" : "Pause";
             if (ImGui::MenuItem(menu_title.c_str(), "Esc", false, m_nes->running()))
                 m_nes->toggle_pause();
@@ -553,5 +557,25 @@ void Application::open_nes_file()
                                       platform::file_remove_extension(platform::file_name(file_path));
             set_window_title(title);
         }
+    }
+}
+
+void Application::open_palette_file()
+{
+    NFD::Guard guard;
+    NFD::UniquePath nes_file_path = nullptr;
+
+    nfdfilteritem_t filter[1] = {
+        {"NES Palette File", "pal"}
+    };
+
+    nfdwindowhandle_t parent_window = {};
+    NFD_GetNativeWindowFromSDLWindow(m_window, &parent_window);
+
+    nfdresult_t result = NFD::OpenDialog(nes_file_path, filter, 1, nullptr, parent_window);
+    if (result == NFD_OKAY)
+    {
+        std::string file_path(nes_file_path.get());
+        m_nes->load_palette_file(file_path);
     }
 }

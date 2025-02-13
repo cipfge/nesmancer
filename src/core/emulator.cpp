@@ -1,6 +1,8 @@
 #include "emulator.hpp"
 #include "input_manager.hpp"
 #include "logger.hpp"
+#include <iostream>
+#include <fstream>
 
 Emulator::Emulator(InputManager& input_manager):
     m_ppu(m_cartridge),
@@ -75,6 +77,20 @@ bool Emulator::load_rom_file(const std::string& file_path)
         return false;
 
     reset();
+
+    return true;
+}
+
+bool Emulator::load_palette_file(const std::string& file_path)
+{
+    std::fstream stream(file_path, std::ios::in | std::ios::binary);
+    if (!stream.is_open())
+        return false;
+
+    uint32_t palette[64];
+    stream.read(reinterpret_cast<char*>(&palette), sizeof(palette));
+    m_ppu.set_palette(palette);
+    LOG_INFO("Palette loaded from %s", file_path.c_str());
 
     return true;
 }

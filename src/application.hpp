@@ -62,4 +62,5 @@ private:
 
     void toggle_fullscreen();
     void open_nes_file();
+    void open_palette_file();
 };

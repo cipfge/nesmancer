@@ -21,6 +21,7 @@ public:
     void power_off();
     void run();
     bool load_rom_file(const std::string& file_path);
+    bool load_palette_file(const std::string& file_path);
     bool running() const { return m_cartridge.loaded(); }
     bool paused() const { return m_paused; }
     const long sound_samples_available() const;
