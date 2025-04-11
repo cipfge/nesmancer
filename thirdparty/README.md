@@ -3,7 +3,7 @@ External libraries used by the project
 
 ## SDL2
 - Upstream: https://github.com/libsdl-org
-- Version: 2.28.5
+- Version: 2.32.4
 - License: Zlib
 
 ## Imgui
